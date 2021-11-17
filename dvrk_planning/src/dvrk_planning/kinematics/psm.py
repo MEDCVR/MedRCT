@@ -30,6 +30,10 @@ class PSMKinematicData:
         self.L_yaw2ctrlpnt = 0.0106  # Fixed length from the pinch joint to the pinch tip
         # Delta between tool tip and the Remote Center of Motion
         self.L_tool2rcm_offset = 0.0229
+    
+        # From the urdf, and the jhu dvrk_robot
+        self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
+            "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
 
         # PSM DH Params
         # alpha | a | theta | d | offset | type
