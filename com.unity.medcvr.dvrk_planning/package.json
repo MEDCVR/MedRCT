@@ -1,0 +1,8 @@
+{
+  "name": "com.unity.medcvr.dvrk_planning",
+  "version": "0.0.0",
+  "displayName": "Dvrk Planning",
+  "description": "Kinematics Algorithms of the Dvrk",
+  "unity": "2020.2",
+  "unityRelease": "0b9"
+}
