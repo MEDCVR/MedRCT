@@ -48,7 +48,7 @@ namespace Medcvr.DvrkPlanning.Tests
             Assert.AreEqual(     0.0f, output[2, 0], tol);
             Assert.AreEqual(     0.0f, output[2, 1], tol);
             Assert.AreEqual(    -1.0f, output[2, 2], tol);
-            Assert.AreEqual(-0.09670f, output[2, 3], tol);
+            Assert.AreEqual(-0.10370f, output[2, 3], tol);
 
             Assert.AreEqual(0.0f, output[3, 0], tol);
             Assert.AreEqual(0.0f, output[3, 1], tol);
@@ -61,7 +61,7 @@ namespace Medcvr.DvrkPlanning.Tests
         {
             Quaternion quat = new Quaternion();
             quat.Set(0.7071068f, 0.7071068f, 0.0f, 0.0f);
-            Vector3 pos = new Vector3(0.0f, 0.0f, -0.09670f);
+            Vector3 pos = new Vector3(0.0f, 0.0f, -0.10370f);
 
             float[] outjps = Psm.Kinematics.ComputeIK(pos, quat);
             float[] correct_jps = new float[] {0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f};
