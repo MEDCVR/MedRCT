@@ -24,15 +24,14 @@ class PSMKinematicData:
     def __init__(self):
         self.num_links = 7
 
-        self.L_rcc = 0.4389  # From dVRK documentation
-        # self.L_rcc = 0.4318 # dvrk_env uses this, ask Adnan?
+        self.L_rcc = 0.4318  # From dVRK documentation
         self.L_tool = 0.4162  # From dVRK documentation
         self.L_pitch2yaw = 0.0091  # Fixed length from the palm joint to the pinch joint
-        self.L_yaw2ctrlpnt = 0.0106  # Fixed length from the pinch joint to the pinch tip
+        self.L_yaw2ctrlpnt = 0.0102  # Fixed length from the pinch joint to the pinch tip
         # Delta between tool tip and the Remote Center of Motion
         # self.L_tool2rcm_offset = 0.0229
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
-    
+
         # From the urdf, and the jhu dvrk_robot
         self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
             "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
