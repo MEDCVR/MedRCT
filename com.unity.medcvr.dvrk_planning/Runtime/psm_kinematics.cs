@@ -4,6 +4,7 @@ using Medcvr.DvrkPlanning;
 
 namespace Medcvr.DvrkPlanning.Psm
 {
+// For the psm kinematics explanation, follow dvrk_planning/src/dvrk_planning/kinematics/psm.py
 public static class Kinematics
 {
     public static class Data

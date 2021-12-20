@@ -5,6 +5,12 @@ from dvrk_planning.kinematics.utilities import *
 from dvrk_planning.kinematics.dh import *
 from PyKDL import Vector, Rotation, Frame
 
+# For the frame definitions, launch https://github.com/WPI-AIM/dvrk_env/tree/feature/standardize_model_kinematics
+# `roslaunch dvrk_description psm_rviz.launch`
+# This model in dvrk_env uses the DH axis defined in dvrk manual. NOTE, dvrk manual
+# dh figures are wrong, so dvrk_env frames correspond to https://arxiv.org/pdf/1902.10875.pdf figure 4a.
+# The kinematics are wrt to the base_link frame (Remote center of motion)
+
 # THIS IS THE FK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE
 # SAME KINEMATIC CONFIGURATION FOUND IN THE DVRK MANUAL. NOTE, JUST LIKE A FAULT IN THE
 # MTM's DH PARAMETERS IN THE MANUAL, THERE IS A FAULT IN THE PSM's DH AS WELL. BASED ON
