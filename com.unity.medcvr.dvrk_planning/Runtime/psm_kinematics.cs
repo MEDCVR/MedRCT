@@ -4,18 +4,19 @@ using Medcvr.DvrkPlanning;
 
 namespace Medcvr.DvrkPlanning.Psm
 {
+// For the psm kinematics explanation, follow dvrk_planning/src/dvrk_planning/kinematics/psm.py
 public static class Kinematics
 {
     public static class Data
     {
         public const int numLinks = 7;
 
-        public const float lRcc = 0.4389f;  // From dVRK documentation
-        public const float lTool = 0.416f; // From dVRK documentation
-        public const float lPitch2yaw = 0.009f;  // Fixed length from the palm joint to the pinch joint
-        public const float lYaw2ctrlpnt = 0.0106f;  // Fixed length from the pinch joint to the pinch tip
+        public const float lRcc = 0.4318f;  // From dVRK documentation
+        public const float lTool = 0.4162f; // From dVRK documentation
+        public const float lPitch2yaw = 0.0091f;  // Fixed length from the palm joint to the pinch joint
+        public const float lYaw2ctrlpnt = 0.0102f;  // Fixed length from the pinch joint to the pinch tip
         // Delta between tool tip and the Remote Center of Motion
-        public const float lTool2rcm_offset = 0.0229f;
+        public const float lTool2rcm_offset = lRcc - lTool;
 
         private static Dh[] kinematics = new Dh[] {
             new Dh( Global.PI_2,       0.0f,         0.0f,  Global.PI_2, Dh.JointType.REVOLUTE),

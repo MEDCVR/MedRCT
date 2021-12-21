@@ -5,6 +5,12 @@ from dvrk_planning.kinematics.utilities import *
 from dvrk_planning.kinematics.dh import *
 from PyKDL import Vector, Rotation, Frame
 
+# For the frame definitions, launch https://github.com/WPI-AIM/dvrk_env/tree/feature/standardize_model_kinematics
+# `roslaunch dvrk_description psm_rviz.launch`
+# This model in dvrk_env uses the DH axis defined in dvrk manual. NOTE, dvrk manual
+# dh figures are wrong, so dvrk_env frames correspond to https://arxiv.org/pdf/1902.10875.pdf figure 4a.
+# The kinematics are wrt to the base_link frame (Remote center of motion)
+
 # THIS IS THE FK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE
 # SAME KINEMATIC CONFIGURATION FOUND IN THE DVRK MANUAL. NOTE, JUST LIKE A FAULT IN THE
 # MTM's DH PARAMETERS IN THE MANUAL, THERE IS A FAULT IN THE PSM's DH AS WELL. BASED ON
@@ -24,13 +30,14 @@ class PSMKinematicData:
     def __init__(self):
         self.num_links = 7
 
-        self.L_rcc = 0.4389  # From dVRK documentation
-        self.L_tool = 0.416  # From dVRK documentation
-        self.L_pitch2yaw = 0.009  # Fixed length from the palm joint to the pinch joint
-        self.L_yaw2ctrlpnt = 0.0106  # Fixed length from the pinch joint to the pinch tip
+        self.L_rcc = 0.4318  # From dVRK documentation
+        self.L_tool = 0.4162  # From dVRK documentation
+        self.L_pitch2yaw = 0.0091  # Fixed length from the palm joint to the pinch joint
+        self.L_yaw2ctrlpnt = 0.0102  # Fixed length from the pinch joint to the pinch tip
         # Delta between tool tip and the Remote Center of Motion
-        self.L_tool2rcm_offset = 0.0229
-    
+        # self.L_tool2rcm_offset = 0.0229
+        self.L_tool2rcm_offset = self.L_rcc - self.L_tool
+
         # From the urdf, and the jhu dvrk_robot
         self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
             "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
