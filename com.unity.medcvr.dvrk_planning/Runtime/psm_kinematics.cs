@@ -160,7 +160,7 @@ public class Kinematics
         float insertionDepth = T_PalmJoint_0_p.magnitude;
 
         // Angle calculations
-        float xz_diag = Mathf.Pow(T_PalmJoint_0_p.x, 2.0f) + Mathf.Pow(T_PalmJoint_0_p.z, 2.0f);
+        float xz_diag = Mathf.Sqrt(Mathf.Pow(T_PalmJoint_0_p.x, 2.0f) + Mathf.Pow(T_PalmJoint_0_p.z, 2.0f));
 
         float j1 = Mathf.Atan2(T_PalmJoint_0_p.x, (-1.0f * T_PalmJoint_0_p.z));
         float j2 = -1 * Mathf.Atan2(T_PalmJoint_0_p.y, xz_diag);
