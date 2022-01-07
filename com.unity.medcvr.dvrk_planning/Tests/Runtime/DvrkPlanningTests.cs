@@ -21,16 +21,25 @@ namespace Medcvr.DvrkPlanning.Tests
         public void DebugComputeFkIk()
         {
             // float[] jps = new float[] {0.2f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f};
-            float[] jps = new float[] {0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f};
+            float[] jps = new float[] {0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f};
+            string debug_jps = "";
+            foreach(float j in jps)
+            {
+                debug_jps = debug_jps + j.ToString() + " ";
+            }
+            Debug.Log("Input jps: " + debug_jps);
+
             Matrix4x4 output = psmKinematics.ComputeFk(jps, 7);
             Debug.Log("Fk: " + output);
 
             float[] outjps = psmKinematics.ComputeIK(output);
             Debug.Log("IK: ");
+            string debug_ik = "";
             foreach(float j in outjps)
             {
-                Debug.Log(j.ToString());
+                debug_ik = debug_ik + j.ToString() + " ";
             }
+            Debug.Log(debug_ik);
         }
 
         [Test]
