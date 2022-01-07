@@ -20,8 +20,8 @@ namespace Medcvr.DvrkPlanning.Tests
         [Test]
         public void DebugComputeFkIk()
         {
-            // float[] jps = new float[] {0.2f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f};
-            float[] jps = new float[] {0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f};
+            // float[] jps = new float[] {0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f};
+            float[] jps = new float[] {0.2f, -0.2f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f};
             string debug_jps = "";
             foreach(float j in jps)
             {
@@ -30,7 +30,7 @@ namespace Medcvr.DvrkPlanning.Tests
             Debug.Log("Input jps: " + debug_jps);
 
             Matrix4x4 output = psmKinematics.ComputeFk(jps, 7);
-            Debug.Log("Fk: " + output);
+            Debug.Log("Fk: \n" + output);
 
             float[] outjps = psmKinematics.ComputeIK(output);
             Debug.Log("IK: ");
@@ -40,6 +40,9 @@ namespace Medcvr.DvrkPlanning.Tests
                 debug_ik = debug_ik + j.ToString() + " ";
             }
             Debug.Log(debug_ik);
+
+            Matrix4x4 double_check_fk = psmKinematics.ComputeFk(outjps, 7);
+            Debug.Log("Double check Fk: \n" + double_check_fk);
         }
 
         [Test]
