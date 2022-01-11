@@ -9,16 +9,16 @@ node dVRKConsole{
     node CISSTSAW{
         component TeleopController
 
-        interface RotatedTipPosition
-        TeleopController -right-( RotatedTipPosition
+        interface RotatedTipPose
+        TeleopController -right-( RotatedTipPose
 
         component  CameraToRobotRotation
-        RotatedTipPosition -- CameraToRobotRotation
+        RotatedTipPose -- CameraToRobotRotation
 
         component MTM
-        interface TipPosition
-        TipPosition -- MTM
-        CameraToRobotRotation --( TipPosition
+        interface TipPose
+        TipPose -- MTM
+        CameraToRobotRotation --( TipPose
 
         component dVRKRobot
         interface JointCommand
@@ -52,20 +52,22 @@ New Framework
 
 component TeleopController as "(Teleop) Controller"
 
-interface RotatedTipPosition
-TeleopController -right-( RotatedTipPosition
+interface RotatedTipPose
+TeleopController --( RotatedTipPose
 
-interface TipPosition
+interface TipPose
 component  CameraToRobotRotation
-RotatedTipPosition -- CameraToRobotRotation
-CameraToRobotRotation --( TipPosition
+RotatedTipPose -- CameraToRobotRotation
+CameraToRobotRotation --( TipPose
 
 component MTM
-TipPosition -- MTM
+TipPose -- MTM
 component RLAgent
-TipPosition -- RLAgent
+TipPose -- RLAgent
 component OcculusHandheld
-TipPosition -- OcculusHandheld
+TipPose -- OcculusHandheld
+component Keyboard
+TipPose -- Keyboard
 
 node dVRKConsole {
     component dVRKRobot
@@ -78,7 +80,7 @@ dVRKRobot --( JointCommand
 dVRKUnity --( JointCommand
 dVRKAMBF --( JointCommand
 
-JointCommand -right- TeleopController
+JointCommand -- TeleopController
 
 interface ComputeIK
 component InverseKinematics #Green
@@ -89,12 +91,17 @@ TeleopController -- ComputeIK
 component RViz as "RViz Visualization"
 interface TransformTree
 RViz --( TransformTree
+RViz --( JointCommand
 
 TransformTree -- CameraToRobotRotation
 
 component URDF #Green
-URDF --( JointCommand
-TransformTree -- URDF
+interface KinematicsTree
+KinematicsTree -- URDF
+
+dVRKUnity --( KinematicsTree
+dVRKAMBF --( KinematicsTree
+RViz --( KinematicsTree
 
 @enduml
 ```
