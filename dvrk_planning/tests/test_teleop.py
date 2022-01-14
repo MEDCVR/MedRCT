@@ -24,11 +24,11 @@ def test_itc():
     itc.enable(output_start_tf)
 
     print("increment step: \n", inc_x)
-    print("Incrementing x \n")
+    print("Incrementing x --- \n")
     for _ in range(5):
         itc.update(Vector(inc_x, 0.0, 0.0), Rotation.Quaternion(0.0, 0.0, 0.0, 1.0))
 
-    print("Incrementing rot x \n")
+    print("Incrementing rot x --- \n")
     for _ in range(5):
         itc.update(Vector(0.0, 0.0, 0.0), Rotation.RPY(0.1, 0.0, 0.0))
 
@@ -43,7 +43,7 @@ def test_ftc():
     ftc.enable(input_start_tf, output_start_tf)
     print("increment step: \n", inc_x)
 
-    print("Incrementing x \n")
+    print("Incrementing x --- \n")
     for _ in range(5):
         input_start_tf[0,3] = input_start_tf[0,3] + inc_x
         ftc.update(input_start_tf)

@@ -39,12 +39,6 @@ class TeleopController():
         else:
             raise NotImplementedError
 
-    def rotation_adjustment(self, input_diff_tf):
-        rotated_output_tf = np.matmul(input_diff_tf, self.input_rot_adjustment_tf)
-        rotated_output_tf = np.matmul(self.output_to_camera_rot_tf, rotated_output_tf)
-
-        return rotated_output_tf
-
     def register(self, output_callback):
         self.output_callback = output_callback
         self.is_registered = True
@@ -64,6 +58,24 @@ class TeleopController():
 
     def disable(self):
         self.is_enabled = False
+
+    def _rotation_adjustment(self, input_diff_tf):
+        rotated_output_tf = np.matmul(input_diff_tf, self.input_rot_adjustment_tf)
+        rotated_output_tf = np.matmul(self.output_to_camera_rot_tf, rotated_output_tf)
+
+        return rotated_output_tf
+
+    def _update_output_tf(self, input_diff_tf, output_tf):
+        input_diff_tf_rotated = self._rotation_adjustment(input_diff_tf)
+
+        input_diff_rot, input_diff_p = get_rot_and_p(input_diff_tf_rotated)
+        cur_output_rot, cur_output_p = get_rot_and_p(output_tf)
+
+        cur_output_p = cur_output_p + input_diff_p
+        cur_output_rot = np.matmul(cur_output_rot, input_diff_rot)
+
+        output_tf[0:3, 0:3] = cur_output_rot
+        output_tf[0:3, 3] = cur_output_p
 
     ## Event driven by input frequency. Call this in your input loop/callback
     def update(self, *args):
@@ -100,8 +112,9 @@ class FollowTeleopController(TeleopController):
 
     def __update_input_tf(self, absolute_input_tf):
         input_tf_difference = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
-        input_tf_diff_rotated = self.rotation_adjustment(input_tf_difference)
-        return np.matmul(self.start_output_tf, input_tf_diff_rotated) #absolute_output_tf
+        absolute_output_tf = np.copy(self.start_output_tf)
+        self._update_output_tf(input_tf_difference, absolute_output_tf)
+        return absolute_output_tf
 
     def _update_impl(self, args):
         return self.__update_input_tf(*args)
@@ -116,20 +129,7 @@ class IncrementTeleopController(TeleopController):
 
     def __increment_input_tf(self, inc_position: Vector, inc_quaternion: Rotation):
         input_diff_tf = convert_frame_to_mat(Frame(inc_quaternion, inc_position))
-
-        # Need seperate rotation and position update
-        input_diff_tf_rotated = self.rotation_adjustment(input_diff_tf)
-
-        input_diff_rot, input_diff_p = get_rot_and_p(input_diff_tf_rotated)
-        cur_output_rot, cur_output_p = get_rot_and_p(self.current_output_tf)
-
-        cur_output_p = cur_output_p + input_diff_p
-        cur_output_rot = np.matmul(cur_output_rot, input_diff_rot)
-
-        self.current_output_tf[0:3, 0:3] = cur_output_rot
-
-        self.current_output_tf[0:3, 3] = cur_output_p
-
+        self._update_output_tf(input_diff_tf, self.current_output_tf)
         return self.current_output_tf
 
     def _update_impl(self, args):
