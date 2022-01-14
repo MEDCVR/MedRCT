@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from dvrk_planning.src.dvrk_planning.utilities import *
+from dvrk_planning.utilities import *
 from dvrk_planning.kinematics.dh import *
 from PyKDL import Vector, Rotation, Frame
 
