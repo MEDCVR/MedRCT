@@ -15,6 +15,11 @@ class OutputType(Enum):
     PSM = 0
     ECM = 1
 
+def get_rot_and_p(tf):
+    rot = tf[0:3, 0:3]
+    p = tf[0:3,3]
+    return rot, p.flatten()
+
 class TeleopController():
     # Suggest to only use output_to_camera_to, rather than using both with input_to_rot_adjustment
     # Try to align camera axis to the axis of your input changes.
@@ -80,8 +85,8 @@ class TeleopController():
 
 class FollowTeleopController(TeleopController):
     def enable(self, start_input_tf, start_output_tf):
-        self.start_input_tf = start_input_tf
-        self.start_output_tf = start_output_tf
+        self.start_input_tf = np.copy(start_input_tf)
+        self.start_output_tf = np.copy(start_output_tf)
         super()._enable()
 
     # When unclutching:
@@ -89,8 +94,8 @@ class FollowTeleopController(TeleopController):
     # MTM adjusts rotation for current output rotation. Need to check, but that wont work for occulus, or haptic pen.
     # start_output_tf should be the current tf of the output when uncluthing
     def unclutch(self, start_input_tf, start_output_tf):
-        self.start_input_tf = start_input_tf
-        self.start_output_tf = start_output_tf
+        self.start_input_tf = np.copy(start_input_tf)
+        self.start_output_tf = np.copy(start_output_tf)
         super()._unclutch()
 
     def __update_input_tf(self, absolute_input_tf):
@@ -103,7 +108,7 @@ class FollowTeleopController(TeleopController):
 
 class IncrementTeleopController(TeleopController):
     def enable(self, current_output_tf):
-        self.current_output_tf = current_output_tf
+        self.current_output_tf = np.copy(current_output_tf)
         super()._enable()
 
     def unclutch(self):
@@ -112,7 +117,18 @@ class IncrementTeleopController(TeleopController):
     def __increment_input_tf(self, inc_position: Vector, inc_quaternion: Rotation):
         input_diff_tf = convert_frame_to_mat(Frame(inc_quaternion, inc_position))
 
-        self.current_output_tf = np.matmul(self.rotation_adjustment(input_diff_tf), self.current_output_tf)
+        # Need seperate rotation and position update
+        input_diff_tf_rotated = self.rotation_adjustment(input_diff_tf)
+
+        input_diff_rot, input_diff_p = get_rot_and_p(input_diff_tf_rotated)
+        cur_output_rot, cur_output_p = get_rot_and_p(self.current_output_tf)
+
+        cur_output_p = cur_output_p + input_diff_p
+        cur_output_rot = np.matmul(cur_output_rot, input_diff_rot)
+
+        self.current_output_tf[0:3, 0:3] = cur_output_rot
+
+        self.current_output_tf[0:3, 3] = cur_output_p
 
         return self.current_output_tf
 
