@@ -25,10 +25,10 @@ class TeleopController():
     # Try to align camera axis to the axis of your input changes.
     def __init__(self,
             output_type = OutputType.PSM,
-            output_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1),
-            input_to_rot_adjustment = Rotation.Quaternion(0, 0, 0, 1)):
+            output_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)):
+            # input_to_rot_adjustment = Rotation.Quaternion(0, 0, 0, 1)): # Not doing input to rot adjustment now, as it gets confusing
         self.output_to_camera_rot_tf = convert_frame_to_mat(Frame(output_to_camera_rot, Vector(0.0, 0.0, 0.0)))
-        self.input_rot_adjustment_tf = convert_frame_to_mat(Frame(input_to_rot_adjustment, Vector(0.0, 0.0, 0.0)))
+        # self.input_rot_adjustment_tf = convert_frame_to_mat(Frame(input_to_rot_adjustment, Vector(0.0, 0.0, 0.0)))
 
         self.is_registered = False
         self.is_clutched = False
@@ -60,8 +60,8 @@ class TeleopController():
         self.is_enabled = False
 
     def _rotation_adjustment(self, input_diff_tf):
-        rotated_output_tf = np.matmul(input_diff_tf, self.input_rot_adjustment_tf)
-        rotated_output_tf = np.matmul(self.output_to_camera_rot_tf, rotated_output_tf)
+        # rotated_input_tf = np.matmul(input_diff_tf, self.input_rot_adjustment_tf)
+        rotated_output_tf = np.matmul(self.output_to_camera_rot_tf, input_diff_tf)
 
         return rotated_output_tf
 
