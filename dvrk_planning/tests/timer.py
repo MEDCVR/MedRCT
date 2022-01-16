@@ -27,10 +27,10 @@ class Timer:
         return self.elapsed_time
 
     def str_elapsed_time(self):
-        return f"Elapsed time: {self.elapsed_time:0.4f} seconds"
+        return f"Elapsed time: {self.elapsed_time:0.8f} seconds"
 
     def str_average(self):
-        return f"Average time with {self.timer_repeat_times} tries: {self.average_time:0.4f} seconds"
+        return f"Average time with {self.timer_repeat_times} tries: {self.average_time:0.8f} seconds"
 
     def time_average(self, test_function):
         accumulated_time = 0.0
