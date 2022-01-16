@@ -7,10 +7,6 @@ from PyKDL import Frame, Rotation, Vector
 from dvrk_planning.kinematics.psm import compute_ik
 from dvrk_planning.utilities import convert_frame_to_mat
 
-# This class automates the output_callback() into the update() function which is called everytime an
-# input event happens.
-# During an input event, it is also possible to change behaviour calling various API.
-# Such as clutch/unclutch, enable/disable.
 class OutputType(Enum):
     PSM = 0
     ECM = 1
@@ -20,6 +16,10 @@ def get_rot_and_p(tf):
     p = tf[0:3,3]
     return rot, p.flatten()
 
+# This class automates the output_callback() into the update() function which is called everytime an
+# input event happens.
+# During an input event, it is also possible to change behaviour calling various API.
+# Such as clutch/unclutch, enable/disable.
 class TeleopController():
     # Suggest to only use output_to_camera_to, rather than using both with input_to_rot_adjustment
     # Try to align camera axis to the axis of your input changes.
