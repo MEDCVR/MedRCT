@@ -4,18 +4,3 @@ controllers:
     input_topic: "/keyboard/twist"
     output_topic: "/PSM1/servo_jp"
     output_feedback_topic: "/PSM1/measured_js"
-  - name: "MTML-PSM2"
-    type: "follow"
-    input_topic: "/MTML/measured_cp"
-    output_topic: "/PSM2/servo_jp"
-    output_feedback_topic: "/PSM2/measured_js"
-    output_to_camera_rot:
-      x: 0
-      y: 0
-      z: 1
-      w: 0
-clutch_topic: "/console/clutch"
-switcher:
-  switch_topic: "/console/camera"
-  disable_list: ["Keyboard-PSM1"]
-  enable_list: ["Keyboard-ECM"]

@@ -121,8 +121,12 @@ class DvrkTeleopNode:
             self.enable_list = switcher_yaml["enable_list"]
             self.switch_sub = rospy.Subscriber(switch_topic, Joy, self.switch_callback)
 
-        for _, rtc in self.ros_teleop_controllers.items():
-            rtc.enable()
+        if "enable_at_start" in config_yaml:
+            enable_at_start = config_yaml["enable_at_start"]
+        else:
+            enable_at_start = self.ros_teleop_controllers.keys()
+        for name in enable_at_start:
+            self.ros_teleop_controllers[name].enable()
 
     def clutch_callback(self, data):
         if data.buttons[0] == 1:
@@ -149,7 +153,7 @@ if __name__ == '__main__':
 
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-cp', '--config_package', type=str, required=False,
+    parser.add_argument('-p', '--config_package', type=str, required=False,
                         default = "dvrk_planning_ros",
                         help = 'the package where you store the config yaml, default is "dvrk_planning_ros"')
     parser.add_argument('-y', '--yaml', type=str, required=False,

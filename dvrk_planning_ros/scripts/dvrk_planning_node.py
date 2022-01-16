@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-from utils import *
+from dvrk_planning_ros.utils import *
 
 import dvrk_planning as dp
 from dvrk_planning_msgs.srv import ComputeIK, ComputeIKResponse
