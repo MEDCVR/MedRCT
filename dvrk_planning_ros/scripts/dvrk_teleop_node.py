@@ -11,11 +11,11 @@ import sys
 import yaml
 
 from geometry_msgs.msg import TransformStamped, Twist
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, Joy
 
-from PyKDL import Rotation
-from dvrk_planning.controller.teleop_controller import FollowTeleopController, IncrementTeleopController
-
+from PyKDL import Rotation, Vector
+from dvrk_planning.controller.teleop_controller import FollowTeleopController, IncrementTeleopController, ControllerType
+from dvrk_planning_ros.utils import *
 
 def to_pykdl(quaternion_yaml):
     x = quaternion_yaml["x"]
@@ -28,8 +28,8 @@ def to_pykdl(quaternion_yaml):
 class RosTeleopController:
     def __init__(self, controller_yaml):
         self.name = controller_yaml["name"]
-        self.output_topic = rospy.Publisher(controller_yaml["output_topic"], JointState, queue_size = 1)
-        self.output_topic = rospy.Subscriber(controller_yaml["output_feedback_topic"], JointState, self._output_feedback_callback)
+        self.output_pub = rospy.Publisher(controller_yaml["output_topic"], JointState, queue_size = 1)
+        self.output_feedback_sub = rospy.Subscriber(controller_yaml["output_feedback_topic"], JointState, self._output_feedback_callback)
 
         output_base_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)
         output_base_to_camera_rot_str = "output_to_camera_rot"
@@ -38,31 +38,55 @@ class RosTeleopController:
 
         input_topic_name = controller_yaml["input_topic"]
         if controller_yaml["type"] == "follow":
-            self.teleop_controller = FollowTeleopController(output_to_camera_rot = output_base_to_camera_rot)
+            self._teleop_controller = FollowTeleopController(output_to_camera_rot = output_base_to_camera_rot)
             self.input_sub = rospy.Subscriber(input_topic_name, TransformStamped, self._input_callback_tf)
         elif controller_yaml["type"] == "increment":
-            self.teleop_controller = IncrementTeleopController(output_to_camera_rot = output_base_to_camera_rot)
+            self._teleop_controller = IncrementTeleopController(output_to_camera_rot = output_base_to_camera_rot)
             self.input_sub = rospy.Subscriber(input_topic_name, Twist, self._input_callback_twist)
         else:
             raise NotImplementedError
 
-    # def get_current_output_tf():
+        self._teleop_controller.register(self._output_callback)
 
-    # def get_current_input_tf():
+    def wait_subscribers(self):
+        x = 0
+
+    def enable(self):
+        # TODO, this is not good oop
+        if self._teleop_controller.controller_type == ControllerType.INCREMENT:
+            self._teleop_controller.enable(self.current_output_tf)
+        elif self._teleop_controller.controller_type == ControllerType.FOLLOW:
+            self._teleop_controller.enable(self.current_input_tf, self.current_output_tf)
+
+    def disable(self):
+        self._teleop_controller.disable()
+
+    def clutch(self):
+        self._teleop_controller.clutch()
+
+    def unclutch(self):
+        # TODO, this is not good oop
+        if self._teleop_controller.controller_type == ControllerType.INCREMENT:
+            self._teleop_controller.unclutch()
+        elif self._teleop_controller.controller_type == ControllerType.FOLLOW:
+            self._teleop_controller.unclutch(self.current_input_tf, self.current_output_tf)
 
     # Output feedback needs a tf, but js is the simplest type of
     # data for a robot controller, so lets start with that.
     def _output_feedback_callback(self, js):
-        x = 0
+        self.current_output_tf = self._teleop_controller.fk_function(js)
 
     def _output_callback(self, js):
-        x = 0
+        self.output_pub.publish()
 
     def _input_callback_tf(self, data):
-        self.input_tf = data.transform
+        self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
+        self.teleop_controller.update(self.current_input_tf)
 
-    def _input_callback_twist(self,data):
-        x = 0
+    def _input_callback_twist(self, data):
+        self.teleop_controller.update(
+            Vector(data.linear.x, data.linear.y, data.linear.z),
+            Rotation.RPY(data.angular.x, data.angular.y, data.angular.z))
 
 class DvrkTeleopNode:
     def __init__(self, config_yaml):
@@ -72,15 +96,38 @@ class DvrkTeleopNode:
         for controller_yaml in config_yaml["controllers"]:
             self.ros_teleop_controllers[controller_yaml["name"]] = RosTeleopController(controller_yaml)
 
-        self.clutch_sub = rospy.Subscriber("/console/clutch", Twist, self.clutch_callback)
+        clutch_topic = "/console/clutch"
+        if ("clutch_topic" in config_yaml):
+            clutch_topic = config_yaml["clutch_topic"]
+            self.clutch_sub = rospy.Subscriber(clutch_topic, Joy, self.clutch_callback)
+
+        switch_topic = "/console/camera"
+        if ("switcher" in config_yaml):
+            switcher_yaml = config_yaml["switcher"]
+            switch_topic = switcher_yaml["switch_topic"]
+            self.disable_list = switcher_yaml["disable_list"]
+            self.enable_list = switcher_yaml["enable_list"]
+            self.switch_sub = rospy.Subscriber(switch_topic, Joy, self.switch_callback)
+
     def clutch_callback(self, data):
         if data.buttons[0] == 1:
             for rtc in self.ros_teleop_controllers:
-                rtc.teleop_controller.clutch()
+                rtc.clutch()
         elif data.buttons[0] == 0:
             for rtc in self.ros_teleop_controllers:
-                # rtc.teleop_controller.unclutch()
-                # Need to account fo different clutch style
+                rtc.unclutch()
+
+    def _execute_enable_disable(self, enable_list, disable_list):
+        for name in enable_list:
+            self.ros_teleop_controllers[name].enable()
+        for name in disable_list:
+            self.ros_teleop_controllers[name].disable()
+
+    def switch_callback(self, data):
+        if data.buttons[0] == 1:
+            self._execute_enable_disable(self.enable_list, self.disable_list)
+        elif data.buttons[0] == 0:
+            self._execute_enable_disable(self.disable_list, self.enable_list)
 
 if __name__ == '__main__':
     argv = rospy.myargv(argv=sys.argv)

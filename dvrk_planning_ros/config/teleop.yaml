@@ -17,5 +17,5 @@ controllers:
 clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/camera"
-  to_disables: ["Keyboard-PSM1"]
-  to_enables: [Keyboard-ECM]
+  disable_list: ["Keyboard-PSM1"]
+  enable_list: ["Keyboard-ECM"]
