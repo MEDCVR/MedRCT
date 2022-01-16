@@ -1,7 +1,16 @@
 # dvrk_planning_ros
 
 
-## Launch node and test
+## Build
+Make workspace so folder structure is <your_workspace>/src/dvrk_planning
+
+```
+cd <your_workspace>
+catkin build
+source devel/setup.bash
+```
+
+## Launch dvrk_planning_node
 
 Launch the node:
 
@@ -35,4 +44,17 @@ joint_state:
   position: [0.0, -0.0, 0.1, 0.0, -0.0, 0.0]
   velocity: []
   effort: []
+```
+
+## Launch dvrk_teleop_node
+
+```
+rosrun dvrk_planning_ros dvrk_teleop_node.py
+```
+
+The default arguments tries to find the yaml file in `dvrk_planning_ros` package, with a relative path `/config/teleop.yaml`.
+To specify another config file path, and/or another package where the config is relative to:
+
+```
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p <another_package> -y <relative_path_to_yaml>
 ```
