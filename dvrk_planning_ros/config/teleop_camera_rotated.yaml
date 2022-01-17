@@ -1,0 +1,10 @@
+controllers:
+  - name: "Keyboard-PSM1"
+    type: "increment"
+    input_topic: "/keyboard/twist"
+    output_topic: "/PSM1/servo_jp"
+    output_feedback_topic: "/PSM1/measured_js"
+    output_to_camera_rot:
+      lookup_tf:
+        base_tf: "base_link"        
+        camera_tf: "camera_fov_frame"

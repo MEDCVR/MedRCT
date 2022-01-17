@@ -5,6 +5,7 @@ import os.path
 import rospy
 import rospkg
 import sys
+import tf
 import yaml
 
 from geometry_msgs.msg import TransformStamped, Twist
@@ -17,13 +18,25 @@ from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
 # TODO should come from dvrk_planning/kinematics
 PSM_ACTIVE_JOINT_NAMES = ["outer_yaw", "outer_pitch", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
 
-def to_pykdl(quaternion_yaml):
+def quat_yaml_to_pykdl(quaternion_yaml):
     x = quaternion_yaml["x"]
     y = quaternion_yaml["y"]
     z = quaternion_yaml["z"]
     w = quaternion_yaml["w"]
 
     return Rotation.Quaternion(x, y, z, w)
+
+def output_to_camera_rot_from_yaml(output_to_camera_rot_yaml):
+    if "quaternion" in output_to_camera_rot_yaml:
+        return quat_yaml_to_pykdl(output_to_camera_rot_yaml["quaternion"])
+    elif "lookup_tf" in output_to_camera_rot_yaml:
+        lookup_tf_yaml = output_to_camera_rot_yaml["lookup_tf"]
+        t = tf.TransformListener()
+        rospy.sleep(1) # Sleep is needed so TransformListener has time to get the tf's
+        _, quat_rot  = t.lookupTransform(lookup_tf_yaml["camera_tf"],lookup_tf_yaml["base_tf"], rospy.Time(0))
+        return Rotation.Quaternion(quat_rot[0], quat_rot[1], quat_rot[2], quat_rot[3])
+    else:
+        raise KeyError ("output_to_camera in yaml looking for quaternion or lookup_tf")
 
 class RosTeleopController:
     def __init__(self, controller_yaml):
@@ -33,9 +46,8 @@ class RosTeleopController:
         self.output_feedback_sub = rospy.Subscriber(self.output_feedback_topic, JointState, self._output_feedback_callback)
 
         output_base_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)
-        output_base_to_camera_rot_str = "output_to_camera_rot"
-        if(output_base_to_camera_rot_str in controller_yaml):
-            output_base_to_camera_rot = to_pykdl(controller_yaml[output_base_to_camera_rot_str])
+        if("output_to_camera_rot" in controller_yaml):
+            output_base_to_camera_rot = output_to_camera_rot_from_yaml(controller_yaml["output_to_camera_rot"])
 
         self.input_topic = controller_yaml["input_topic"]
         if controller_yaml["type"] == "follow":
@@ -47,7 +59,7 @@ class RosTeleopController:
             self.input_topic_type = Twist
             sub_callback = self._input_callback_twist
         else:
-            raise NotImplementedError
+            raise KeyError ("controller: type: must be follow or increment")
         self.input_sub = rospy.Subscriber(self.input_topic, self.input_topic_type, sub_callback)
 
         self._teleop_controller.register(self._output_callback)
@@ -61,7 +73,7 @@ class RosTeleopController:
         print(self._get_str_name(), ": finised waiting for message from topic [" + self.input_topic +"]" )
 
         print(self._get_str_name(), ": waiting for message from topic [" + self.output_feedback_topic +"]" )
-        rospy.wait_for_message(self.output_feedback_topic, self.JointState)
+        rospy.wait_for_message(self.output_feedback_topic, JointState)
         print(self._get_str_name(), ": finised for message from topic [" + self.output_feedback_topic +"]" )
 
     def enable(self):
@@ -100,10 +112,10 @@ class RosTeleopController:
 
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
-        self.teleop_controller.update(self.current_input_tf)
+        self._teleop_controller.update(self.current_input_tf)
 
     def _input_callback_twist(self, data):
-        self.teleop_controller.update(
+        self._teleop_controller.update(
             Vector(data.linear.x, data.linear.y, data.linear.z),
             Rotation.RPY(data.angular.x, data.angular.y, data.angular.z))
 

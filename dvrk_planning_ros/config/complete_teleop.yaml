@@ -10,10 +10,11 @@ controllers:
     output_topic: "/PSM2/servo_jp"
     output_feedback_topic: "/PSM2/measured_js"
     output_to_camera_rot:
-      x: 0
-      y: 0
-      z: 1
-      w: 0
+      quaternion:
+        x: 0
+        y: 0
+        z: 1
+        w: 0
 enable_at_start: ["Keyboard-PSM1"]
 clutch_topic: "/console/clutch"
 switcher:
