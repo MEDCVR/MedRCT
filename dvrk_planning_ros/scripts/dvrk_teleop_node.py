@@ -14,6 +14,9 @@ from PyKDL import Rotation, Vector
 from dvrk_planning.controller.teleop_controller import FollowTeleopController, IncrementTeleopController, ControllerType
 from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
 
+# TODO should come from dvrk_planning/kinematics
+PSM_ACTIVE_JOINT_NAMES = ["outer_yaw", "outer_pitch", "outer_insertion", "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
+
 def to_pykdl(quaternion_yaml):
     x = quaternion_yaml["x"]
     y = quaternion_yaml["y"]
@@ -89,7 +92,11 @@ class RosTeleopController:
         self.current_output_tf = self._teleop_controller.fk_function(js)
 
     def _output_callback(self, js):
-        self.output_pub.publish()
+        js_msg = JointState()
+        # TODO should come from dvrk_planning/kinematics
+        js_msg.name = PSM_ACTIVE_JOINT_NAMES
+        js_msg.position = js
+        self.output_pub.publish(js_msg)
 
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
