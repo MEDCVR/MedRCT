@@ -4,7 +4,7 @@ import numpy as np
 # Should remove this if kinematics don't use
 from PyKDL import Frame, Rotation, Vector
 
-from dvrk_planning.kinematics.psm import compute_ik, compute_fk
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
 from dvrk_planning.utilities import convert_frame_to_mat
 
 class OutputType(Enum):
@@ -42,10 +42,9 @@ class TeleopController():
         self.is_enabled = False
 
         if (output_type == OutputType.PSM):
-            self.ik_function = compute_ik
-            self.fk_function = compute_fk
+            self.kin_solver = PsmKinematicsSolver(LND40006())
         else:
-            raise NotImplementedError
+            raise KeyError ('Right now only PSM')
 
     def register(self, output_callback):
         self.output_callback = output_callback
@@ -96,7 +95,7 @@ class TeleopController():
             return True
 
         absolute_output_tf = self._update_impl(args)
-        output_js = self.ik_function(absolute_output_tf)
+        output_js = self.kin_solver.compute_ik(absolute_output_tf)
         self.output_callback(output_js)
         return True
 

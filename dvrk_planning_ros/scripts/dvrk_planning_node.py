@@ -3,17 +3,18 @@
 import rospy
 from dvrk_planning_ros.utils import *
 
-import dvrk_planning as dp
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
 from dvrk_planning_msgs.srv import ComputeIK, ComputeIKResponse
 
 class DvrkPlanningNode:
     def __init__(self):
+        self.kin_solver = PsmKinematicsSolver(LND40006())
         self.compute_ik_srv = rospy.Service("psm/compute_ik", ComputeIK, self.psm_compute_ik)
 
     def psm_compute_ik(self, req):
-        joint_states = dp.kinematics.psm.compute_ik(gm_tf_to_numpy_mat(req.tf_stamped.transform))
+        joint_states = self.kin_solver.compute_ik(gm_tf_to_numpy_mat(req.tf_stamped.transform))
         res = ComputeIKResponse()
-        res.joint_state.name = dp.kinematics.psm.kinematics_data.joint_names
+        res.joint_state.name = self.kin_solver.kinematics_data.joint_names
         res.joint_state.position = joint_states
         return res
 

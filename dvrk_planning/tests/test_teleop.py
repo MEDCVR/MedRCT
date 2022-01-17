@@ -4,7 +4,7 @@ from PyKDL import Rotation, Vector
 import numpy as np
 
 from dvrk_planning.controller.teleop_controller import FollowTeleopController, IncrementTeleopController
-from dvrk_planning.kinematics.psm import compute_fk
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -12,7 +12,8 @@ np.set_printoptions(suppress=True)
 class TestSetup(unittest.TestCase):
     def setUp(self):
         self.joint_pos = [0.0, 0.0, 0.1, 0.0, 0.0, 0.0]
-        self.output_start_tf = compute_fk(self.joint_pos)
+        self.kin_solver = PsmKinematicsSolver(LND40006())
+        self.output_start_tf = self.kin_solver.compute_fk(self.joint_pos)
         self.inc_x = 0.01
         self.steps_num = 5
         print("--- TestSetup ---")
@@ -21,7 +22,7 @@ class TestSetup(unittest.TestCase):
 class TestIncrementTeleopController(TestSetup):
     def callback_function(self, js):
         print("output joint state to send: \n", js)
-        print("output transform result: \n", compute_fk(js))
+        print("output transform result: \n", self.kin_solver.compute_fk(js))
 
     def setUp(self):
         super().setUp()
@@ -59,7 +60,7 @@ class TestIncrementTeleopController(TestSetup):
 class TestFollowTeleopController(TestSetup):
     def callback_function(self, js):
         print("output joint state to send: \n", js)
-        print("output transform result: \n", compute_fk(js))
+        print("output transform result: \n", self.kin_solver.compute_fk(js))
 
     def setUp(self):
         super().setUp()
@@ -81,7 +82,7 @@ class TestFollowTeleopController(TestSetup):
     def test_clutch(self):
         def track_output_callback(js):
             print("output joint state to send: \n", js)
-            track_output_callback.tracked_tf = compute_fk(js)
+            track_output_callback.tracked_tf = self.kin_solver.compute_fk(js)
             print("output transform result: \n", track_output_callback.tracked_tf)
 
         print("--- test_clutch ---")

@@ -41,7 +41,7 @@ joint_state:
     - outer_roll
     - outer_wrist_pitch
     - outer_wrist_yaw
-  position: [0.0, -0.0, 0.1, 0.0, -0.0, 0.0]
+  position: [0.0, -0.0, 0.093, 0.0, -0.0, 0.0]
   velocity: []
   effort: []
 ```
