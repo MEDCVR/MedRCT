@@ -4,12 +4,7 @@ import numpy as np
 # Should remove this if kinematics don't use
 from PyKDL import Frame, Rotation, Vector
 
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
 from dvrk_planning.utilities import convert_frame_to_mat
-
-class OutputType(Enum):
-    PSM = 0
-    ECM = 1
 
 class ControllerType(Enum):
     ERROR = 0
@@ -30,7 +25,7 @@ class TeleopController():
     # Try to align camera axis to the axis of your input changes.
     def __init__(self,
             controller_type,
-            output_type = OutputType.PSM,
+            kinematics_solver,
             output_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)):
             # input_to_rot_adjustment = Rotation.Quaternion(0, 0, 0, 1)): # Not doing input to rot adjustment now, as it gets confusing
         self.controller_type = controller_type
@@ -41,10 +36,7 @@ class TeleopController():
         self.is_clutched = False
         self.is_enabled = False
 
-        if (output_type == OutputType.PSM):
-            self.kin_solver = PsmKinematicsSolver(LND40006())
-        else:
-            raise KeyError ('Right now only PSM')
+        self.kinematics_solver = kinematics_solver
 
     def register(self, output_callback):
         self.output_callback = output_callback
@@ -95,7 +87,7 @@ class TeleopController():
             return True
 
         absolute_output_tf = self._update_impl(args)
-        output_js = self.kin_solver.compute_ik(absolute_output_tf)
+        output_js = self.kinematics_solver.compute_ik(absolute_output_tf)
         self.output_callback(output_js)
         return True
 
@@ -103,8 +95,8 @@ class TeleopController():
         raise NotImplementedError
 
 class FollowTeleopController(TeleopController):
-    def __init__(self, output_type=OutputType.PSM, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
-        super().__init__(ControllerType.FOLLOW, output_type, output_to_camera_rot)
+    def __init__(self, kinematics_solver, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
+        super().__init__(ControllerType.FOLLOW, kinematics_solver, output_to_camera_rot)
 
     def enable(self, start_input_tf, start_output_tf):
         self.start_input_tf = np.copy(start_input_tf)
@@ -130,8 +122,8 @@ class FollowTeleopController(TeleopController):
         return self.__update_input_tf(*args)
 
 class IncrementTeleopController(TeleopController):
-    def __init__(self, output_type=OutputType.PSM, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
-        super().__init__(ControllerType.INCREMENT, output_type, output_to_camera_rot)
+    def __init__(self, kinematics_solver, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
+        super().__init__(ControllerType.INCREMENT, kinematics_solver, output_to_camera_rot)
 
     def enable(self, current_output_tf):
         self.current_output_tf = np.copy(current_output_tf)

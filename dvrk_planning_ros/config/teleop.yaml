@@ -1,6 +1,11 @@
 controllers:
   - name: "Keyboard-PSM1"
-    type: "increment"
-    input_topic: "/keyboard/twist"
-    output_topic: "/PSM1/servo_jp"
-    output_feedback_topic: "/PSM1/measured_js"
+    input:
+      type: "increment"
+      topic: "/keyboard/twist"
+    output:
+      control_topic: "/PSM1/servo_jp"
+      feedback_topic: "/PSM1/measured_js"
+    kinematics:
+      robot: "psm"
+      tool: "LND40006"

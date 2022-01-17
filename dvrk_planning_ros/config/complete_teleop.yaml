@@ -1,20 +1,30 @@
 controllers:
   - name: "Keyboard-PSM1"
-    type: "increment"
-    input_topic: "/keyboard/twist"
-    output_topic: "/PSM1/servo_jp"
-    output_feedback_topic: "/PSM1/measured_js"
+    input:
+      type: "increment"
+      topic: "/keyboard/twist"
+    output:
+      control_topic: "/PSM1/servo_jp"
+      feedback_topic: "/PSM1/measured_js"
+    kinematics:
+      robot: "psm"
+      tool: "LND40006"
   - name: "MTML-PSM2"
-    type: "follow"
-    input_topic: "/MTML/measured_cp"
-    output_topic: "/PSM2/servo_jp"
-    output_feedback_topic: "/PSM2/measured_js"
-    output_to_camera_rot:
-      quaternion:
-        x: 0
-        y: 0
-        z: 1
-        w: 0
+    input:
+      type: "follow"
+      topic: "/MTML/measured_cp"
+    output:
+      control_topic: "/PSM2/servo_jp"
+      feedback_topic: "/PSM2/measured_js"
+      base_to_camera_rot:
+        quaternion:
+          x: 0
+          y: 0
+          z: 1
+          w: 0
+    kinematics:
+      robot: "psm"
+      tool: "LND40006"
 enable_at_start: ["Keyboard-PSM1"]
 clutch_topic: "/console/clutch"
 switcher:

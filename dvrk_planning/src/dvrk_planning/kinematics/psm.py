@@ -284,3 +284,6 @@ class PsmKinematicsSolver(KinematicsSolver):
         # print('Computed Pose: \n', T_7_0_computed)
 
         return [j1, j2, j3, j4, j5, j6]
+
+    def get_active_joint_names(self):
+        return self.kinematics_data.joint_names

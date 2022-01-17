@@ -26,7 +26,7 @@ class TestIncrementTeleopController(TestSetup):
 
     def setUp(self):
         super().setUp()
-        self.itc = IncrementTeleopController()
+        self.itc = IncrementTeleopController(self.kin_solver)
         self.itc.register(self.callback_function)
 
         print("--- TestIncrementTeleopController ---")
@@ -50,7 +50,7 @@ class TestIncrementTeleopController(TestSetup):
         print("--- test_with_camera_frame_pos_x ---")
         camera_rot = Rotation.RPY(0.0, 0.0, 1.5708) # x becomes y
         # we should see increment in y now, for an increment in input x
-        itc = IncrementTeleopController(output_to_camera_rot = camera_rot)
+        itc = IncrementTeleopController(self.kin_solver, output_to_camera_rot = camera_rot)
         itc.register(self.callback_function)
         itc.enable(self.output_start_tf)
         for _ in range(self.steps_num):
@@ -64,7 +64,7 @@ class TestFollowTeleopController(TestSetup):
 
     def setUp(self):
         super().setUp()
-        self.ftc = FollowTeleopController()
+        self.ftc = FollowTeleopController(self.kin_solver)
         self.ftc.register(self.callback_function)
         print("--- TestFollowTeleopController ---")
 
@@ -89,7 +89,7 @@ class TestFollowTeleopController(TestSetup):
         input_start_tf = np.identity(4)
         print("input start transform: \n", input_start_tf)
 
-        ftc = FollowTeleopController()
+        ftc = FollowTeleopController(self.kin_solver)
         ftc.register(track_output_callback)
         ftc.enable(input_start_tf, self.output_start_tf)
         for _ in range(5):
