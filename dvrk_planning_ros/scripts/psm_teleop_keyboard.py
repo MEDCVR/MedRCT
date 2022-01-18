@@ -9,6 +9,7 @@ import threading
 import rospy
 
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import JointState
 
 import sys, select, termios, tty
 
@@ -58,9 +59,14 @@ speedBindings={
         'c':(1,.9),
     }
 
-class PublishThread(threading.Thread):
+jawBindings = {
+    '[': -1,
+    ']':  1,
+}
+
+class PublishTransformThread(threading.Thread):
     def __init__(self, rate):
-        super(PublishThread, self).__init__()
+        super(PublishTransformThread, self).__init__()
         self.publisher = rospy.Publisher('/keyboard/twist', Twist, queue_size = 1)
         self.x = 0.0
         self.y = 0.0
@@ -80,17 +86,6 @@ class PublishThread(threading.Thread):
 
         self.start()
 
-    def wait_for_subscribers(self):
-        i = 0
-        while not rospy.is_shutdown() and self.publisher.get_num_connections() == 0:
-            if i == 4:
-                print("Waiting for subscriber to connect to {}".format(self.publisher.name))
-            rospy.sleep(0.5)
-            i += 1
-            i = i % 5
-        if rospy.is_shutdown():
-            raise Exception("Got shutdown request before subscribers connected")
-
     def update(self, x, y, z, rot_x, rot_y, rot_z, speed):
         self.condition.acquire()
         self.x = x
@@ -107,7 +102,6 @@ class PublishThread(threading.Thread):
 
     def stop(self):
         self.done = True
-        self.update(0, 0, 0, 0, 0, 0, 0)
         self.join()
 
     def run(self):
@@ -130,15 +124,50 @@ class PublishThread(threading.Thread):
             # Publish.
             self.publisher.publish(twist)
 
-        # Publish stop message when thread exits.
-        twist.linear.x = 0
-        twist.linear.y = 0
-        twist.linear.z = 0
-        twist.angular.x = 0
-        twist.angular.y = 0
-        twist.angular.z = 0
-        self.publisher.publish(twist)
+class PublishJointStateThread(threading.Thread):
+    def __init__(self, rate):
+        super(PublishJointStateThread, self).__init__()
+        self.publisher = rospy.Publisher('/keyboard/joint_state', JointState, queue_size = 1)
+        self.jpos = 0.0
+        self.speed = 0.0
+        self.condition = threading.Condition()
+        self.done = False
 
+        # Set timeout to None if rate is 0 (causes new_message to wait forever
+        # for new data to publish)
+        if rate != 0.0:
+            self.timeout = 1.0 / rate
+        else:
+            self.timeout = None
+
+        self.start()
+
+    def update(self, jpos, speed):
+        self.condition.acquire()
+        self.jpos = jpos
+        self.speed = speed
+        # Notify publish thread that we have a new message.
+        self.condition.notify()
+        self.condition.release()
+
+    def stop(self):
+        self.done = True
+        self.join()
+
+    def run(self):
+        js_msg = JointState()
+        js_msg.name = ["jaw"]
+        while not self.done:
+            self.condition.acquire()
+            # Wait for a new message or timeout.
+            self.condition.wait(self.timeout)
+
+            js_msg.position = [self.jpos * self.speed]
+
+            self.condition.release()
+
+            # Publish.
+            self.publisher.publish(js_msg)
 
 def getKey(key_timeout):
     tty.setraw(sys.stdin.fileno())
@@ -154,6 +183,26 @@ def getKey(key_timeout):
 def vels(speed, turn):
     return "currently:\tspeed %s\tturn %s " % (speed,turn)
 
+def key_update_tf(key, speed, thread):
+    if key in moveBindings.keys():
+        x = moveBindings[key][0]
+        y = moveBindings[key][1]
+        z = moveBindings[key][2]
+        rot_x = moveBindings[key][3]
+        rot_y = moveBindings[key][4]
+        rot_z = moveBindings[key][5]
+        thread.update(x, y, z, rot_x, rot_y, rot_z, speed)
+        return True
+    else:
+        return False
+
+def key_update_js(key, speed, thread):
+    if key in jawBindings.keys():
+        thread.update(jawBindings[key], speed)
+        return True
+    else:
+        return False
+
 if __name__=="__main__":
     settings = termios.tcgetattr(sys.stdin)
 
@@ -166,7 +215,8 @@ if __name__=="__main__":
     if key_timeout == 0.0:
         key_timeout = None
 
-    pub_thread = PublishThread(repeat)
+    pub_tf_thread = PublishTransformThread(repeat)
+    pub_js_thread = PublishJointStateThread(repeat)
 
     x = 0
     y = 0
@@ -178,22 +228,10 @@ if __name__=="__main__":
     status = 0
 
     try:
-        # pub_thread.wait_for_subscribers()
-        pub_thread.update(x, y, z, rot_x, rot_y, rot_z, speed)
-
-        print(msg)
         print(vels(speed,turn))
         while(1):
             key = getKey(key_timeout)
-            if key in moveBindings.keys():
-                x = moveBindings[key][0]
-                y = moveBindings[key][1]
-                z = moveBindings[key][2]
-                rot_x = moveBindings[key][3]
-                rot_y = moveBindings[key][4]
-                rot_z = moveBindings[key][5]
-
-            elif key in speedBindings.keys():
+            if key in speedBindings.keys():
                 speed = speed * speedBindings[key][0]
                 turn = turn * speedBindings[key][1]
 
@@ -201,26 +239,20 @@ if __name__=="__main__":
                 if (status == 14):
                     print(msg)
                 status = (status + 1) % 15
-            else:
-                # Skip updating cmd_vel if key timeout and robot already
-                # stopped.
-                if key == '' and x == 0 and y == 0 and z == 0 and th == 0:
-                    continue
-                x = 0
-                y = 0
-                z = 0
-                rot_x = 0
-                rot_y = 0
-                rot_z = 0
-                if (key == '\x03'):
-                    break
-
-            pub_thread.update(x, y, z, rot_x, rot_y, rot_z, speed)
+                continue
+            if(key_update_tf(key, speed, pub_tf_thread)):
+                continue
+            if(key_update_js(key, speed, pub_js_thread)):
+                continue
+            if key == '':
+                continue
+            if (key == '\x03'):
+                break
 
     except Exception as e:
         print(e)
 
     finally:
-        pub_thread.stop()
-
+        pub_tf_thread.stop()
+        pub_js_thread.stop()
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
