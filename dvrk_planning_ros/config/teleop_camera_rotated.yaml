@@ -1,4 +1,4 @@
-controllers:
+cartesian_controllers:
   - name: "Keyboard-PSM1"
     input:
       type: "increment"

@@ -9,13 +9,14 @@ import yaml
 
 from sensor_msgs.msg import  Joy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver
-from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
+from dvrk_planning_ros.ros_joint_teleop_controller import RosJointTeleopController
+from dvrk_planning_ros.ros_cartesian_teleop_controller import RosCartesiansTeleopController
 
 class DvrkTeleopNode:
     def __init__(self, config_yaml):
         self.ros_teleop_controllers = {}
 
-        for controller_yaml in config_yaml["controllers"]:
+        for controller_yaml in config_yaml["cartesian_controllers"]:
             kin_yaml = controller_yaml["kinematics"]
             kin_solver = None
             if kin_yaml["robot"] == "psm":
@@ -24,7 +25,10 @@ class DvrkTeleopNode:
                 kin_solver = PsmKinematicsSolver(class_())
             else:
                 raise KeyError ("Only [psm] available now")
-            self.ros_teleop_controllers[controller_yaml["name"]] = RosTeleopController(controller_yaml, kin_solver)
+            self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
+
+        for controller_yaml in config_yaml["joint_controllers"]:
+            self.ros_teleop_controllers[controller_yaml["name"]] = RosJointTeleopController(controller_yaml)
 
         clutch_topic = "/console/clutch"
         if ("clutch_topic" in config_yaml):

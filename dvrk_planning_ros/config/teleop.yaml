@@ -1,4 +1,4 @@
-controllers:
+cartesian_controllers:
   - name: "Keyboard-PSM1"
     input:
       type: "increment"
@@ -9,3 +9,11 @@ controllers:
     kinematics:
       robot: "psm"
       tool: "LND40006"
+joint_controllers:
+  - name: "Keyboard-PSM1Jaw"
+    input:
+      type: "increment"
+      topic: "/keyboard/joint_state"
+    output:
+      control_topic: "/PSM1/jaw/servo_jp"
+      feedback_topic: "/PSM1/jaw/measured_js"
