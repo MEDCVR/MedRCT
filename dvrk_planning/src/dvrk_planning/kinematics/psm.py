@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import math
 import numpy as np
 
@@ -45,6 +44,19 @@ class LND40006(SphericalWristToolParams):
             L_tool = 0.4162,  # From dVRK documentation
             L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
             L_yaw2ctrlpnt = 0.0102,  # Fixed length from the pinch joint to the pinch tip
+            scale = scale
+        )
+
+class CustomSphericalWristFromYaml(SphericalWristToolParams):
+    def __init__(self, yaml):
+        scale = 1.0
+        if "scale" in yaml:
+            scale = yaml["scale"]
+        super().__init__(
+            L_rcc = yaml["L_rcc"],  # From dVRK documentation
+            L_tool = yaml["L_tool"],  # From dVRK documentation
+            L_pitch2yaw = yaml["L_pitch2yaw"],  # Fixed length from the palm joint to the pinch joint
+            L_yaw2ctrlpnt = yaml["L_yaw2ctrlpnt"],  # Fixed length from the pinch joint to the pinch tip
             scale = scale
         )
 

@@ -8,7 +8,8 @@ cartesian_controllers:
       feedback_topic: "/PSM1/measured_js"
     kinematics:
       robot: "psm"
-      tool: "LND40006"
+      tool:
+        type: "LND40006"
   - name: "MTML-PSM2"
     input:
       type: "follow"
@@ -24,7 +25,13 @@ cartesian_controllers:
           w: 0
     kinematics:
       robot: "psm"
-      tool: "LND40006"
+      tool:
+        type: "custom"
+        L_rcc: 0.4318
+        L_tool: 0.4162
+        L_pitch2yaw: 0.0091
+        L_yaw2ctrlpnt: 0.0104 # Slightly different than LND40006 0.0102
+        scale: 1.0
 joint_controllers:
   - name: "Keyboard-PSM1Jaw"
     input:
