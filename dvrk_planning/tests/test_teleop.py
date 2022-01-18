@@ -48,9 +48,9 @@ class TestIncrementTeleopController(TestSetup):
 
     def test_with_camera_frame_pos_x(self):
         print("--- test_with_camera_frame_pos_x ---")
-        camera_rot = Rotation.RPY(0.0, 0.0, 1.5708) # x becomes y
+        output_ref_to_input_rot = Rotation.RPY(0.0, 0.0, 1.5708) # x becomes y
         # we should see increment in y now, for an increment in input x
-        itc = CartesianIncrementTeleopController(self.kin_solver, output_to_camera_rot = camera_rot)
+        itc = CartesianIncrementTeleopController(self.kin_solver, output_ref_to_input_rot = output_ref_to_input_rot)
         itc.register(self.callback_function)
         itc.enable(self.output_start_tf)
         for _ in range(self.steps_num):

@@ -16,7 +16,7 @@ cartesian_controllers:
     output:
       control_topic: "/PSM2/servo_jp"
       feedback_topic: "/PSM2/measured_js"
-      base_to_camera_rot:
+      output_ref_to_input_rot:
         quaternion:
           x: 0
           y: 0

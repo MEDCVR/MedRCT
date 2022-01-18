@@ -16,13 +16,13 @@ class CartesianTeleopController(TeleopController):
     def __init__(self,
             input_type,
             kinematics_solver,
-            output_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)):
+            output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1)):
         super().__init__(input_type, ControllerType.CARTESIAN)
-        self.output_to_camera_rot_tf = convert_frame_to_mat(Frame(output_to_camera_rot, Vector(0.0, 0.0, 0.0)))
+        self.output_ref_to_input_rot = convert_frame_to_mat(Frame(output_ref_to_input_rot, Vector(0.0, 0.0, 0.0)))
         self.kinematics_solver = kinematics_solver
 
     def _rotation_adjustment(self, input_diff_tf):
-        rotated_output_tf = np.matmul(self.output_to_camera_rot_tf, input_diff_tf)
+        rotated_output_tf = np.matmul(self.output_ref_to_input_rot, input_diff_tf)
         return rotated_output_tf
 
     def _update_output_tf(self, input_diff_tf, output_tf):
@@ -51,8 +51,8 @@ class CartesianTeleopController(TeleopController):
         raise NotImplementedError
 
 class CartesianFollowTeleopController(CartesianTeleopController):
-    def __init__(self, kinematics_solver, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
-        super().__init__(InputType.FOLLOW, kinematics_solver, output_to_camera_rot)
+    def __init__(self, kinematics_solver, output_ref_to_input_rot=Rotation.Quaternion(0, 0, 0, 1)):
+        super().__init__(InputType.FOLLOW, kinematics_solver, output_ref_to_input_rot)
 
     def enable(self, start_input_tf, start_output_tf):
         self.start_input_tf = np.copy(start_input_tf)
@@ -78,8 +78,8 @@ class CartesianFollowTeleopController(CartesianTeleopController):
         return self.__update_input_tf(*args)
 
 class CartesianIncrementTeleopController(CartesianTeleopController):
-    def __init__(self, kinematics_solver, output_to_camera_rot=Rotation.Quaternion(0, 0, 0, 1)):
-        super().__init__(InputType.INCREMENT, kinematics_solver, output_to_camera_rot)
+    def __init__(self, kinematics_solver, output_ref_to_input_rot=Rotation.Quaternion(0, 0, 0, 1)):
+        super().__init__(InputType.INCREMENT, kinematics_solver, output_ref_to_input_rot)
 
     def enable(self, current_output_tf):
         self.current_output_tf = np.copy(current_output_tf)

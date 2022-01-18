@@ -19,11 +19,11 @@ def quat_yaml_to_pykdl(quaternion_yaml):
 
     return Rotation.Quaternion(x, y, z, w)
 
-def output_to_camera_rot_from_yaml(output_to_camera_rot_yaml):
-    if "quaternion" in output_to_camera_rot_yaml:
-        return quat_yaml_to_pykdl(output_to_camera_rot_yaml["quaternion"])
-    elif "lookup_tf" in output_to_camera_rot_yaml:
-        lookup_tf_yaml = output_to_camera_rot_yaml["lookup_tf"]
+def output_ref_to_input_rot_from_yaml(output_ref_to_input_rot_yaml):
+    if "quaternion" in output_ref_to_input_rot_yaml:
+        return quat_yaml_to_pykdl(output_ref_to_input_rot_yaml["quaternion"])
+    elif "lookup_tf" in output_ref_to_input_rot_yaml:
+        lookup_tf_yaml = output_ref_to_input_rot_yaml["lookup_tf"]
         t = tf.TransformListener()
         rospy.sleep(1) # Sleep is needed so TransformListener has time to get the tf's
         _, quat_rot  = t.lookupTransform(lookup_tf_yaml["camera_tf"],lookup_tf_yaml["base_tf"], rospy.Time(0))
@@ -37,18 +37,17 @@ class RosCartesiansTeleopController(RosTeleopController):
         output_yaml = controller_yaml["output"]
         self.js_msg.name = kinematics_solver.get_active_joint_names()
 
-        output_base_to_camera_rot = Rotation.Quaternion(0, 0, 0, 1)
-        if("base_to_camera_rot" in output_yaml):
-            output_base_to_camera_rot = output_to_camera_rot_from_yaml(output_yaml["base_to_camera_rot"])
-
+        output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1)
+        if("output_ref_to_input_rot" in output_yaml):
+            output_ref_to_input_rot = output_ref_to_input_rot_from_yaml(output_yaml["output_ref_to_input_rot"])
         input_yaml = controller_yaml["input"]
         self.input_topic = input_yaml["topic"]
         if input_yaml["type"] == "follow":
-            self._teleop_controller = CartesianFollowTeleopController(kinematics_solver, output_to_camera_rot = output_base_to_camera_rot)
+            self._teleop_controller = CartesianFollowTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
             self.input_topic_type = TransformStamped
             sub_callback = self._input_callback_tf
         elif input_yaml["type"] == "increment":
-            self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_to_camera_rot = output_base_to_camera_rot)
+            self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
             self.input_topic_type = Twist
             sub_callback = self._input_callback_twist
         else:
