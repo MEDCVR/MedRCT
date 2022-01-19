@@ -8,7 +8,7 @@ class InputType(Enum):
 class ControllerType(Enum):
     ERROR = 0
     CARTESIAN = 1
-    JOINT = 0
+    JOINT = 2
 
 class TeleopController():
     def __init__(self,

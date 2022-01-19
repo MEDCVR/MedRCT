@@ -73,7 +73,7 @@ class PublishTransformThread(threading.Thread):
         self.z = 0.0
         self.th = 0.0
         self.speed = 0.0
-        self.turn = 0.0
+        self.rot_speed = 0.0
         self.condition = threading.Condition()
         self.done = False
 
@@ -86,7 +86,7 @@ class PublishTransformThread(threading.Thread):
 
         self.start()
 
-    def update(self, x, y, z, rot_x, rot_y, rot_z, speed):
+    def update(self, x, y, z, rot_x, rot_y, rot_z, speed, rot_speed):
         self.condition.acquire()
         self.x = x
         self.y = y
@@ -96,6 +96,7 @@ class PublishTransformThread(threading.Thread):
         self.rot_z = rot_z
 
         self.speed = speed
+        self.rot_speed = rot_speed
         # Notify publish thread that we have a new message.
         self.condition.notify()
         self.condition.release()
@@ -119,9 +120,9 @@ class PublishTransformThread(threading.Thread):
             twist.linear.x = self.x * self.speed
             twist.linear.y = self.y * self.speed
             twist.linear.z = self.z * self.speed
-            twist.angular.x = self.rot_x * self.speed
-            twist.angular.y = self.rot_y * self.speed
-            twist.angular.z = self.rot_z * self.speed
+            twist.angular.x = self.rot_x * self.rot_speed
+            twist.angular.y = self.rot_y * self.rot_speed
+            twist.angular.z = self.rot_z * self.rot_speed
 
             self.condition.release()
 
@@ -188,10 +189,10 @@ def getKey(key_timeout):
     return key
 
 
-def vels(speed, turn):
-    return "currently:\tspeed %s\tturn %s " % (speed,turn)
+def vels(speed, rot_speed):
+    return "currently:\tspeed %srot_speed %s " % (speed,rot_speed)
 
-def key_update_tf(key, speed, thread):
+def key_update_tf(key, speed, rot_speed, thread):
     if key in moveBindings.keys():
         x = moveBindings[key][0]
         y = moveBindings[key][1]
@@ -199,7 +200,7 @@ def key_update_tf(key, speed, thread):
         rot_x = moveBindings[key][3]
         rot_y = moveBindings[key][4]
         rot_z = moveBindings[key][5]
-        thread.update(x, y, z, rot_x, rot_y, rot_z, speed)
+        thread.update(x, y, z, rot_x, rot_y, rot_z, speed, rot_speed)
         return True
     else:
         return False
@@ -217,7 +218,7 @@ if __name__=="__main__":
     rospy.init_node('teleop_twist_keyboard')
 
     speed = rospy.get_param("~speed", 0.001)
-    turn = rospy.get_param("~turn", 1.0)
+    rot_speed = rospy.get_param("~rot_speed", 0.05)
     repeat = rospy.get_param("~repeat_rate", 0.0)
     key_timeout = rospy.get_param("~key_timeout", 0.0)
     if key_timeout == 0.0:
@@ -237,21 +238,21 @@ if __name__=="__main__":
 
     try:
         print(msg)
-        print(vels(speed,turn))
+        print(vels(speed,rot_speed))
         while(1):
             key = getKey(key_timeout)
             if key in speedBindings.keys():
                 speed = speed * speedBindings[key][0]
-                turn = turn * speedBindings[key][1]
+                rot_speed = rot_speed * speedBindings[key][1]
 
-                print(vels(speed,turn))
+                print(vels(speed,rot_speed))
                 if (status == 14):
                     print(msg)
                 status = (status + 1) % 15
                 continue
-            elif key_update_tf(key, speed, pub_tf_thread):
+            elif key_update_tf(key, speed,rot_speed, pub_tf_thread):
                 continue
-            elif key_update_js(key, speed, pub_js_thread):
+            elif key_update_js(key, rot_speed, pub_js_thread):
                 continue
             elif (key == '\x03'):
                 break

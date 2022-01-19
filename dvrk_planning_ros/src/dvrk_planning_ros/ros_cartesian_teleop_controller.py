@@ -1,9 +1,9 @@
 import rospy
 import tf
 import yaml
+import numpy as np
 
 from geometry_msgs.msg import TransformStamped, Twist
-from sensor_msgs.msg import JointState
 
 from PyKDL import Rotation, Vector
 
@@ -65,9 +65,11 @@ class RosCartesiansTeleopController(RosTeleopController):
     def enable(self):
         self._wait_for_output_feedback_sub_msg()
         # TODO, this is not good oop
-        if self._teleop_controller.controller_type == InputType.INCREMENT:
+        np.set_printoptions(precision=3)
+        np.set_printoptions(suppress=True)
+        if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.current_output_tf)
-        elif self._teleop_controller.controller_type == InputType.FOLLOW:
+        elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg()
             self._teleop_controller.enable(self.current_input_tf, self.current_output_tf)
 
@@ -79,9 +81,9 @@ class RosCartesiansTeleopController(RosTeleopController):
 
     def unclutch(self):
         # TODO, this is not good oop
-        if self._teleop_controller.controller_type == InputType.INCREMENT:
+        if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
-        elif self._teleop_controller.controller_type == InputType.FOLLOW:
+        elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_tf)
@@ -90,7 +92,7 @@ class RosCartesiansTeleopController(RosTeleopController):
     # data for a robot controller, so lets start with that.
     def _output_feedback_callback(self, js):
         self.current_output_tf = self._teleop_controller.kinematics_solver.compute_fk(js.position)
-
+        # print(self.current_output_tf)
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
         self._teleop_controller.update(self.current_input_tf)
