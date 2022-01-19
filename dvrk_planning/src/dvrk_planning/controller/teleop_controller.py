@@ -48,8 +48,8 @@ class TeleopController():
             print("Hey, need to call register. I'm not updating")
             return False
         if(self.is_clutched):
-            return True
+            return False
         if(not self.is_enabled):
-            return True
+            return False
 
         return True

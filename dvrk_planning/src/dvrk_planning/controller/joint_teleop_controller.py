@@ -45,7 +45,7 @@ class JointFollowTeleopController(JointTeleopController):
         1D array containing data with `float` type.
     """
     def __update_input_js(self, absolute_input_js):
-        absolute_output_js = self.scale * absolute_input_js
+        absolute_output_js = self.scale * np.array(absolute_input_js)
         return absolute_output_js
 
     def _update_impl(self, args):
