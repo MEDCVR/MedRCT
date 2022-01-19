@@ -73,7 +73,7 @@ class JointIncrementTeleopController(JointTeleopController):
         if(len(increment_js) != len(self.current_output_js)):
             print("Length input js not the same as current_output_js")
             return self.current_output_js
-        self.current_output_js = self.current_output_js = increment_js
+        self.current_output_js = self.current_output_js + increment_js
         return self.current_output_js
 
     def _update_impl(self, args):
