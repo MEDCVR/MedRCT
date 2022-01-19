@@ -16,23 +16,25 @@ class DvrkTeleopNode:
     def __init__(self, config_yaml):
         self.ros_teleop_controllers = {}
 
-        for controller_yaml in config_yaml["cartesian_controllers"]:
-            kin_yaml = controller_yaml["kinematics"]
-            kin_solver = None
-            if kin_yaml["robot"] == "psm":
-                tool_yaml = kin_yaml["tool"]
-                if tool_yaml["type"] == "custom":
-                    kin_solver = PsmKinematicsSolver(CustomSphericalWristFromYaml(tool_yaml))
+        if "cartesian_controllers" in config_yaml:
+            for controller_yaml in config_yaml["cartesian_controllers"]:
+                kin_yaml = controller_yaml["kinematics"]
+                kin_solver = None
+                if kin_yaml["robot"] == "psm":
+                    tool_yaml = kin_yaml["tool"]
+                    if tool_yaml["type"] == "custom":
+                        kin_solver = PsmKinematicsSolver(CustomSphericalWristFromYaml(tool_yaml))
+                    else:
+                        module = importlib.import_module("dvrk_planning.kinematics.psm")
+                        class_ = getattr(module, tool_yaml["type"])
+                        kin_solver = PsmKinematicsSolver(class_())
                 else:
-                    module = importlib.import_module("dvrk_planning.kinematics.psm")
-                    class_ = getattr(module, tool_yaml["type"])
-                    kin_solver = PsmKinematicsSolver(class_())
-            else:
-                raise KeyError ("Only [psm] available now")
-            self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
+                    raise KeyError ("Only [psm] available now")
+                self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
 
-        for controller_yaml in config_yaml["joint_controllers"]:
-            self.ros_teleop_controllers[controller_yaml["name"]] = RosJointTeleopController(controller_yaml)
+        if "joint_controllers" in config_yaml:
+            for controller_yaml in config_yaml["joint_controllers"]:
+                self.ros_teleop_controllers[controller_yaml["name"]] = RosJointTeleopController(controller_yaml)
 
         clutch_topic = "/console/clutch"
         if ("clutch_topic" in config_yaml):
