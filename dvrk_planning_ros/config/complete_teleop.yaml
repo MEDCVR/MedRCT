@@ -41,7 +41,6 @@ joint_controllers:
     output:
       control_topic: "/PSM1/jaw/servo_jp"
       feedback_topic: "/PSM1/jaw/measured_js"
-
 enable_at_start: ["Keyboard-PSM1", Keyboard-PSM1Jaw]
 clutch_topic: "/console/clutch"
 switcher:
