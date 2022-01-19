@@ -18,7 +18,7 @@ class RosTeleopController:
     def _wait_for_output_feedback_sub_msg(self):
         print(self._get_str_name(), ": waiting for message from topic [" + self.output_feedback_topic +"]" )
         rospy.wait_for_message(self.output_feedback_topic, JointState)
-        print(self._get_str_name(), ": finised for message from topic [" + self.output_feedback_topic +"]" )
+        print(self._get_str_name(), ": finished for message from topic [" + self.output_feedback_topic +"]" )
 
     def enable(self):
         raise NotImplementedError

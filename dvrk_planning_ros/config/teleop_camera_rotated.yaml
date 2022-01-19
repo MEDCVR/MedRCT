@@ -12,4 +12,5 @@ cartesian_controllers:
           camera_tf: "camera_fov_frame"
     kinematics:
       robot: "psm"
-      tool: "LND40006"
+      tool:
+        type: "LND40006"

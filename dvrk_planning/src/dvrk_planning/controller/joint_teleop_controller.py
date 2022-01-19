@@ -54,6 +54,7 @@ class JointFollowTeleopController(JointTeleopController):
 class JointIncrementTeleopController(JointTeleopController):
     def __init__(self):
         super().__init__(InputType.INCREMENT)
+        self.current_output_js = np.array([])
 
     def enable(self, current_output_js):
         self.current_output_js = np.copy(current_output_js)

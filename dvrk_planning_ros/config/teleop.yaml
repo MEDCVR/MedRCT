@@ -8,7 +8,8 @@ cartesian_controllers:
       feedback_topic: "/PSM1/measured_js"
     kinematics:
       robot: "psm"
-      tool: "LND40006"
+      tool:
+        type: "LND40006"
 joint_controllers:
   - name: "Keyboard-PSM1Jaw"
     input:

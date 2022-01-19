@@ -28,7 +28,7 @@ class RosJointTeleopController(RosTeleopController):
     def _wait_for_input_sub_msg(self):
         print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
         rospy.wait_for_message(self.input_topic, JointState)
-        print(self._get_str_name(), ": finised waiting for message from topic [" + self.input_topic +"]" )
+        print(self._get_str_name(), ": finished waiting for message from topic [" + self.input_topic +"]" )
 
     def enable(self):
         self._wait_for_output_feedback_sub_msg()

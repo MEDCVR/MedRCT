@@ -60,7 +60,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.FOLLOW:
             print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
             rospy.wait_for_message(self.input_topic, self.input_topic_type)
-            print(self._get_str_name(), ": finised waiting for message from topic [" + self.input_topic +"]" )
+            print(self._get_str_name(), ": finished waiting for message from topic [" + self.input_topic +"]" )
 
     def enable(self):
         self._wait_for_output_feedback_sub_msg()
@@ -89,7 +89,7 @@ class RosCartesiansTeleopController(RosTeleopController):
     # Output feedback needs a tf, but js is the simplest type of
     # data for a robot controller, so lets start with that.
     def _output_feedback_callback(self, js):
-        self.current_output_tf = self._teleop_controller.kinematics_solver.compute_fk(js)
+        self.current_output_tf = self._teleop_controller.kinematics_solver.compute_fk(js.position)
 
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)

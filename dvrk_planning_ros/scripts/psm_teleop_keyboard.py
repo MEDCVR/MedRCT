@@ -101,6 +101,10 @@ class PublishTransformThread(threading.Thread):
         self.condition.release()
 
     def stop(self):
+        self.condition.acquire()
+        self.condition.notify()
+        self.condition.release()
+
         self.done = True
         self.join()
 
@@ -151,6 +155,10 @@ class PublishJointStateThread(threading.Thread):
         self.condition.release()
 
     def stop(self):
+        self.condition.acquire()
+        self.condition.notify()
+        self.condition.release()
+        
         self.done = True
         self.join()
 
@@ -208,7 +216,7 @@ if __name__=="__main__":
 
     rospy.init_node('teleop_twist_keyboard')
 
-    speed = rospy.get_param("~speed", 0.01)
+    speed = rospy.get_param("~speed", 0.001)
     turn = rospy.get_param("~turn", 1.0)
     repeat = rospy.get_param("~repeat_rate", 0.0)
     key_timeout = rospy.get_param("~key_timeout", 0.0)
@@ -228,6 +236,7 @@ if __name__=="__main__":
     status = 0
 
     try:
+        print(msg)
         print(vels(speed,turn))
         while(1):
             key = getKey(key_timeout)
@@ -240,13 +249,11 @@ if __name__=="__main__":
                     print(msg)
                 status = (status + 1) % 15
                 continue
-            if(key_update_tf(key, speed, pub_tf_thread)):
+            elif key_update_tf(key, speed, pub_tf_thread):
                 continue
-            if(key_update_js(key, speed, pub_js_thread)):
+            elif key_update_js(key, speed, pub_js_thread):
                 continue
-            if key == '':
-                continue
-            if (key == '\x03'):
+            elif (key == '\x03'):
                 break
 
     except Exception as e:
