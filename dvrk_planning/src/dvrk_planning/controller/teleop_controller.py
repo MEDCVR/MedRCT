@@ -42,7 +42,6 @@ class TeleopController():
     def disable(self):
         self.is_enabled = False
 
-    ## Event driven by input frequency. Call this in your input loop/callback
     def _update(self):
         if(not self.is_registered):
             print("Hey, need to call register. I'm not updating")
@@ -53,3 +52,7 @@ class TeleopController():
             return False
 
         return True
+
+    ## Event driven by input frequency. Call this in your input loop/callback
+    def update(self, *args):
+        raise NotImplementedError

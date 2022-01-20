@@ -8,12 +8,9 @@ def get_rot_and_p(tf):
     return rot, p.flatten()
 
 class JointTeleopController(TeleopController):
-    # Suggest to only use output_to_camera_to, rather than using both with input_to_rot_adjustment
-    # Try to align camera axis to the axis of your input changes.
     def __init__(self, input_type):
         super().__init__(input_type, ControllerType.JOINT)
 
-    ## Event driven by input frequency. Call this in your input loop/callback
     def update(self, *args):
         if(not self._update()):
             return False
