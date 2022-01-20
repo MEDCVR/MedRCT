@@ -25,18 +25,23 @@ class RosJointTeleopController(RosTeleopController):
         self.input_sub = rospy.Subscriber(self.input_topic, JointState, self._input_callback_js)
         self._teleop_controller.register(self._output_callback)
 
-    def _wait_for_input_sub_msg(self):
-        print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
-        rospy.wait_for_message(self.input_topic, JointState)
-        print(self._get_str_name(), ": finished waiting for message from topic [" + self.input_topic +"]" )
+    def _wait_for_input_sub_msg(self, always_print=False):
+        try:
+            if(always_print):
+                 raise
+            rospy.wait_for_message(self.input_topic, JointState, timeout=0.01) # timeout 0.1s to see if publishing
+        except:
+            print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
+            rospy.wait_for_message(self.input_topic, JointState)
+            print(self._get_str_name(), ": finished waiting for message from topic [" + self.input_topic +"]" )
 
     def enable(self):
-        self._wait_for_output_feedback_sub_msg()
+        self._wait_for_output_feedback_sub_msg(True)
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.current_output_js)
         elif self._teleop_controller.input_type == InputType.FOLLOW:
-            self._wait_for_input_sub_msg()
+            self._wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_js, self.current_output_js)
 
     def disable(self):
