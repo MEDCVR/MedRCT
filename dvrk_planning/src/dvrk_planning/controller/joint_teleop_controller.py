@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from dvrk_planning.controller.teleop_controller import TeleopController, InputType, ControllerType
 
@@ -9,8 +10,7 @@ def get_rot_and_p(tf):
 class JointTeleopController(TeleopController):
     # Suggest to only use output_to_camera_to, rather than using both with input_to_rot_adjustment
     # Try to align camera axis to the axis of your input changes.
-    def __init__(self,
-            input_type):
+    def __init__(self, input_type):
         super().__init__(input_type, ControllerType.JOINT)
 
     ## Event driven by input frequency. Call this in your input loop/callback
@@ -25,17 +25,44 @@ class JointTeleopController(TeleopController):
     def _update_impl(self, args):
         raise NotImplementedError
 
+def interpolate_joint_path(start_jp, goal_jp, increment):
+    joint_path = np.arange(start_jp, goal_jp, increment)
+    joint_path = np.append(joint_path, goal_jp)
+    return joint_path
+
 class JointFollowTeleopController(JointTeleopController):
     def __init__(self, scale = 1.0):
         super().__init__(InputType.FOLLOW)
         self.scale = scale
 
-    def enable(self, start_input_js, start_output_js):
-        # Should move start_output_js slowly to match
+    def execute_on_output_callback(self, joint_path, joint_state, idx, hz):
+        joint_state_copy = np.copy(joint_state)
+        for jp in joint_path:
+            joint_state_copy[idx] = jp
+            self.output_callback(joint_state_copy)
+            time.sleep(1.0/hz)
+        return joint_state_copy
+
+    def execute_match_joint_states(self, joint_state, match_to_joint_state):
+        updated_output_jps = np.copy(joint_state)
+        joint_too_far_tol = 0.1
+        for i in range(len(match_to_joint_state)):
+            if abs(match_to_joint_state[i] - updated_output_jps[i]) > joint_too_far_tol:
+                joint_path_inc = interpolate_joint_path(
+                    updated_output_jps[i],
+                    match_to_joint_state[i],
+                    joint_too_far_tol/4)
+                updated_output_jps = self.execute_on_output_callback(
+                        joint_path_inc, updated_output_jps, i, 10)
+
+    def enable(self, start_input_jps, start_output_jps):
+        scaled_input_jps = self.scale * np.array(start_input_jps)
+        self.execute_match_joint_states(start_output_jps, scaled_input_jps)
         super()._enable()
 
-    def unclutch(self, start_input_js, start_output_js):
-        # Should move start_output_js slowly to match
+    def unclutch(self, start_input_jps, start_output_jps):
+        scaled_input_jps = self.scale * np.array(start_input_jps)
+        self.execute_match_joint_states(start_output_jps, scaled_input_jps)
         super()._unclutch()
 
     """
@@ -44,9 +71,9 @@ class JointFollowTeleopController(JointTeleopController):
     absolute_input_js : ndarray
         1D array containing data with `float` type.
     """
-    def __update_input_js(self, absolute_input_js):
-        absolute_output_js = self.scale * np.array(absolute_input_js)
-        return absolute_output_js
+    def __update_input_js(self, absolute_input_jps):
+        absolute_output_jps = self.scale * np.array(absolute_input_jps)
+        return absolute_output_jps
 
     def _update_impl(self, args):
         return self.__update_input_js(*args)
@@ -67,7 +94,8 @@ class JointIncrementTeleopController(JointTeleopController):
     Parameters
     ----------
     increment_js : ndarray
-        1D array containing data with `float` type. Must have same length as self.current_output_js from enable
+        1D array containing data with `float` type.
+        Must have same length as self.current_output_js from enable
     """
     def __increment_input_js(self, increment_js):
         if(len(increment_js) != len(self.current_output_js)):
