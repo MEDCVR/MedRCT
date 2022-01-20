@@ -50,7 +50,7 @@ class JointFollowTeleopController(JointTeleopController):
                     match_to_joint_state[i],
                     joint_too_far_tol/4)
                 updated_output_jps = self.execute_on_output_callback(
-                        joint_path_inc, updated_output_jps, i, 10)
+                        joint_path_inc, updated_output_jps, i, 50)
 
     def enable(self, start_input_jps, start_output_jps):
         scaled_input_jps = self.scale * np.array(start_input_jps)
