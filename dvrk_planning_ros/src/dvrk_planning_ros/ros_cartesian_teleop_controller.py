@@ -43,7 +43,13 @@ class RosCartesiansTeleopController(RosTeleopController):
         input_yaml = controller_yaml["input"]
         self.input_topic = input_yaml["topic"]
         if input_yaml["type"] == "follow":
-            self._teleop_controller = CartesianFollowTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
+            position_scale = 1.0
+            if("position_scale" in input_yaml):
+                position_scale = input_yaml["position_scale"]
+            self._teleop_controller = CartesianFollowTeleopController(
+                kinematics_solver,
+                output_ref_to_input_rot = output_ref_to_input_rot,
+                position_scale = position_scale)
             self.input_topic_type = TransformStamped
             sub_callback = self._input_callback_tf
         elif input_yaml["type"] == "increment":

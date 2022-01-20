@@ -14,6 +14,7 @@ cartesian_controllers:
     input:
       type: "follow"
       topic: "/MTML/measured_cp"
+      position_scale: 0.5
     output:
       control_topic: "/PSM2/servo_jp"
       feedback_topic: "/PSM2/measured_js"

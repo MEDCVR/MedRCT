@@ -51,10 +51,11 @@ class CartesianTeleopController(TeleopController):
         raise NotImplementedError
 
 class CartesianFollowTeleopController(CartesianTeleopController):
-    def __init__(self, kinematics_solver, output_ref_to_input_rot=Rotation.Quaternion(0, 0, 0, 1)):
+    def __init__(self, kinematics_solver, output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1), position_scale = 1.0):
         super().__init__(InputType.FOLLOW, kinematics_solver, output_ref_to_input_rot)
         self.start_input_tf = np.identity(4)
         self.start_output_tf = np.identity(4)
+        self.position_scale = position_scale
 
     def enable(self, start_input_tf, start_output_tf):
         self.start_input_tf = np.copy(start_input_tf)
@@ -72,6 +73,7 @@ class CartesianFollowTeleopController(CartesianTeleopController):
 
     def __update_input_tf(self, absolute_input_tf):
         input_tf_difference = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
+        input_tf_difference[0:3, 3] = input_tf_difference[0:3, 3] * self.position_scale
         absolute_output_tf = np.copy(self.start_output_tf)
         self._update_output_tf(input_tf_difference, absolute_output_tf)
         return absolute_output_tf
@@ -80,7 +82,7 @@ class CartesianFollowTeleopController(CartesianTeleopController):
         return self.__update_input_tf(*args)
 
 class CartesianIncrementTeleopController(CartesianTeleopController):
-    def __init__(self, kinematics_solver, output_ref_to_input_rot=Rotation.Quaternion(0, 0, 0, 1)):
+    def __init__(self, kinematics_solver, output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1)):
         super().__init__(InputType.INCREMENT, kinematics_solver, output_ref_to_input_rot)
         self.current_output_tf = np.identity(4)
 
