@@ -1,6 +1,5 @@
+import numpy as np
 import rospy
-import tf
-import yaml
 
 from sensor_msgs.msg import JointState
 
@@ -23,6 +22,7 @@ class RosJointTeleopController(RosTeleopController):
         else:
             raise KeyError ("controller: input type: must be follow or increment")
         self.input_sub = rospy.Subscriber(self.input_topic, JointState, self._input_callback_js)
+        self.current_input_jps = np.array([])
         self._teleop_controller.register(self._output_callback)
 
     def _wait_for_input_sub_msg(self, always_print=False):
@@ -39,10 +39,10 @@ class RosJointTeleopController(RosTeleopController):
         self._wait_for_output_feedback_sub_msg(True)
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.enable(self.current_output_js)
+            self._teleop_controller.enable(self.current_output_jps)
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg(True)
-            self._teleop_controller.enable(self.current_input_js, self.current_output_js)
+            self._teleop_controller.enable(self.current_input_jps, self.current_output_jps)
 
     def disable(self):
         self._teleop_controller.disable()
@@ -57,14 +57,8 @@ class RosJointTeleopController(RosTeleopController):
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
-            self._teleop_controller.unclutch(self.current_input_js, self.current_output_js)
-
-    # Output feedback needs a tf, but js is the simplest type of
-    # data for a robot controller, so lets start with that.
-    def _output_feedback_callback(self, js):
-        self.js_msg.name =  js.name
-        self.current_output_js = js.position
+            self._teleop_controller.unclutch(self.current_input_jps, self.current_output_jps)
 
     def _input_callback_js(self, data):
-        self.current_input_js = data.position
-        self._teleop_controller.update(self.current_input_js)
+        self.current_input_jps = data.position
+        self._teleop_controller.update(self.current_input_jps)

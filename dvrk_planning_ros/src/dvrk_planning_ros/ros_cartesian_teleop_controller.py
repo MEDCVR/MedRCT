@@ -96,11 +96,10 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_tf)
 
-    # Output feedback needs a tf, but js is the simplest type of
-    # data for a robot controller, so lets start with that.
     def _output_feedback_callback(self, js):
+        super()._output_feedback_callback(js)
         self.current_output_tf = self._teleop_controller.kinematics_solver.compute_fk(js.position)
-        # print(self.current_output_tf)
+
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
         self._teleop_controller.update(self.current_input_tf)

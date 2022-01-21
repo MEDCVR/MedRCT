@@ -1,6 +1,7 @@
 import rospy
-import yaml
+import numpy as np
 
+from dvrk_planning.kinematics.utilities import get_harmonized_joint_positions, TWO_PI
 from sensor_msgs.msg import JointState
 
 class RosTeleopController:
@@ -11,6 +12,8 @@ class RosTeleopController:
         self.output_pub = rospy.Publisher(output_yaml["control_topic"], JointState, queue_size = 1)
         self.output_feedback_topic = output_yaml["feedback_topic"]
         self.output_feedback_sub = rospy.Subscriber(self.output_feedback_topic, JointState, self._output_feedback_callback)
+
+        self.current_output_jps = np.array([])
 
     def _get_str_name(self):
         return "Teleop controller [" + self.name + "]"
@@ -37,9 +40,10 @@ class RosTeleopController:
     def unclutch(self):
         raise NotImplementedError
 
-    def _output_callback(self, js):
-        self.js_msg.position = js
+    def _output_callback(self, joint_positions):
+        self.js_msg.position = get_harmonized_joint_positions(joint_positions, self.current_output_jps)
         self.output_pub.publish(self.js_msg)
 
     def _output_feedback_callback(self, js):
-        raise NotImplementedError
+        self.js_msg.name =  js.name
+        self.current_output_jps = js.position
