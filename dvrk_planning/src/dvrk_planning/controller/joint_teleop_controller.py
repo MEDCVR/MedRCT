@@ -78,10 +78,10 @@ class JointFollowTeleopController(JointTeleopController):
 class JointIncrementTeleopController(JointTeleopController):
     def __init__(self):
         super().__init__(InputType.INCREMENT)
-        self.current_output_js = np.array([])
+        self.current_output_jps = np.array([])
 
-    def enable(self, current_output_js):
-        self.current_output_js = np.copy(current_output_js)
+    def enable(self, current_output_jps):
+        self.current_output_jps = np.copy(current_output_jps)
         super()._enable()
 
     def unclutch(self):
@@ -92,14 +92,14 @@ class JointIncrementTeleopController(JointTeleopController):
     ----------
     increment_js : ndarray
         1D array containing data with `float` type.
-        Must have same length as self.current_output_js from enable
+        Must have same length as self.current_output_jps from enable
     """
     def __increment_input_js(self, increment_js):
-        if(len(increment_js) != len(self.current_output_js)):
-            print("Length input js not the same as current_output_js")
-            return self.current_output_js
-        self.current_output_js = self.current_output_js + increment_js
-        return self.current_output_js
+        if(len(increment_js) != len(self.current_output_jps)):
+            print("Length input js not the same as current_output_jps")
+            return self.current_output_jps
+        self.current_output_jps = self.current_output_jps + increment_js
+        return self.current_output_jps
 
     def _update_impl(self, args):
         return self.__increment_input_js(*args)
