@@ -33,15 +33,11 @@ def output_ref_to_input_rot_from_yaml(output_ref_to_input_rot_yaml):
 
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
-        super().__init__(controller_yaml)
         output_yaml = controller_yaml["output"]
-        self.js_msg.name = kinematics_solver.get_active_joint_names()
-
         output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("output_ref_to_input_rot" in output_yaml):
             output_ref_to_input_rot = output_ref_to_input_rot_from_yaml(output_yaml["output_ref_to_input_rot"])
         input_yaml = controller_yaml["input"]
-        self.input_topic = input_yaml["topic"]
         if input_yaml["type"] == "follow":
             position_scale = 1.0
             if("position_scale" in input_yaml):
@@ -50,27 +46,18 @@ class RosCartesiansTeleopController(RosTeleopController):
                 kinematics_solver,
                 output_ref_to_input_rot = output_ref_to_input_rot,
                 position_scale = position_scale)
-            self.input_topic_type = TransformStamped
-            sub_callback = self._input_callback_tf
+            input_topic_type = TransformStamped
+            self._input_callback_impl = self._input_callback_tf
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
-            self.input_topic_type = Twist
-            sub_callback = self._input_callback_twist
+            input_topic_type = Twist
+            self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
-        self.input_sub = rospy.Subscriber(self.input_topic, self.input_topic_type, sub_callback)
 
+        super().__init__(controller_yaml, input_topic_type)
+        self.js_msg.name = kinematics_solver.get_active_joint_names()
         self._teleop_controller.register(self._output_callback)
-
-    def _wait_for_input_sub_msg(self, always_print = False):
-        try:
-            if(always_print):
-                 raise
-            rospy.wait_for_message(self.input_topic, self.input_topic_type, timeout=0.01) # timeout 0.1s to see if publishing
-        except:
-            print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
-            rospy.wait_for_message(self.input_topic, self.input_topic_type)
-            print(self._get_str_name(), ": finished waiting for message from topic [" + self.input_topic +"]" )
 
     def enable(self):
         self._wait_for_output_feedback_sub_msg(True)

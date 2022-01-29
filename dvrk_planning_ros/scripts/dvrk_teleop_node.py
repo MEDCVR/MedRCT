@@ -103,4 +103,9 @@ if __name__ == '__main__':
     try:
         dvrk_teleop_node = DvrkTeleopNode(config_yaml = config_yaml)
         rospy.spin()
-    except rospy.ROSInterruptException: pass
+        for _, rtc in dvrk_teleop_node.ros_teleop_controllers.items():
+            str_report = rtc.get_str_statistics_report()
+            if str_report:
+                print(str_report + "\n")
+    except rospy.ROSInterruptException: 
+        pass
