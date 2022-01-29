@@ -28,7 +28,10 @@ J : +rot_y
 L : -rot_y
 T : +rot_z
 B : -rot_z
-anything else : stop
+------
+[ : jaw close
+] : jaw open
+
 q/z : increase/decrease max speeds by 10%
 w/x : increase/decrease only linear speed by 10%
 e/c : increase/decrease only angular speed by 10%
@@ -190,7 +193,7 @@ def getKey(key_timeout):
 
 
 def vels(speed, rot_speed):
-    return "currently:\tspeed %srot_speed %s " % (speed,rot_speed)
+    return "currently:\tspeed %s rot_speed %s " % (speed,rot_speed)
 
 def key_update_tf(key, speed, rot_speed, thread):
     if key in moveBindings.keys():
