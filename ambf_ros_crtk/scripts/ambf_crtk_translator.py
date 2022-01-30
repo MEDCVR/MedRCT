@@ -115,6 +115,7 @@ class PSMTranslator:
         self.update_jaw_links(self.yaw_pos, self.jaw_pos)
 
     def servo_jp(self, gm_joint_state):
+
         joint_positions = gm_joint_state.position
         if len(joint_positions) != self._num_joints:
             rospy.logerr("joint positions size must be 6")
@@ -185,5 +186,6 @@ if __name__ == '__main__':
     try:
         crtk_translator = PSMTranslator(crtk_namespace = args.namespace)
         rospy.spin()
-    except rospy.ROSInterruptException:
         crtk_translator.stop()
+    except rospy.ROSInterruptException:
+        pass
