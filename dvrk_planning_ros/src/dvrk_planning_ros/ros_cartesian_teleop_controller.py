@@ -3,7 +3,7 @@ import tf
 import yaml
 import numpy as np
 
-from geometry_msgs.msg import TransformStamped, Twist
+from geometry_msgs.msg import TransformStamped, TwistStamped
 
 from PyKDL import Rotation, Vector
 
@@ -50,7 +50,7 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._input_callback_impl = self._input_callback_tf
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
-            input_topic_type = Twist
+            input_topic_type = TwistStamped
             self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
@@ -92,6 +92,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(self.current_input_tf)
 
     def _input_callback_twist(self, data):
+        twist = data.twist
         self._teleop_controller.update(
-            Vector(data.linear.x, data.linear.y, data.linear.z),
-            Rotation.RPY(data.angular.x, data.angular.y, data.angular.z))
+            Vector(twist.linear.x, twist.linear.y, twist.linear.z),
+            Rotation.RPY(twist.angular.x, twist.angular.y, twist.angular.z))

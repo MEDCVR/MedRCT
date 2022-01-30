@@ -8,7 +8,7 @@ import threading
 # import roslib; roslib.load_manifest('teleop_twist_keyboard')
 import rospy
 
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from sensor_msgs.msg import JointState
 
 import sys, select, termios, tty
@@ -70,7 +70,7 @@ jawBindings = {
 class PublishTransformThread(threading.Thread):
     def __init__(self, rate):
         super(PublishTransformThread, self).__init__()
-        self.publisher = rospy.Publisher('/keyboard/twist', Twist, queue_size = 1)
+        self.publisher = rospy.Publisher('/keyboard/twist', TwistStamped, queue_size = 1)
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
@@ -113,24 +113,25 @@ class PublishTransformThread(threading.Thread):
         self.join()
 
     def run(self):
-        twist = Twist()
+        msg = TwistStamped()
         while not self.done:
             self.condition.acquire()
             # Wait for a new message or timeout.
             self.condition.wait(self.timeout)
 
             # Copy state into twist message.
-            twist.linear.x = self.x * self.speed
-            twist.linear.y = self.y * self.speed
-            twist.linear.z = self.z * self.speed
-            twist.angular.x = self.rot_x * self.rot_speed
-            twist.angular.y = self.rot_y * self.rot_speed
-            twist.angular.z = self.rot_z * self.rot_speed
+            msg.twist.linear.x = self.x * self.speed
+            msg.twist.linear.y = self.y * self.speed
+            msg.twist.linear.z = self.z * self.speed
+            msg.twist.angular.x = self.rot_x * self.rot_speed
+            msg.twist.angular.y = self.rot_y * self.rot_speed
+            msg.twist.angular.z = self.rot_z * self.rot_speed
+            msg.header.stamp = rospy.Time.now()
 
             self.condition.release()
 
             # Publish.
-            self.publisher.publish(twist)
+            self.publisher.publish(msg)
 
 class PublishJointStateThread(threading.Thread):
     def __init__(self, rate):
@@ -178,6 +179,7 @@ class PublishJointStateThread(threading.Thread):
 
             self.condition.release()
 
+            js_msg.header.stamp = rospy.Time.now()
             # Publish.
             self.publisher.publish(js_msg)
 
