@@ -59,6 +59,9 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.js_msg.name = kinematics_solver.get_active_joint_names()
         self._teleop_controller.register(self._output_callback)
 
+        self.current_input_tf = np.identity(4)
+        self.current_output_tf = np.identity(4)
+
     def enable(self):
         self._wait_for_output_feedback_sub_msg(True)
         # TODO, this is not good oop
