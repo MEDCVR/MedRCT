@@ -14,7 +14,7 @@ namespace Medcvr.DvrkPlanning.Tests
         [SetUp]
         public void SetUp()
         {
-            psmKinematics = new Psm.Kinematics();
+            psmKinematics = new Psm.Kinematics(new Psm.LND400006());
         }
 
         [Test]

@@ -35,6 +35,7 @@ namespace Medcvr.DvrkPlanning
         private readonly float offset;
         private readonly JointType joint_type;
 
+        // Modified Convention
         public Dh(float alpha,
             float a,
             float d,
@@ -53,7 +54,7 @@ namespace Medcvr.DvrkPlanning
             }
         }
 
-        // theta: m for PRISMATIC, Rad for revolute
+        // theta: m for PRISMATIC, Rad for revolute 
         public Matrix4x4 ToMat(float theta = 0.0f)
         {
             float ca = MathF.Cos(alpha);
