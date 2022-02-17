@@ -47,6 +47,26 @@ class LND400006(SphericalWristToolParams):
             scale = scale
         )
 
+class CF470049(SphericalWristToolParams):
+    def __init__(self, scale = 1.0):
+        super().__init__(
+            L_rcc = 0.4318,  # From dVRK documentation
+            L_tool = 0.4162,  # From dVRK documentation
+            L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
+            L_yaw2ctrlpnt = 0.01977,  # From CAD measurement
+            scale = scale
+        )
+
+class RTS470007(SphericalWristToolParams):
+    def __init__(self, scale = 1.0):
+        super().__init__(
+            L_rcc = 0.4318,  # From dVRK documentation
+            L_tool = 0.4162,  # From dVRK documentation
+            L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
+            L_yaw2ctrlpnt = 0.01041,  # From CAD measurement
+            scale = scale
+        )
+
 class CustomSphericalWristFromYaml(SphericalWristToolParams):
     def __init__(self, yaml):
         scale = 1.0
