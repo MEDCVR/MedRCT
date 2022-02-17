@@ -37,7 +37,7 @@ class SphericalWristToolParams():
         # self.L_tool2rcm_offset = 0.0229
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
 
-class LND40006(SphericalWristToolParams):
+class LND400006(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
         super().__init__(
             L_rcc = 0.4318,  # From dVRK documentation

@@ -1,9 +1,9 @@
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 from timer import Timer
 
 
 t = Timer(timer_repeat_times = 100)
-p = PsmKinematicsSolver(LND40006())
+p = PsmKinematicsSolver(LND400006())
 
 joint_pos = [0.0, 0.0, 0.1, 0.0, 0.0, 0.0]
 print("Input joint pos: \n", joint_pos)

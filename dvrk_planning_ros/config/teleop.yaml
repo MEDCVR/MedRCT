@@ -9,7 +9,7 @@ cartesian_controllers:
     kinematics:
       robot: "psm"
       tool:
-        type: "LND40006"
+        type: "LND400006"
 joint_controllers:
   - name: "Keyboard-PSM1Jaw"
     input:

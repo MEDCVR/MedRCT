@@ -4,7 +4,7 @@ from PyKDL import Rotation, Vector
 import numpy as np
 
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True)
 class TestSetup(unittest.TestCase):
     def setUp(self):
         self.joint_pos = [0.0, 0.0, 0.1, 0.0, 0.0, 0.0]
-        self.kin_solver = PsmKinematicsSolver(LND40006())
+        self.kin_solver = PsmKinematicsSolver(LND400006())
         self.output_start_tf = self.kin_solver.compute_fk(self.joint_pos)
         self.inc_x = 0.01
         self.steps_num = 5
