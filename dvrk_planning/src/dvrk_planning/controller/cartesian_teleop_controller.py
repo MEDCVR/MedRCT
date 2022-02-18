@@ -20,16 +20,14 @@ class CartesianTeleopController(TeleopController):
         self.kinematics_solver = kinematics_solver
 
     def _rotation_adjustment(self, input_diff_tf):
-        rotated_output_tf = np.matmul(self.output_ref_to_input_rot, input_diff_tf)
-        return rotated_output_tf
+        return self.output_ref_to_input_rot[0:3,0:3].dot(input_diff_tf[0:3,3]).flatten()
 
     def _update_output_tf(self, input_diff_tf, output_tf):
-        input_diff_tf_rotated = self._rotation_adjustment(input_diff_tf)
-
-        input_diff_rot, input_diff_p = get_rot_and_p(input_diff_tf_rotated)
+        input_diff_rotated_p = self._rotation_adjustment(input_diff_tf)
+        input_diff_rot, _ = get_rot_and_p(input_diff_tf)
         cur_output_rot, cur_output_p = get_rot_and_p(output_tf)
 
-        cur_output_p = cur_output_p + input_diff_p
+        cur_output_p = cur_output_p + input_diff_rotated_p
         cur_output_rot = np.matmul(cur_output_rot, input_diff_rot)
 
         output_tf[0:3, 0:3] = cur_output_rot
@@ -69,8 +67,12 @@ class CartesianFollowTeleopController(CartesianTeleopController):
         super()._unclutch()
 
     def __update_input_tf(self, absolute_input_tf):
-        input_tf_difference = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
-        input_tf_difference[0:3, 3] = input_tf_difference[0:3, 3] * self.position_scale
+        input_tf_rot_diff = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
+
+        input_tf_difference = np.identity(4)
+        input_tf_difference[0:3,0:3] = input_tf_rot_diff[0:3, 0:3]
+        input_tf_difference[0:3, 3] = (absolute_input_tf[0:3,3] - self.start_input_tf[0:3,3]) * self.position_scale
+
         absolute_output_tf = np.copy(self.start_output_tf)
         self._update_output_tf(input_tf_difference, absolute_output_tf)
         return absolute_output_tf
