@@ -3,12 +3,12 @@
 import rospy
 from dvrk_planning_ros.utils import *
 
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND40006
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 from dvrk_planning_msgs.srv import ComputeIK, ComputeIKResponse
 
 class DvrkPlanningNode:
     def __init__(self):
-        self.kin_solver = PsmKinematicsSolver(LND40006())
+        self.kin_solver = PsmKinematicsSolver(LND400006())
         self.compute_ik_srv = rospy.Service("psm/compute_ik", ComputeIK, self.psm_compute_ik)
 
     def psm_compute_ik(self, req):

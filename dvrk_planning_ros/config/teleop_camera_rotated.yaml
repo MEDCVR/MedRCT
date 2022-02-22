@@ -13,4 +13,4 @@ cartesian_controllers:
     kinematics:
       robot: "psm"
       tool:
-        type: "LND40006"
+        type: "LND400006"
