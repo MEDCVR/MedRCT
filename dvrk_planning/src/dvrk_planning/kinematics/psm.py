@@ -82,7 +82,6 @@ class CustomSphericalWristFromYaml(SphericalWristToolParams):
 
 class PsmKinematicsData:
     def __init__(self, s_wrist_tool_params: SphericalWristToolParams):
-        self.num_links = 7
         self.swt_params = s_wrist_tool_params
         # From the urdf, and the jhu dvrk_robot
         self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
@@ -102,6 +101,10 @@ class PsmKinematicsData:
                            DH(-PI_2, self.swt_params.L_pitch2yaw, 0, 0, -PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED),
                            DH(-PI_2, 0, 0, self.swt_params.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+
+        # link_names size must be same a _kinematics size
+        self.link_names = ["yaw_link", "pitch_link", "insertion_link", "roll_link", "wrist_pitch_link", "wrist_yaw_link", "tool_tip_link"]
+        self.num_links = len(self.link_names)
 
     def get_dh(self, link_num):
         if link_num < 0 or link_num > self.num_links:
@@ -219,3 +222,6 @@ class PsmKinematicsSolver(KinematicsSolver):
 
     def get_active_joint_names(self):
         return self.kinematics_data.joint_names
+
+    def get_link_names(self):
+        return self.kinematics_data.link_names
