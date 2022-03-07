@@ -58,23 +58,22 @@ class Convention(Enum):
 
 
 class DH:
-    def __init__(self, alpha, a, theta, d, offset, joint_type, convention):
+    def __init__(self, alpha, a, d, theta, joint_type, convention):
         self.alpha = alpha
         self.a = a
-        self.theta = theta
         self.d = d
-        self.offset = offset
+        self.theta = theta
         self.joint_type = joint_type
         self.convention = convention
 
-    def mat_from_dh(self, alpha, a, theta, d, offset, joint_type, convention):
+    def mat_from_dh(self, alpha, a, d, theta, joint_position, joint_type, convention):
         ca = np.cos(alpha)
         sa = np.sin(alpha)
-        th = 0.0
+        th = theta
         if joint_type == JointType.REVOLUTE:
-            th = theta + offset
+            th = th + joint_position
         elif joint_type == JointType.PRISMATIC:
-            d = d + offset + theta
+            d = d + joint_position
         else:
             assert joint_type == JointType.REVOLUTE and joint_type == JointType.PRISMATIC
             return
@@ -101,9 +100,9 @@ class DH:
 
         return mat
 
-    def get_trans(self, theta):
-        return self.mat_from_dh(self.alpha, self.a, theta, self.d, self.offset, self.joint_type, self.convention)
-
+    def get_trans(self, joint_position):
+        return self.mat_from_dh(self.alpha, self.a, self.d,
+            self.theta, joint_position, self.joint_type, self.convention)
 
 def enforce_limits(j_raw, joint_lims):
     num_joints = len(j_raw)

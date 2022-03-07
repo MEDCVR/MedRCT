@@ -2,15 +2,48 @@ from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 from timer import Timer
 import numpy as np
 
+def print_fk(fk, target_frame):
+    print("target_frame: ", target_frame)
+    print("FK: \n", fk)
+
 np.set_printoptions(precision = 4, suppress = True)
 
 t = Timer(timer_repeat_times = 1)
 p = PsmKinematicsSolver(LND400006())
 
-joint_pos = [0.0, 0.0, 0.0, 0.0]
-target_frame = "tool_tip_link"
-reference_frame = "insertion_link"
+# 1. Link names
+print("link_names:", p.get_link_names())
 
+# 2. Going up the default chain calculate from base
+reference_frame = ""
+
+joint_pos = [0.0]
+target_frame = "yaw_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+joint_pos = [0.0, 0.0]
+target_frame = "pitch_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+joint_pos = [0.0, 0.0, 0.0]
+target_frame = "main_insertion_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+joint_pos = [0.0, 0.0, 0.0, 0.0]
+target_frame = "tool_roll_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+joint_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
+target_frame = "tool_pitch_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+joint_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+target_frame = "tool_yaw_link"
+print_fk(p.compute_fk_relative(joint_pos, reference_frame, target_frame), target_frame)
+
+# 3. For last one, calculate with a timer
+joint_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+target_frame = "tool_tip"
 output_fk = t.time_average(lambda : p.compute_fk_relative(joint_pos, reference_frame, target_frame))
-print("FK: \n", output_fk)
+print_fk(output_fk, target_frame)
 print(t.str_average())

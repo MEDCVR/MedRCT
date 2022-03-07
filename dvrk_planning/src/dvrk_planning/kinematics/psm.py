@@ -87,21 +87,21 @@ class PsmKinematicsData:
         self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
             "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"] #Should have jaw, but doesnt work with current controller
 
-        # PSM DH Params
-        # [previous_link, link_name, [alpha | a | theta | d | offset | type]]
-        self._kinematics = [["", "yaw_link", DH(PI_2, 0, 0, 0, PI_2, 
+        # PSM DH Params, All link axes and names now correspond to dvrk_env psm.urdf.xacro and tool lnd400006.
+        # [previous_link, link_name, [alpha | a | d | theta | type | convention]]
+        self._kinematics = [["", "yaw_link", DH(PI_2, 0, 0, PI_2, 
                               JointType.REVOLUTE, Convention.MODIFIED)],
-                           ["yaw_link", "pitch_link", DH(-PI_2, 0, 0, 0, -PI_2,
+                           ["yaw_link", "pitch_link", DH(-PI_2, 0, 0, -PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)],
-                           ["pitch_link", "insertion_link", DH(PI_2, 0, 0, 0, -self.swt_params.L_rcc,
+                           ["pitch_link", "main_insertion_link", DH(PI_2, 0, -self.swt_params.L_rcc, -PI_2,
                               JointType.PRISMATIC, Convention.MODIFIED)],
-                           ["insertion_link", "roll_link", DH(0, 0, 0, self.swt_params.L_tool, 0,
+                           ["main_insertion_link", "tool_roll_link", DH(0, 0, self.swt_params.L_tool, -PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)],
-                           ["roll_link", "wrist_pitch_link", DH(-PI_2, 0, 0, 0, -PI_2,
+                           ["tool_roll_link", "tool_pitch_link", DH(PI_2, 0, 0, PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)],
-                           ["wrist_pitch_link", "wrist_yaw_link", DH(-PI_2, self.swt_params.L_pitch2yaw, 0, 0, -PI_2,
+                           ["tool_pitch_link", "tool_yaw_link", DH(-PI_2, self.swt_params.L_pitch2yaw, 0, PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)],
-                           ["wrist_yaw_link", "tool_tip_link", DH(-PI_2, 0, 0, self.swt_params.L_yaw2ctrlpnt, PI_2,
+                           ["tool_yaw_link", "tool_tip", DH(PI_2, 0, self.swt_params.L_yaw2ctrlpnt, -PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)]]
 
         # Parse _kinematics
@@ -115,8 +115,8 @@ class PsmKinematicsData:
         self.num_links = len(self.link_name_to_dh)
 
         # Standard kinematic chain
-        default_target_link = "tool_tip_link"
-        default_base_link = "yaw_link"
+        default_target_link = "tool_tip"
+        # default_base_link = "yaw_link"
         prev_link = self.link_to_previous_link[default_target_link]
         self.default_chain = [default_target_link]
         while prev_link != "":
@@ -166,7 +166,6 @@ class PsmKinematicsSolver(KinematicsSolver):
         # Calculate the TF
         T_R_T = np.identity(4)
         for i in range(len(joint_positions)):
-            print(chain[i])
             link_dh = self.kinematics_data.get_dh(chain[i])
             T_R_T = T_R_T * link_dh.get_trans(joint_positions[i])
         return T_R_T
@@ -232,7 +231,7 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         # To get j4, compare the above vector with Y axes of T_3_0
         T_3_0 = convert_mat_to_frame(self.compute_fk([j1, j2, j3], 3))
-        j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(),
+        j4 = get_angle(cross_palmlink_x7_0, -T_3_0.M.UnitX(),
                     up_vector=-T_3_0.M.UnitZ())
 
         # Calculate j5
@@ -242,7 +241,7 @@ class PsmKinematicsSolver(KinematicsSolver):
         T_4_0 = T_3_0 * T_4_3
 
         j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p,
-                    T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
+                    T_4_0.M.UnitZ(), up_vector=T_4_0.M.UnitY())
 
         # Calculate j6
         # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
@@ -259,4 +258,4 @@ class PsmKinematicsSolver(KinematicsSolver):
         return self.kinematics_data.joint_names
 
     def get_link_names(self):
-        return self.kinematics_data.link_name_to_dh.keys()
+        return list(self.kinematics_data.link_name_to_dh.keys())
