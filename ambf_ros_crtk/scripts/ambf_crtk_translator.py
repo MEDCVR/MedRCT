@@ -12,6 +12,7 @@ from  sensor_msgs.msg import JointState
 
 class JointErrorsModel:
     def __init__(self, num_joints, errors_distribution_deg):
+
         self.errors_list_deg = errors_distribution_deg
         self.joint_erros_rad = []
         self.num_jnts = num_joints
@@ -84,7 +85,8 @@ class PSMTranslator:
         self.jaw_measured_js_pub = rospy.Publisher(crtk_namespace + "/jaw/measured_js", JointState, queue_size = 10)
 
         self._num_joints = 6
-        self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg= [-5., -2. , 2., 5.])
+        # self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg= [-5., -2. , 2., 5.])
+        self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg= [0])
         self.joint_names = self.base_handle.get_joint_names() # Might be useful later
 
         self.yaw_pos = 0.0
