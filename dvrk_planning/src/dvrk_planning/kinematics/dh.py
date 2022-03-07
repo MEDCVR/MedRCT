@@ -101,8 +101,8 @@ class DH:
 
         return mat
 
-    def get_trans(self):
-        return self.mat_from_dh(self.alpha, self.a, self.theta, self.d, self.offset, self.joint_type, self.convention)
+    def get_trans(self, theta):
+        return self.mat_from_dh(self.alpha, self.a, theta, self.d, self.offset, self.joint_type, self.convention)
 
 
 def enforce_limits(j_raw, joint_lims):

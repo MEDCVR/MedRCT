@@ -1,6 +1,9 @@
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 from timer import Timer
 
+import numpy as np
+
+np.set_printoptions(precision = 4, suppress = True)
 
 t = Timer(timer_repeat_times = 100)
 p = PsmKinematicsSolver(LND400006())

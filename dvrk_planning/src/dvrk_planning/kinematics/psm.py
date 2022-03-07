@@ -120,7 +120,6 @@ class PsmKinematicsData:
         prev_link = self.link_to_previous_link[default_target_link]
         self.default_chain = [default_target_link]
         while prev_link != "":
-            print(prev_link)
             self.default_chain.append(prev_link)
             prev_link = self.link_to_previous_link[prev_link]
             
@@ -146,10 +145,31 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         for i in range(up_to_link_num):
             link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
-            link_dh.theta = j[i]
-            T_N_0 = T_N_0 * link_dh.get_trans()
+            T_N_0 = T_N_0 * link_dh.get_trans(j[i])
 
         return T_N_0
+
+    def compute_fk_relative(self, joint_positions, reference_link, target_link):
+        # Construct the chain
+        prev_link = self.kinematics_data.link_to_previous_link[target_link]
+        chain = [target_link]
+        while prev_link != reference_link:
+            chain.append(prev_link)
+            prev_link = self.kinematics_data.link_to_previous_link[prev_link]        
+        chain.reverse()
+
+        # Error Checking
+        if len(joint_positions) != len(chain):
+            raise Exception("length of joint_positions [{}] \
+                must be the same as length of chain [{}]".format(len(joint_positions), len(chain)))
+
+        # Calculate the TF
+        T_R_T = np.identity(4)
+        for i in range(len(joint_positions)):
+            print(chain[i])
+            link_dh = self.kinematics_data.get_dh(chain[i])
+            T_R_T = T_R_T * link_dh.get_trans(joint_positions[i])
+        return T_R_T
 
     def enforce_limits(self, j_raw):
         # Min to Max Limits
@@ -218,8 +238,7 @@ class PsmKinematicsSolver(KinematicsSolver):
         # Calculate j5
         # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
         link4_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[3])
-        link4_dh.theta = j4
-        T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
+        T_4_3 = convert_mat_to_frame(link4_dh.get_trans(j4))
         T_4_0 = T_3_0 * T_4_3
 
         j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p,
@@ -228,8 +247,7 @@ class PsmKinematicsSolver(KinematicsSolver):
         # Calculate j6
         # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
         link5_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[4])
-        link5_dh.theta = j5
-        T_5_4 = convert_mat_to_frame(link5_dh.get_trans())
+        T_5_4 = convert_mat_to_frame(link5_dh.get_trans(j5))
         T_5_0 = T_4_0 * T_5_4
 
         j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(),
