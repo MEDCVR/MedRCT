@@ -129,6 +129,12 @@ class PsmKinematicsData:
     def get_dh(self, link_name):
             return self.link_name_to_dh[link_name]
 
+class Chain():
+    def __init__(self, link_names):
+        self.link_names = link_names
+    def get_num_of_active_joints(self):
+        return len(self.link_names) - 1
+
 class PsmKinematicsSolver(KinematicsSolver):
     def __init__(self, spherical_wrist_tool_params: SphericalWristToolParams):
         self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
@@ -143,6 +149,7 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         T_N_0 = np.identity(4)
 
+
         for i in range(up_to_link_num):
             link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
             T_N_0 = T_N_0 * link_dh.get_trans(j[i])
@@ -152,23 +159,24 @@ class PsmKinematicsSolver(KinematicsSolver):
     def get_chain(self, reference_link, target_link):
         # Construct the chain
         prev_link = self.kinematics_data.link_to_previous_link[target_link]
-        chain = [target_link]
+        link_names = [target_link]
         while prev_link != reference_link:
-            chain.append(prev_link)
+            link_names.append(prev_link)
             prev_link = self.kinematics_data.link_to_previous_link[prev_link]
-        chain.reverse()
-        return chain
+        link_names.append(prev_link)
+        link_names.reverse()
+        return Chain(link_names)
 
-    def compute_fk_relative(self, joint_positions, chain):
+    def compute_fk_relative(self, joint_positions, chain:Chain):
         # Error Checking
-        if len(joint_positions) != len(chain):
+        if len(joint_positions) != chain.get_num_of_active_joints():
             raise Exception("length of joint_positions [{}] \
                 must be the same as length of chain [{}]".format(len(joint_positions), len(chain)))
 
         # Calculate the TF
         T_R_T = np.identity(4)
         for i in range(len(joint_positions)):
-            link_dh = self.kinematics_data.get_dh(chain[i])
+            link_dh = self.kinematics_data.get_dh(chain.link_names[i+1])
             T_R_T = T_R_T * link_dh.get_trans(joint_positions[i])
         return T_R_T
 
