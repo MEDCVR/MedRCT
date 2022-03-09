@@ -149,15 +149,17 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         return T_N_0
 
-    def compute_fk_relative(self, joint_positions, reference_link, target_link):
+    def get_chain(self, reference_link, target_link):
         # Construct the chain
         prev_link = self.kinematics_data.link_to_previous_link[target_link]
         chain = [target_link]
         while prev_link != reference_link:
             chain.append(prev_link)
-            prev_link = self.kinematics_data.link_to_previous_link[prev_link]        
+            prev_link = self.kinematics_data.link_to_previous_link[prev_link]
         chain.reverse()
+        return chain
 
+    def compute_fk_relative(self, joint_positions, chain):
         # Error Checking
         if len(joint_positions) != len(chain):
             raise Exception("length of joint_positions [{}] \
