@@ -58,22 +58,23 @@ class Convention(Enum):
 
 
 class DH:
-    def __init__(self, alpha, a, d, theta, joint_type, convention):
+    def __init__(self, alpha, a, d, theta, joint_type, convention, axis_multiplier = 1):
         self.alpha = alpha
         self.a = a
         self.d = d
         self.theta = theta
         self.joint_type = joint_type
         self.convention = convention
+        self.axis_multiplier = axis_multiplier # Usually -1 if joint is rotating/moving on reverse axis, 1 otherwise
 
     def mat_from_dh(self, alpha, a, d, theta, joint_position, joint_type, convention):
         ca = np.cos(alpha)
         sa = np.sin(alpha)
         th = theta
         if joint_type == JointType.REVOLUTE:
-            th = th + joint_position
+            th = th + joint_position * self.axis_multiplier
         elif joint_type == JointType.PRISMATIC:
-            d = d + joint_position
+            d = d + joint_position * self.axis_multiplier
         else:
             assert joint_type == JointType.REVOLUTE and joint_type == JointType.PRISMATIC
             return

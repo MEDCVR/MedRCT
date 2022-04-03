@@ -102,7 +102,9 @@ class PsmKinematicsData:
                            ["tool_pitch_link", "tool_yaw_link", DH(-PI_2, self.swt_params.L_pitch2yaw, 0, PI_2,
                               JointType.REVOLUTE, Convention.MODIFIED)],
                            ["tool_yaw_link", "tool_tip", DH(PI_2, 0, self.swt_params.L_yaw2ctrlpnt, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED)]]
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["tool_yaw_link", "tool_gripper1_link", DH(0, 0, 0, 0, JointType.REVOLUTE, Convention.MODIFIED, axis_multiplier=-1)],
+                           ["tool_yaw_link", "tool_gripper2_link", DH(0, 0, 0, 0, JointType.REVOLUTE, Convention.MODIFIED)]]
 
         # Parse _kinematics
         self.link_name_to_dh = {}
