@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import socket
 import rospy
+import numpy as np
 from geometry_msgs.msg import TransformStamped
+from sensor_msgs.msg import JointState
 
-localIP = "10.42.0.1"
+localIP = "192.168.137.128"
 localPort = 34567
 bufferSize = 1024
 
@@ -19,10 +21,28 @@ UDPServerSocket = socket.socket(family=socket.AF_INET, type= socket.SOCK_DGRAM)
 UDPServerSocket.bind((localIP,localPort))
 print("UDP server is up and listening ")
 
+class JointSubscriber:
+    def __init__(self):
+        topic_name = "/PSM2/measured_js"
+        self.sub = rospy.Subscriber(topic_name, JointState, self.callback)
+
+        print("waiting for ... ", topic_name)
+        rospy.wait_for_message(topic_name, JointState)
+        print("Finished waiting for, ", topic_name)
+
+        self.joint_positions = []
+    def callback(self,data):
+        self.joint_positions = np.array(data.position)
+
+    def get_joint_positions(self):
+        return self.joint_positions
+
 if __name__ == '__main__':
 
     try:
         # ROS things
+        joint_subscriber = JointSubscriber()
+        
         pub = rospy.Publisher('servo_cp_follow', TransformStamped, queue_size=10)
         tf_stamped_msg = TransformStamped()
         tf_stamped_msg.header.frame_id = "world"
@@ -48,9 +68,17 @@ if __name__ == '__main__':
             pub.publish(tf_stamped_msg)
 
             #sending a reply to client
+            joint_pos = joint_subscriber.get_joint_positions()
+            str_msg = "{} {} {} {} {} {}".format(
+                joint_pos[0],
+                joint_pos[1],
+                joint_pos[2],
+                joint_pos[3],
+                joint_pos[4],
+                joint_pos[5])
+            print(str_msg)
+            bytesToSend = str.encode(str_msg)
             UDPServerSocket.sendto(bytesToSend, address)
-            UDPServerSocket.sendto(bytesToSend1, address)
-            UDPServerSocket.sendto(bytesToSend2, address)
             rate.sleep()
     except rospy.ROSInterruptException:
         pass
