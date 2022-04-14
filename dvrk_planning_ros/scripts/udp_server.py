@@ -5,16 +5,9 @@ import numpy as np
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import JointState
 
-localIP = "192.168.137.128"
+localIP = "10.42.0.1"
 localPort = 34567
 bufferSize = 1024
-
-msgFromServer = "hello udp client !!"
-bytesToSend = str.encode(msgFromServer)
-msgFromServer1 = "Just Catching up here"
-bytesToSend1 = str.encode(msgFromServer1)
-msgFromServer2 = "Lives in a brown brick house"
-bytesToSend2 = str.encode(msgFromServer2)
 
 #create Datagram socket
 UDPServerSocket = socket.socket(family=socket.AF_INET, type= socket.SOCK_DGRAM)
@@ -32,8 +25,15 @@ class JointSubscriber:
 
         self.joint_positions = []
     def callback(self,data):
-        self.joint_positions = np.array(data.position)
-
+        self.joint_positions = data.position
+        # str_msg = "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}".format(
+        #     self.joint_positions[0],
+        #     self.joint_positions[1],
+        #     self.joint_positions[2],
+        #     self.joint_positions[3],
+        #     self.joint_positions[4],
+        #     self.joint_positions[5])
+        # print(str_msg)
     def get_joint_positions(self):
         return self.joint_positions
 
@@ -41,13 +41,13 @@ if __name__ == '__main__':
 
     try:
         # ROS things
+        rospy.init_node('talker', anonymous=True)
         joint_subscriber = JointSubscriber()
         
         pub = rospy.Publisher('servo_cp_follow', TransformStamped, queue_size=10)
         tf_stamped_msg = TransformStamped()
         tf_stamped_msg.header.frame_id = "world"
         tf_stamped_msg.child_frame_id = "input_controller"
-        rospy.init_node('talker', anonymous=True)
         rate = rospy.Rate(100) # 100hz
         while not rospy.is_shutdown():
             bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
@@ -69,7 +69,15 @@ if __name__ == '__main__':
 
             #sending a reply to client
             joint_pos = joint_subscriber.get_joint_positions()
-            str_msg = "{} {} {} {} {} {}".format(
+            # str_msg = "{} {} {} {} {} {}".format(
+            #     0,
+            #     0,
+            #     0,
+            #     0,
+            #     0,
+            #     0)
+            print(joint_pos)
+            str_msg = "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}".format(
                 joint_pos[0],
                 joint_pos[1],
                 joint_pos[2],

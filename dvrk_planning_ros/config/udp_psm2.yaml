@@ -6,6 +6,7 @@ cartesian_controllers:
     output:
       control_topic: "/PSM2/servo_jp"
       feedback_topic: "/PSM2/measured_js"
+      position_scale: 0.3
     kinematics:
       robot: "psm"
       tool:
