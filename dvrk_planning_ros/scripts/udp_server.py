@@ -24,7 +24,7 @@ if __name__ == '__main__':
     try:
         # ROS things
         pub = rospy.Publisher('servo_cp_follow', TransformStamped, queue_size=10)
-        tf_stamped_msg = TransformStamped
+        tf_stamped_msg = TransformStamped()
         tf_stamped_msg.header.frame_id = "world"
         tf_stamped_msg.child_frame_id = "input_controller"
         rospy.init_node('talker', anonymous=True)
@@ -35,16 +35,16 @@ if __name__ == '__main__':
             address = bytesAddressPair[1]
             # clientMSG =  "message from client : {}".format(message)
             message_list = message.split()
+            tf_stamped_msg.header.stamp = rospy.Time.now()
+            tf_stamped_msg.transform.translation.x = float(message_list[0])
+            tf_stamped_msg.transform.translation.y = float(message_list[1])
+            tf_stamped_msg.transform.translation.z = float(message_list[2]) 
+            print(tf_stamped_msg)
 
-            tf_stamped_msg.header.stamp = rospy.get_time()
-            tf_stamped_msg.transform.translation.x = message_list[0]
-            tf_stamped_msg.transform.translation.y = message_list[1]
-            tf_stamped_msg.transform.translation.z = message_list[2]
-
-            tf_stamped_msg.transform.rotation.x = message_list[3]
-            tf_stamped_msg.transform.rotation.y = message_list[4]
-            tf_stamped_msg.transform.rotation.z = message_list[5]
-            tf_stamped_msg.transform.rotation.w = message_list[6]
+            tf_stamped_msg.transform.rotation.x = float(message_list[3])
+            tf_stamped_msg.transform.rotation.y = float(message_list[4])
+            tf_stamped_msg.transform.rotation.z = float(message_list[5])
+            tf_stamped_msg.transform.rotation.w = float(message_list[6])
             pub.publish(tf_stamped_msg)
 
             #sending a reply to client
