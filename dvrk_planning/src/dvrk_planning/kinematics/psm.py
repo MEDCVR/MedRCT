@@ -82,105 +82,105 @@ class CustomSphericalWristFromYaml(SphericalWristToolParams):
 
 class PsmKinematicsData:
     def __init__(self, s_wrist_tool_params: SphericalWristToolParams):
-        self.num_links = 7
         self.swt_params = s_wrist_tool_params
         # From the urdf, and the jhu dvrk_robot
         self.joint_names = ["outer_yaw", "outer_pitch", "outer_insertion", \
-            "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"]
+            "outer_roll", "outer_wrist_pitch", "outer_wrist_yaw"] #Should have jaw, but doesnt work with current controller
 
-        # PSM DH Params
-        # alpha | a | theta | d | offset | type
-        self._kinematics = [DH(PI_2, 0, 0, 0, PI_2, JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(PI_2, 0, 0, 0, -self.swt_params.L_rcc,
-                              JointType.PRISMATIC, Convention.MODIFIED),
-                           DH(0, 0, 0, self.swt_params.L_tool, 0,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, self.swt_params.L_pitch2yaw, 0, 0, -PI_2,
-                              JointType.REVOLUTE, Convention.MODIFIED),
-                           DH(-PI_2, 0, 0, self.swt_params.L_yaw2ctrlpnt, PI_2, JointType.REVOLUTE, Convention.MODIFIED)]
+        # PSM DH Params, All link axes and names now correspond to dvrk_env psm.urdf.xacro and tool lnd400006.
+        # [previous_link, link_name, [alpha | a | d | theta | type | convention]]
+        self._kinematics = [["", "yaw_link", DH(PI_2, 0, 0, PI_2, 
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["yaw_link", "pitch_link", DH(-PI_2, 0, 0, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["pitch_link", "main_insertion_link", DH(PI_2, 0, -self.swt_params.L_rcc, -PI_2,
+                              JointType.PRISMATIC, Convention.MODIFIED)],
+                           ["main_insertion_link", "tool_roll_link", DH(0, 0, self.swt_params.L_tool, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["tool_roll_link", "tool_pitch_link", DH(PI_2, 0, 0, PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["tool_pitch_link", "tool_yaw_link", DH(-PI_2, self.swt_params.L_pitch2yaw, 0, PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["tool_yaw_link", "tool_tip", DH(PI_2, 0, self.swt_params.L_yaw2ctrlpnt, -PI_2,
+                              JointType.REVOLUTE, Convention.MODIFIED)],
+                           ["tool_yaw_link", "tool_gripper1_link", DH(0, 0, 0, 0, JointType.REVOLUTE, Convention.MODIFIED, axis_multiplier=-1)],
+                           ["tool_yaw_link", "tool_gripper2_link", DH(0, 0, 0, 0, JointType.REVOLUTE, Convention.MODIFIED)]]
 
-    def get_dh(self, link_num):
-        if link_num < 0 or link_num > self.num_links:
-            # Error
-            print("ERROR, ONLY ", self.num_links, " JOINT DEFINED")
-            return []
-        else:
-            return self._kinematics[link_num]
+        # Parse _kinematics
+        self.link_name_to_dh = {}
+        self.link_to_previous_link = {}
+        for kin in self._kinematics:
+            if (kin[1] in self.link_name_to_dh):
+                raise Exception ("link defined twice in kinematics")
+            self.link_to_previous_link[kin[1]] = kin[0]
+            self.link_name_to_dh[kin[1]] = kin[2]
+        self.num_links = len(self.link_name_to_dh)
+
+        # Standard kinematic chain
+        default_target_link = "tool_tip"
+        # default_base_link = "yaw_link"
+        prev_link = self.link_to_previous_link[default_target_link]
+        self.default_chain = [default_target_link]
+        while prev_link != "":
+            self.default_chain.append(prev_link)
+            prev_link = self.link_to_previous_link[prev_link]
+            
+        self.default_chain.reverse()
+        self.default_chain_link_num = len(self.default_chain)
+
+    def get_dh(self, link_name):
+            return self.link_name_to_dh[link_name]
+
+class Chain():
+    def __init__(self, link_names):
+        self.link_names = link_names
+    def get_num_of_active_joints(self):
+        return len(self.link_names) - 1
 
 class PsmKinematicsSolver(KinematicsSolver):
     def __init__(self, spherical_wrist_tool_params: SphericalWristToolParams):
         self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
 
+    # 7 comes from default_chain_link_num
     def compute_fk(self, joint_positions, up_to_link_num = 7):
-        if up_to_link_num > self.kinematics_data.num_links:
-            raise "ERROR! COMPUTE FK UP_TO_LINK GREATER THAN DOF"
-        j = [0, 0, 0, 0, 0, 0, 0]
+        if up_to_link_num > self.kinematics_data.default_chain_link_num:
+            raise "ERROR! COMPUTE FK UP_TO_LINK GREATER THAN DEFAULT CHAIN LINK NUM"
+        j = np.zeros(self.kinematics_data.default_chain_link_num)
         for i in range(len(joint_positions)):
             j[i] = joint_positions[i]
 
         T_N_0 = np.identity(4)
 
+
         for i in range(up_to_link_num):
-            link_dh = self.kinematics_data.get_dh(i)
-            link_dh.theta = j[i]
-            T_N_0 = T_N_0 * link_dh.get_trans()
+            link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
+            T_N_0 = T_N_0 * link_dh.get_trans(j[i])
 
         return T_N_0
 
-    # T_7_0 = compute_FK([-0.5, 0, 0.2, 0, 0, 0])
-    #
-    # print(T_7_0)
-    # print("\n AFTER ROUNDING \n")
-    # print(round_mat(T_7_0, 4, 4, 3))
-    # print(round_mat(T_7_0, 4, 4, 3))
+    def get_chain(self, reference_link, target_link):
+        # Construct the chain
+        prev_link = self.kinematics_data.link_to_previous_link[target_link]
+        link_names = [target_link]
+        while prev_link != reference_link:
+            link_names.append(prev_link)
+            prev_link = self.kinematics_data.link_to_previous_link[prev_link]
+        link_names.append(prev_link)
+        link_names.reverse()
+        return Chain(link_names)
 
-    # THIS IS THE IK FOR THE PSM MOUNTED WITH THE LARGE NEEDLE DRIVER TOOL. THIS IS THE
-    # SAME KINEMATIC CONFIGURATION FOUND IN THE DVRK MANUAL. NOTE, JUST LIKE A FAULT IN THE
-    # MTM's DH PARAMETERS IN THE MANUAL, THERE IS A FAULT IN THE PSM's DH AS WELL. CHECK THE FK
-    # FILE TO FIND THE CORRECT DH PARAMS BASED ON THE FRAME ATTACHMENT IN THE DVRK MANUAL
+    def compute_fk_relative(self, joint_positions, chain:Chain):
+        # Error Checking
+        if len(joint_positions) != chain.get_num_of_active_joints():
+            raise Exception("length of joint_positions [{}] \
+                must be the same as length of chain [{}]".format(len(joint_positions), len(chain)))
 
-    # ALSO, NOTICE THAT AT HOME CONFIGURATION THE TIP OF THE PSM HAS THE FOLLOWING
-    # ROTATION OFFSET W.R.T THE BASE. THIS IS IMPORTANT FOR IK PURPOSES.
-    # R_7_0 = [ 0,  1,  0 ]
-    #       = [ 1,  0,  0 ]
-    #       = [ 0,  0, -1 ]
-    # Basically, x_7 is along y_0, y_7 is along x_0 and z_7 is along -z_0.
-
-    # Read the frames, positions and rotation as follows, T_A_B, means that this
-    # is a Transfrom of frame A with respect to frame B. Similarly P_A_B is the
-    # Position Vector of frame A's origin with respect to frame B's origin. And finally
-    # R_A_B is the rotation matrix representing the orientation of frame B with respect to
-    # frame A.
-
-    # If you are confused by the above description, consider the equations below to make sense of it
-    # all. Suppose we have three frames A, B and C. The following equations will give you the L.H.S
-
-    # 1) T_C_A = T_B_A * T_C_B
-    # 2) R_A_C = inv(R_B_A * R_C_B)
-    # 3) P_C_A = R_B_A * R_C_B * P_C
-
-    # For Postions, the missing second underscore separated quantity means that it is expressed in local
-    # coodinates. Rotations, and Transforms are always to defined a frame w.r.t to some
-    # other frame so this is a special case for only positions. Consider the example
-
-    # P_B indiciates a point expressed in B frame.
-
-    # Now there are two special cases that are identified by letter D and N. The first characeter D indiciates a
-    # difference (vector) of between two points, specified by the first and second underscore separater (_) strings,
-    # expressed in the third underscore separated reference. I.e.
-
-    # D_A_B_C
-    # This means the difference between Point A and  B expressed in C. On the other hand the letter N indicates
-    # the direction, and not specifically the actually
-    # measurement. So:
-    #
-    # N_A_B_C
-    #
-    # is the direction between the difference of A and B expressed in C.
+        # Calculate the TF
+        T_R_T = np.identity(4)
+        for i in range(len(joint_positions)):
+            link_dh = self.kinematics_data.get_dh(chain.link_names[i+1])
+            T_R_T = T_R_T * link_dh.get_trans(joint_positions[i])
+        return T_R_T
 
     def enforce_limits(self, j_raw):
         # Min to Max Limits
@@ -211,14 +211,6 @@ class PsmKinematicsSolver(KinematicsSolver):
         # Pinch Joint in Origin
         T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
 
-        # It appears from the geometry of the robot, that the palm joint is always in the ZY
-        # plane of the end effector frame (7th Frame)
-        # This is the logic that should give us the direction of the palm link and then
-        # we know the length of the palm link so we can keep going back to find the shaftTip (PalmJoint)
-        # position
-
-        # Convert the vector from base to pinch joint in the pinch joint frame
-        # print("P_PinchJoint_0: ", round_vec(T_PinchJoint_0.p))
         R_0_PinchJoint = T_PinchJoint_0.M.Inverse()
         P_PinchJoint_local = R_0_PinchJoint * T_PinchJoint_0.p
         # print("P_PinchJoint_local: ", round_vec(P_PinchJoint_local))
@@ -227,28 +219,10 @@ class PsmKinematicsSolver(KinematicsSolver):
         N_PalmJoint_PinchJoint[0] = 0
         N_PalmJoint_PinchJoint.Normalize()
 
-        # We can check the angle to see if things make sense
-        # angle = get_angle(N_PalmJoint_PinchJoint, Vector(0, 0, -1))
-        # print("Palm Link Angle in Pinch YZ Plane: ", angle)
-
-        # # If the angle between the two vectors is > 90 Degree, we should move in the opposite direction
-        # if angle > np.pi/2:
-        #     N_PalmJoint_PinchJoint = N_PalmJoint_PinchJoint
-        #
-        # print(angle)
-
-        # Add another frame to account for Palm link length
-        # print("N_PalmJoint_PinchJoint: ", round_vec(N_PalmJoint_PinchJoint))
         T_PalmJoint_PinchJoint = Frame(Rotation.RPY(
             0, 0, 0), N_PalmJoint_PinchJoint * swt_params.L_pitch2yaw)
-        # print("P_PalmJoint_PinchJoint: ", round_vec(T_PalmJoint_PinchJoint.p))
         # Get the shaft tip or the Palm's Joint position
         T_PalmJoint_0 = T_7_0 * T_PinchJoint_7 * T_PalmJoint_PinchJoint
-
-        # print("P_PalmJoint_0: ", round_vec(T_PalmJoint_0.p))
-        # print("P_PinchJoint_0: ", round_vec(T_PinchJoint_0.p))
-        # Now this should be the position of the point along the RC
-        # print("Point Along the SHAFT: ", T_PalmJoint_0.p)
 
         # Calculate insertion_depth to check if the tool is past the RCM
         insertion_depth = T_PalmJoint_0.p.Norm()
@@ -256,16 +230,9 @@ class PsmKinematicsSolver(KinematicsSolver):
         # Now having the end point of the shaft or the PalmJoint, we can calculate some
         # angles as follows
         xz_diagonal = math.sqrt(T_PalmJoint_0.p[0] ** 2 + T_PalmJoint_0.p[2] ** 2)
-        # # print('XZ Diagonal: ', xz_diagonal)
-
-        # yz_diagonal = math.sqrt(T_PalmJoint_0.p[1] ** 2 + T_PalmJoint_0.p[2] ** 2)
-        # # print('YZ Diagonal: ', yz_diagonal)
 
         j1 = math.atan2(T_PalmJoint_0.p[0], -T_PalmJoint_0.p[2])
-
-        # j2 = np.sign(T_PalmJoint_0.p[0]) * math.acos(-T_PalmJoint_0.p[2] / yz_diagonal)
         j2 = -math.atan2(T_PalmJoint_0.p[1], xz_diagonal)
-
         j3 = insertion_depth + swt_params.L_tool2rcm_offset
 
         # Calculate j4
@@ -276,46 +243,31 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         # To get j4, compare the above vector with Y axes of T_3_0
         T_3_0 = convert_mat_to_frame(self.compute_fk([j1, j2, j3], 3))
-        j4 = get_angle(cross_palmlink_x7_0, T_3_0.M.UnitY(),
+        j4 = get_angle(cross_palmlink_x7_0, -T_3_0.M.UnitX(),
                     up_vector=-T_3_0.M.UnitZ())
 
         # Calculate j5
         # This should be simple, just compute the angle between Rz_4_0 and D_PinchJoint_PalmJoint_0
-        link4_dh = self.kinematics_data.get_dh(3)
-        link4_dh.theta = j4
-        T_4_3 = convert_mat_to_frame(link4_dh.get_trans())
+        link4_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[3])
+        T_4_3 = convert_mat_to_frame(link4_dh.get_trans(j4))
         T_4_0 = T_3_0 * T_4_3
 
         j5 = get_angle(T_PinchJoint_0.p - T_PalmJoint_0.p,
-                    T_4_0.M.UnitZ(), up_vector=-T_4_0.M.UnitY())
+                    T_4_0.M.UnitZ(), up_vector=T_4_0.M.UnitY())
 
         # Calculate j6
         # This too should be simple, compute the angle between the Rz_7_0 and Rx_5_0.
-        link5_dh = self.kinematics_data.get_dh(4)
-        link5_dh.theta = j5
-        T_5_4 = convert_mat_to_frame(link5_dh.get_trans())
+        link5_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[4])
+        T_5_4 = convert_mat_to_frame(link5_dh.get_trans(j5))
         T_5_0 = T_4_0 * T_5_4
 
         j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(),
                     up_vector=-T_5_0.M.UnitY())
 
-        # str = '\n**********************************'*3
-        # print(str)
-        # print("Joint 1: ", round(j1, 3))
-        # print("Joint 2: ", round(j2, 3))
-        # print("Joint 3: ", round(j3, 3))
-        # print("Joint 4: ", round(j4, 3))
-        # print("Joint 5: ", round(j5, 3))
-        # print("Joint 6: ", round(j6, 3))
-
-        # T_7_0_req = convert_frame_to_mat(T_7_0)
-        # T_7_0_req = round_transform(T_7_0_req, 3)
-        # print('Requested Pose: \n', T_7_0_req)
-        # T_7_0_computed = compute_fk([j1, j2, j3, j4, j5, j6, 0])
-        # round_transform(T_7_0_computed, 3)
-        # print('Computed Pose: \n', T_7_0_computed)
-
         return [j1, j2, j3, j4, j5, j6]
 
     def get_active_joint_names(self):
         return self.kinematics_data.joint_names
+
+    def get_link_names(self):
+        return list(self.kinematics_data.link_name_to_dh.keys())
