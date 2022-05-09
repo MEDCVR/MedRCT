@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>medrct_environment</name>
+  <version>0.0.1</version>
+  <description>Holds information of the robot and environment</description>
+  <maintainer email="radian.gondokaryono@mail.utoronto.ca">radian</maintainer>
+  <license>TODO</license>
+
+  <depend>medrct_common</depend>
+  <depend>urdfdom</depend>
+  <!-- <depend>orocos_kdl</depend> -->
+</package>
