@@ -1,0 +1,122 @@
+#pragma once
+
+#include <vector>
+
+#include <medrct_common/interface/stream.hh>
+#include <medrct_common/interface/stream_factory.hh>
+#include "controller_factory.hh"
+#include "controller_manager.hh"
+
+namespace medrct
+{
+namespace controller
+{
+
+ControlGroup fromYAMLControlGroup(const YAML::Node& control_group_cfg)
+{
+  ControlGroup control_group;
+  if (YAML::Node n = control_group_cfg["name"])
+  {
+    control_group.name = n.as<std::string>();
+    if (YAML::Node controller_names_cfg = control_group_cfg["controller_names"])
+    {
+      for (YAML::const_iterator it = controller_names_cfg.begin();
+           it != controller_names_cfg.end();
+           ++it)
+      {
+        control_group.controller_names.emplace(it->as<std::string>());
+      }
+    }
+    else
+    {
+      throw std::runtime_error(
+          "No [controller_names] key in control group config");
+    }
+  }
+  else
+  {
+    throw std::runtime_error("No [name] key in control group config");
+  }
+
+  if (control_group.controller_names.size() == 0)
+  {
+    throw std::runtime_error(
+        "Control group should have at least one controller");
+  }
+  return control_group;
+}
+
+ControllerManagerConfig fromYAMLControllerManagerConfig(
+    const YAML::Node& config, const ControllerFactory& cf)
+{
+  ControllerManagerConfig cmc;
+  const YAML::Node controllers_config = config["controllers"];
+  if (!controllers_config)
+  {
+    throw std::runtime_error("No [controllers] key in config");
+  }
+  for (YAML::const_iterator it = controllers_config.begin();
+       it != controllers_config.end();
+       ++it)
+  {
+    const YAML::Node& controller_cfg = *it;
+    cmc.controllers.emplace_back(cf.create(controller_cfg));
+  }
+
+  if (const YAML::Node control_groups_cfg = config["control_groups"])
+  {
+    for (YAML::const_iterator it = control_groups_cfg.begin();
+         it != control_groups_cfg.end();
+         ++it)
+    {
+      cmc.control_groups.emplace_back(fromYAMLControlGroup(*it));
+    }
+  }
+
+  if (const YAML::Node n = config["active_control_group_name"])
+  {
+    cmc.active_control_group_name = n.as<std::string>();
+  }
+  return cmc;
+}
+
+BasicControllerManagerCommunicatorConfig
+fromYAMLBasicControllerCommunicatorConfig(
+    const YAML::Node& config, const medrct::stream::StreamFactory& sf)
+{
+  BasicControllerManagerCommunicatorConfig bcmcc;
+  if (const YAML::Node n = config["active_control_group_name"])
+  {
+    bcmcc.active_control_group_name = n.as<std::string>();
+  }
+  if (YAML::Node n = config["clutch_input_stream"])
+  {
+    n["name"] = "clutch_input_stream";
+    n["type"] = "input";
+    n["data_type"] = "Joy";
+    bcmcc.clutch_subscriber = sf.create<stream::InputStream<medrct::Joy>>(n);
+  }
+  else
+    throw std::runtime_error("No [clutch_input_stream] in controller config");
+  if (YAML::Node n = config["switch_input_stream"])
+  {
+    n["name"] = "switch_input_stream";
+    n["type"] = "input";
+    n["data_type"] = "Joy";
+    bcmcc.switch_subscriber = sf.create<stream::InputStream<medrct::Joy>>(n);
+  }
+  else
+    throw std::runtime_error("No [switch_input_stream] in controller config");
+  if (YAML::Node n = config["switched_control_group_name"])
+  {
+    bcmcc.switched_control_group_name = n.as<std::string>();
+  }
+  if (YAML::Node n = config["auto_enable"])
+  {
+    bcmcc.auto_enable = n.as<bool>();
+  }
+  return bcmcc;
+}
+
+} // namespace controller
+} // namespace medrct
