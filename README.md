@@ -12,6 +12,8 @@ List of Packages:
 # MEDRCT
 Install:
 * colcon: https://colcon.readthedocs.io/en/released/user/installation.html
+* `sudo apt install clang-format-7`
+* `sudo apt install libspdlog-dev`
 
 ```
 sudo apt install clang-format-7
