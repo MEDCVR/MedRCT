@@ -10,10 +10,15 @@ List of Packages:
 
 
 # MEDRCT
-Install:
-* colcon: https://colcon.readthedocs.io/en/released/user/installation.html
-* `sudo apt install clang-format-7`
-* `sudo apt install libspdlog-dev`
+
+Install colcon:
+
+```
+curl -s https://packagecloud.io/install/repositories/dirk-thomas/colcon/script.deb.sh | sudo bash
+sudo apt install python3-colcon-common-extensions
+```
+
+Install clang and spdlog:
 
 ```
 sudo apt install clang-format-7
@@ -22,14 +27,19 @@ sudo apt install libspdlog-dev
 
 Build:
 ```
-colcon build --packages-up-to "your package"
+colcon build --packages-up-to "package_name"
 ```
 
-Build test:
+Test:
 ```
-colcon build --packages-up-to "your package" --cmake-args DBUILD_TESTING=ON
-
-colcon test --packages-up-to "your_package"
+colcon test --packages-select "package_name"
 
 colcon test-results --verbose
+```
+
+
+## Issues with KDL and Eigen
+
+```
+sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 ```
