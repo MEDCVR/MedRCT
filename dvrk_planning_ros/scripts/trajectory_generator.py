@@ -15,9 +15,9 @@ from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 #config
 ###############################################
 interpolating_distance = 0.005
-no_of_points_jp = 10
+no_of_points_jp = 40
 #output frequency
-frequency = 10 
+frequency = 75
 #constraints
 vlims = [0.15,0.15,0.15,0.15,0.15,0.15]
 alims = [0.075, 0.075, 0.075, 0.075, 0.075, 0.075]
@@ -73,6 +73,7 @@ def toppra(current_position=[], goal_js=[], way_pts = [0.005]):
         global vlims, alims, no_of_points_jp, rate
 
         no_of_points = no_of_points_jp * len (way_pts)
+        #print (len (way_pts))
         if way_pts[0] == 0.01:
             way_pts = [current_position,goal_js]
         
