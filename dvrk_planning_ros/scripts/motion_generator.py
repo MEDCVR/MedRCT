@@ -15,10 +15,13 @@ position_update_flag = 0
 trajectory_update_flag = 0
 trajectory = []
 
+durations = []
+interpolated_points = []
+
 
 def generator_function():
-    global trajectory_update_flag, current_position, trajectory, position_update_flag
-    goal_js = [0.39965444803237915, -0.5209582448005676, 0.13364960253238678, -0.24901601672172546, 1.0345871448516846, -1.196233332157135]
+    global trajectory_update_flag, current_position, trajectory, position_update_flag, durations, interpolated_points
+    #goal_js = [0.39965444803237915, -0.5209582448005676, 0.13364960253238678, -0.24901601672172546, 1.0345871448516846, -1.196233332157135]
     if not position_update_flag:
         time.sleep(0.3)
 
@@ -37,7 +40,7 @@ def generator_function():
         print(current_position)
         #trajectory = generator_obj.toppra(current_position,goal_js)
         #trajectory = generator_obj.generate_traj(current_position, [goal1])
-        trajectory = generator_obj.generate_traj (current_position, [goal2, goal3, goal4, goal5, goal6])
+        trajectory, durations, interpolated_points = generator_obj.generate_traj (current_position, [goal2, goal3, goal4, goal5, goal6])
 
         trajectory_update_flag = 1
         #print(trajectory)
@@ -47,13 +50,13 @@ def generator_function():
 # [[goal1,goal2], [goal3, goal4], [goal5, goal6]]
 
 def follower_function():
-    global trajectory_update_flag, current_position, trajectory, position_update_flag
+    global trajectory_update_flag, current_position, trajectory, position_update_flag, durations, interpolated_points
     follower_obj = trajectory_follower.Follower()
 
     if not trajectory_update_flag:
         time.sleep(0.3)
     if trajectory_update_flag == 1:
-        follower_obj.follow_trajectory(trajectory,JointStatePublisher)
+        follower_obj.follow_trajectory(trajectory,JointStatePublisher, durations, interpolated_points)
     else:
         print ("Trajectory not here yet, retrying ......")
         follower_function()

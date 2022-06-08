@@ -15,12 +15,12 @@ from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 #config
 ###############################################
 interpolating_distance = 0.005
-no_of_points_jp = 500
-
-dof = 6
-vlims = [0.1,0.1,0.1,0.1,0.1,0.1]
-alims = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-
+no_of_points_jp = 10
+#output frequency
+frequency = 10 
+#constraints
+vlims = [0.15,0.15,0.15,0.15,0.15,0.15]
+alims = [0.075, 0.075, 0.075, 0.075, 0.075, 0.075]
 ###############################################
 
 
@@ -66,31 +66,42 @@ def rotational_interpolator ( no_of_points, start_orientation, end_rotation):
     
     return interp_rots.as_matrix()
 
+
+rate  = 1/frequency
 def toppra(current_position=[], goal_js=[], way_pts = [0.005]):    
         
-        global vlims, alims, no_of_points_jp
+        global vlims, alims, no_of_points_jp, rate
 
-        
+        no_of_points = no_of_points_jp * len (way_pts)
         if way_pts[0] == 0.01:
             way_pts = [current_position,goal_js]
         
         N_samples = len(way_pts)
         ss = np.linspace(0, 1, N_samples)
 
+        
+
 
         path = ta.SplineInterpolator(ss, way_pts)
         pc_vel = constraint.JointVelocityConstraint(vlims)
-        pc_acc = constraint.JointAccelerationConstraint(alims)
-        instance = algo.TOPPRA([pc_vel, pc_acc], path, parametrizer="ParametrizeConstAccel")
+        #pc_acc = constraint.JointAccelerationConstraint(alims)
+        #instance = algo.TOPPRA([pc_vel, pc_acc], path, parametrizer="ParametrizeConstAccel")
+        pc_acc = constraint.JointAccelerationConstraint(alims, discretization_scheme=constraint.DiscretizationType.Interpolation)
+        instance = algo.TOPPRAsd([pc_vel, pc_acc], path)
+        instance.set_desired_duration(no_of_points*rate)
         jnt_traj = instance.compute_trajectory()
-        ts_sample = np.linspace(0, jnt_traj.duration, no_of_points_jp)
+        ts_sample = np.linspace(0, jnt_traj.duration, no_of_points)
+        #ts_sample = np.linspace(0, (no_of_points*rate), no_of_points)
         qs_sample = jnt_traj(ts_sample)
         qds_sample = jnt_traj(ts_sample, 1) 
         qdds_sample = jnt_traj(ts_sample, 2)
         trajectory = qs_sample
-        print("duration")
-        print (jnt_traj.duration)
-        return trajectory
+
+        # print (no_of_points)
+        # print (jnt_traj.duration)
+        
+        duration = jnt_traj.duration
+        return trajectory, duration, no_of_points
 
 
 
@@ -110,7 +121,6 @@ def generate_waypoints_jp ( current_jp, goal):
     goal_xyz.append (goal[0][3])
     goal_xyz.append (goal[1][3])
     goal_xyz.append (goal[2][3])
-    
     
 
     rot_curr = [current_postion_cartesian[0][:3], current_postion_cartesian[1][:3], current_postion_cartesian[2][:3]]
@@ -139,13 +149,25 @@ def generate_waypoints_jp ( current_jp, goal):
 class Trajectories:
     
     def generate_traj(self, current_jp, goals = []):
-        waypoints = generate_waypoints_jp ( current_jp, goals[0]).tolist()
+        global no_of_points_jp
+        durations = []
+        points = []
+        tmp, duration, point = generate_waypoints_jp ( current_jp, goals[0])
+        #print (tmp)
+        waypoints = tmp.tolist()
+        durations.append (duration)
+        points.append (point)
+        #print (waypoints)
         if len(goals)>1:
             for i in range (1, len(goals)):
-                temp = generate_waypoints_jp ( waypoints[len(waypoints)-1], goals[i]).tolist()
-                waypoints = waypoints + temp
-
-        return waypoints
+                temp, duration, point = generate_waypoints_jp ( waypoints[len(waypoints)-1], goals[i])
+                waypoints = waypoints + temp.tolist()
+                durations.append (duration)
+                points.append (point)
+        #print (waypoints)
+        # print (durations)
+        # print (points)
+        return waypoints, durations, points
 
 
 
