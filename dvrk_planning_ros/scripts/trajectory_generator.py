@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-import roboticstoolbox as rtb
+#import roboticstoolbox as rtb
 import toppra as ta
 import toppra.constraint as constraint
 import toppra.algorithm as algo
@@ -14,12 +14,12 @@ from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
 ###############################################
 #config
 ###############################################
-interpolating_distance = 0.01
-no_of_points_jp = 50
+interpolating_distance = 0.005
+no_of_points_jp = 500
 
 dof = 6
-vlims = 10 + np.random.rand(dof) * 20
-alims = 10 + np.random.rand(dof) * 2
+vlims = [0.1,0.1,0.1,0.1,0.1,0.1]
+alims = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 
 ###############################################
 
@@ -88,6 +88,8 @@ def toppra(current_position=[], goal_js=[], way_pts = [0.005]):
         qds_sample = jnt_traj(ts_sample, 1) 
         qdds_sample = jnt_traj(ts_sample, 2)
         trajectory = qs_sample
+        print("duration")
+        print (jnt_traj.duration)
         return trajectory
 
 
@@ -149,9 +151,9 @@ class Trajectories:
 
         
 
-def quintic_traj(current_position, goal_js):
-    print (goal_js)
-    print (current_position)
-    traj = rtb.jtraj(current_position, goal_js, 100)
-    trajectory = traj.q
-    return trajectory
+# def quintic_traj(current_position, goal_js):
+#   print (goal_js)
+#    print (current_position)
+#    traj = rtb.jtraj(current_position, goal_js, 100)
+#    trajectory = traj.q
+#    return trajectory

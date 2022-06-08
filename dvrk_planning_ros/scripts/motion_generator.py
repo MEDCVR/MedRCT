@@ -36,8 +36,8 @@ def generator_function():
     if position_update_flag==1:
         print(current_position)
         #trajectory = generator_obj.toppra(current_position,goal_js)
-        trajectory = generator_obj.generate_traj(current_position, [goal])
-        #trajectory = generator_obj.generate_traj (current_position, [goal1,goal2, goal3, goal4, goal5, goal6])
+        #trajectory = generator_obj.generate_traj(current_position, [goal1])
+        trajectory = generator_obj.generate_traj (current_position, [goal2, goal3, goal4, goal5, goal6])
 
         trajectory_update_flag = 1
         #print(trajectory)

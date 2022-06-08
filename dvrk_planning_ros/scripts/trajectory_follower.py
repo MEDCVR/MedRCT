@@ -15,7 +15,7 @@ class Follower:
             dat.position = trajectory[i]
             #print(dat)
             JointStatePublisher.publish(dat)
-            time.sleep(0.1)
+            time.sleep(0.04)
         print("done")
 
    
