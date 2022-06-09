@@ -19,8 +19,8 @@ class PublishTransformThread(threading.Thread):
         self.y = 0.0
         self.z = 0.0
         self.th = 0.0
-        self.speed = 0.0
-        self.rot_speed = 0.0
+        self.increment = 0.0
+        self.rot_increment = 0.0
         self.condition = threading.Condition()
         self.done = False
 
@@ -33,7 +33,7 @@ class PublishTransformThread(threading.Thread):
 
         self.start()
 
-    def update(self, x, y, z, rot_x, rot_y, rot_z, speed, rot_speed):
+    def update(self, x, y, z, rot_x, rot_y, rot_z, increment, rot_increment):
         self.condition.acquire()
         self.x = x
         self.y = y
@@ -42,8 +42,8 @@ class PublishTransformThread(threading.Thread):
         self.rot_y = rot_y
         self.rot_z = rot_z
 
-        self.speed = speed
-        self.rot_speed = rot_speed
+        self.increment = increment
+        self.rot_increment = rot_increment
         # Notify publish thread that we have a new message.
         self.condition.notify()
         self.condition.release()
@@ -64,12 +64,12 @@ class PublishTransformThread(threading.Thread):
             self.condition.wait(self.timeout)
 
             # Copy state into twist message.
-            msg.twist.linear.x = self.x * self.speed
-            msg.twist.linear.y = self.y * self.speed
-            msg.twist.linear.z = self.z * self.speed
-            msg.twist.angular.x = self.rot_x * self.rot_speed
-            msg.twist.angular.y = self.rot_y * self.rot_speed
-            msg.twist.angular.z = self.rot_z * self.rot_speed
+            msg.twist.linear.x = self.x * self.increment
+            msg.twist.linear.y = self.y * self.increment
+            msg.twist.linear.z = self.z * self.increment
+            msg.twist.angular.x = self.rot_x * self.rot_increment
+            msg.twist.angular.y = self.rot_y * self.rot_increment
+            msg.twist.angular.z = self.rot_z * self.rot_increment
             msg.header.stamp = rospy.Time.now()
 
             self.condition.release()
@@ -82,7 +82,7 @@ class PublishJointStateThread(threading.Thread):
         super(PublishJointStateThread, self).__init__()
         self.publisher = rospy.Publisher('/keyboard/joint_state', JointState, queue_size = 1)
         self.jpos = 0.0
-        self.speed = 0.0
+        self.increment = 0.0
         self.condition = threading.Condition()
         self.done = False
 
@@ -95,10 +95,10 @@ class PublishJointStateThread(threading.Thread):
 
         self.start()
 
-    def update(self, jpos, speed):
+    def update(self, jpos, increment):
         self.condition.acquire()
         self.jpos = jpos
-        self.speed = speed
+        self.increment = increment
         # Notify publish thread that we have a new message.
         self.condition.notify()
         self.condition.release()
@@ -119,7 +119,7 @@ class PublishJointStateThread(threading.Thread):
             # Wait for a new message or timeout.
             self.condition.wait(self.timeout)
 
-            js_msg.position = [self.jpos * self.speed]
+            js_msg.position = [self.jpos * self.increment]
 
             self.condition.release()
 
@@ -154,10 +154,14 @@ if __name__=="__main__":
     rospy.init_node('teleop_twist_keyboard')
     print(msg)
 
-    speed = rospy.get_param("~speed", 0.001)
-    rot_speed = rospy.get_param("~rot_speed", 0.05)
-    rate = rospy.get_param("~rate", 10) # Hz
+    increment = rospy.get_param("~increment", 0.0005) #m
+    rot_increment = rospy.get_param("~rot_increment", 0.05)
+    rate = rospy.get_param("~rate", 20) # Hz
     repeat = rospy.get_param("~repeat_rate", 0.0)
+
+    print("increment: ", increment, "m")
+    print("rate: ", rate, "Hz")
+    print("speed if you hold down keys: ", increment * rate, " m/s")
 
     pub_tf_thread = PublishTransformThread(repeat)
     pub_js_thread = PublishJointStateThread(repeat)
@@ -231,8 +235,11 @@ if __name__=="__main__":
             is_key_pressed = True
 
         if(is_key_pressed):
-            print("x: {}, y: {}, z: {}".format(x, y, z))
-            print("rot_x: {}, rot_y: {}, rot_z: {}".format(rot_x, rot_y, rot_z))
-            print("jaw_inc: {}".format(jaw_inc))
-            pub_tf_thread.update(x, y, z, rot_x, rot_y, rot_z, speed, rot_speed)
-            pub_js_thread.update(jaw_inc, rot_speed)
+            # print("x: {}, y: {}, z: {}".format(x, y, z))
+            # print("rot_x: {}, rot_y: {}, rot_z: {}".format(rot_x, rot_y, rot_z))
+            # print("jaw_inc: {}".format(jaw_inc))
+            pub_tf_thread.update(x, y, z, rot_x, rot_y, rot_z, increment, rot_increment)
+            pub_js_thread.update(jaw_inc, rot_increment)
+
+    pub_tf_thread.stop()
+    pub_js_thread.stop()

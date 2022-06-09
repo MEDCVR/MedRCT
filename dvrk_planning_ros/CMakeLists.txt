@@ -161,6 +161,7 @@ catkin_install_python(PROGRAMS
   scripts/dvrk_planning_node.py
   scripts/dvrk_teleop_node.py
   scripts/psm_teleop_keyboard.py
+  scripts/psm_teleop_keyboard2.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
