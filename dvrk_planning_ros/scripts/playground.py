@@ -1,40 +1,105 @@
-temp = [-0.04894161596894264, 0.29180410504341125, 0.10410408675670624, 0.05287863314151764, -0.25886258482933044, -0.011124979704618454]
-temp = [0.0003846920153591782, 0.01227362547069788, 0.10040482878684998, -3.604878656915389e-06, -0.0013414063723757863, 4.482344593270682e-06]
+import rospy
 
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
-#from timer import Timer
+def goal_gen(inp_data):
+    goal0  = [[0.0637,0.9454,0.3197,0.0261],[0.9977,-0.0534,-0.0409,0.0395],[-0.0216,0.3216,-0.9466,-0.1045],[0,0,0,1]]
+    goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+    goal2  = [[0, 1, 0, 0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    goal3  = [[0, 1, 0, 0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    goal4  = [[0, 1, 0, -0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    goal5  = [[0, 1, 0, -0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    goal6  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+    goals = [goal0, goal1, goal2, goal3, goal4, goal5, goal6]
+    index = 0
+    mode = 0
+    #try:
+    output = [ [goals[int(inp_data[0])]] ]
 
-import numpy as np
+    if (inp_data[1]=='e'):
+        #print (inp_data)
+        return output
 
-np.set_printoptions(precision = 4, suppress = True)
+    for i in range(1,len(inp_data)-1):
+        
+        if inp_data[i]=='.':
+            mode = 0 
+        elif inp_data[i]==',':
+            mode = 1
 
-#t = Timer(timer_repeat_times = 100)
-p = PsmKinematicsSolver(LND400006())
+        elif mode == 1:
+            output[index].append( goals[int(inp_data[i])] )
+        elif mode == 0:
+            output[index].append( goals[int(inp_data[i])] )
+            output.append ([ goals[int(inp_data[i])] ])
+            index = index + 1
 
-def test_fk_ik(joint_pos, test_time = False):
-    # if(test_time):
-    #     output_fk = t.time_average(lambda : p.compute_fk(joint_pos))
-    #     fk_avg_time = t.str_average()
-    #     output_jp = t.time_average(lambda : p.compute_ik(output_fk))
-    #     ik_avg_time = t.str_average()
-    # else:
-    output_fk = p.compute_fk(joint_pos)
-    output_jp = p.compute_ik(output_fk)  
+    # except:
+    #     menu()
+    return output 
+
+def menu():
+    if rospy.is_shutdown():
+        return
+    
+    print("separate goals with '.' and waypoints with ','" )
+    print("points are 0-9")
+    print("o/c for opening/closing jaw")
+    data = ''
+    mode = 0
+    results = list(input ())
+    results.append('e')
+    #print (results)
+    if results[0]=='o' or results[0]=='c':
+        data = results[0]
+        mode = 1
+    elif results[1]=='.' or results[1]==',' or results[1]=='e':
+        data = goal_gen (results)
+        mode = 2
+    else:
+        menu()
+    #results = list(map(int, results))
+    print(data)
+    return data, mode
+
+menu()
+
+
+# temp = [-0.04894161596894264, 0.29180410504341125, 0.10410408675670624, 0.05287863314151764, -0.25886258482933044, -0.011124979704618454]
+# temp = [0.0003846920153591782, 0.01227362547069788, 0.10040482878684998, -3.604878656915389e-06, -0.0013414063723757863, 4.482344593270682e-06]
+
+# from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
+# #from timer import Timer
+
+# import numpy as np
+
+# np.set_printoptions(precision = 4, suppress = True)
+
+# #t = Timer(timer_repeat_times = 100)
+# p = PsmKinematicsSolver(LND400006())
+
+# def test_fk_ik(joint_pos, test_time = False):
+#     # if(test_time):
+#     #     output_fk = t.time_average(lambda : p.compute_fk(joint_pos))
+#     #     fk_avg_time = t.str_average()
+#     #     output_jp = t.time_average(lambda : p.compute_ik(output_fk))
+#     #     ik_avg_time = t.str_average()
+#     # else:
+#     output_fk = p.compute_fk(joint_pos)
+#     output_jp = p.compute_ik(output_fk)  
       
-    # Print results
-    print("Input joint pos: \n", joint_pos)
-    print("FK: \n", output_fk)
-    print("IK: \n", np.array(output_jp))
-    # if(test_time):
-    #     print("FK time: ", fk_avg_time)
-    #     print("IK time: ", ik_avg_time)
+#     # Print results
+#     print("Input joint pos: \n", joint_pos)
+#     print("FK: \n", output_fk)
+#     print("IK: \n", np.array(output_jp))
+#     # if(test_time):
+#     #     print("FK time: ", fk_avg_time)
+#     #     print("IK time: ", ik_avg_time)
 
-    print("-------------------------------------")
+#     print("-------------------------------------")
 
-joint_change = 0.1
+# joint_change = 0.1
 
-joint_pos = temp
-test_fk_ik(joint_pos)
+# joint_pos = temp
+# test_fk_ik(joint_pos)
 
 
 

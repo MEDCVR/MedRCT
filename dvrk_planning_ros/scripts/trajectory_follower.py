@@ -3,9 +3,9 @@
 from sensor_msgs.msg import JointState
 import time
 import numpy as np
+import rospy
 
-curr_pos = [0.0,0.0,0.0,0.0,0.0,0.0]
-update_flag = 0
+
 class Follower:
     
     def follow_trajectory(self, trajectory, JointStatePublisher, durations, interpolated_points):
@@ -19,6 +19,8 @@ class Follower:
         #print (rate)
         
         for i in range(0,len(trajectory)):
+            if rospy.is_shutdown():
+                return
             dat = JointState()
             dat.position = trajectory[i]
             #print(dat)
@@ -32,8 +34,29 @@ class Follower:
                 # print (durations[durations_index])
                 # print (interpolated_points)
                 # print(rate)
-                #print (rate)
+                print (rate)
             time.sleep(rate)
         print("done")
+
+    def follow_jaw_trajectory(self, trajectory, JointStatePublisher, duration, interpolated_points):
+        
+        # print (durations)
+        # print (interpolated_points)
+        if len(trajectory)>0:
+            print("Following the jaw trajectory ........")
+            rate = duration/interpolated_points
+            #print (trajectory)
+            #print (rate)
+            
+            for i in range(0,len(trajectory)):
+                if rospy.is_shutdown():
+                    return
+                dat = JointState()
+                dat.position = [trajectory[i]]
+                JointStatePublisher.publish(dat)
+                time.sleep(rate)
+            print("done")
+        else:
+            print ("Already here....")
 
    
