@@ -10,7 +10,7 @@ BreakBeforeBraces: Allman
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 IncludeBlocks:   Preserve
 IndentCaseLabels: true
-NamespaceIndentation: All
+NamespaceIndentation: None
 PointerAlignment: Left
 SortIncludes: false
 TabWidth:        2
