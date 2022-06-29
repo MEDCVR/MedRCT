@@ -34,7 +34,7 @@ class Follower:
                 # print (durations[durations_index])
                 # print (interpolated_points)
                 # print(rate)
-                print (rate)
+                #print (rate)
             time.sleep(rate)
         print("done")
 

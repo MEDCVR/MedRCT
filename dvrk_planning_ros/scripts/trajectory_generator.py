@@ -167,7 +167,9 @@ def generate_waypoints_jp ( current_jp, goals):
             waypoints_xyz = waypoints_xyz + t_xyz
             waypoints_rot = waypoints_rot + t_rot
 
-    #plot_2d(waypoints_xyz)
+    #plot(waypoints_xyz)
+    #
+    # plot_2d(waypoints_xyz)
     waypoints_jp = []
     for i in range(0,len(waypoints_xyz)):
         temp = waypoints_rot[i]
@@ -210,6 +212,7 @@ class Trajectories:
         #print (waypoints)
         # print (durations)
         # print (points)
+        
         return waypoints, durations, points
     
     def generate_traj_jaw(self, current_jaw, goal_data):
@@ -254,38 +257,38 @@ class Trajectories:
 #    return trajectory
 
 
-# def plot (temp):
-#     import matplotlib.pyplot as plt
+def plot (temp):
+    import matplotlib.pyplot as plt
 
-#     from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d import Axes3D
 
-#     print (len (temp))
-#     print (temp)
+    print (len (temp))
+    print (temp)
 
 
-#     fig = plt.figure(figsize=(4,4))
+    fig = plt.figure(figsize=(4,4))
 
-#     ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection='3d')
 
-#     for i in range (0,len(temp)):
-#         ax.scatter(temp[i][0], temp[i][1], temp[i][2]) # plot the point (2,3,4) on the figure
+    for i in range (0,len(temp)):
+        ax.scatter(temp[i][0], temp[i][1], temp[i][2]) # plot the point (2,3,4) on the figure
 
-#     plt.show()
+    plt.show()
 
-# def plot_2d(temp):
-#     import numpy as np
-#     import matplotlib.pyplot as plt
+def plot_2d(temp):
+    import numpy as np
+    import matplotlib.pyplot as plt
     
-#     data = []
-#     for i in range (0,len(temp)):
-#         data.append([temp[i][0], temp[i][1]])
-#     # The data are given as list of lists (2d list)
-#     data = np.array(data)
-#     print(data)
-#     # Taking transpose
-#     x, y = data.T
+    data = []
+    for i in range (0,len(temp)):
+        data.append([temp[i][0], temp[i][1]])
+    # The data are given as list of lists (2d list)
+    data = np.array(data)
+    print(data)
+    # Taking transpose
+    x, y = data.T
     
     
-#     # plot our list in X,Y coordinates
-#     plt.scatter(x, y)
-#     plt.show()
+    # plot our list in X,Y coordinates
+    plt.scatter(x, y)
+    plt.show()

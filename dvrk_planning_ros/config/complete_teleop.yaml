@@ -47,4 +47,4 @@ clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/camera"
   disable_list: ["Keyboard-PSM1", Keyboard-PSM1Jaw]
-  enable_list: ["MTML-PSM2"]
+  enable_list: ["MotionGenerator"]
