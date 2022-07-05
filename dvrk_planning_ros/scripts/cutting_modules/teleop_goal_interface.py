@@ -12,8 +12,10 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 
 
-depth = 0.02
-x_incline = 0
+depth = 0.0075
+x_incline = 50
+y_incline =  0
+z_rotation = -90
 all_waypoints = []
 current_position = []
 interpolated_points = 200
@@ -53,7 +55,7 @@ class CuttingInput:
         goal6 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
         goal7 =  [0.32241855696929245, -0.0, 0.1011786142695382, 0.0, -0.0, -0.32241855696929195]
 
-        goals = [[goal2, goal3], [goal3, goal4]]
+        goals = [[goal2, goal3, goal4]]
 
         send_goals (goals)
         return 0
@@ -136,6 +138,8 @@ def send_goals(goal_output):
         # append a raised position
         temp = waypoints[len(waypoints)-1]
         temp [2][3] = temp[2][3]+ depth + depth
+
+        temp = [[0, 1, 0, temp [0][3]],[1, 0, 0, temp [1][3]],[0, 0, -1, temp [2][3]],[0,0,0,1]]
         all_waypoints. append ([temp])
 
         
@@ -195,7 +199,7 @@ def jaw_orientation(goals):
         x = goals[0][i+1] - goals[0][i]
         angle = math.atan2(y,x) *180/3.14
         #print (angle)
-        r = R.from_euler('xyz', [(-180 + x_incline), 0, (angle)], degrees=True)
+        r = R.from_euler('xyz', [(-180 + x_incline), y_incline, (angle)+ z_rotation], degrees=True)
         temp = r.as_matrix()
         temp = temp.tolist()
 
