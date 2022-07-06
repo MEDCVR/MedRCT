@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from dis import distb
 import numpy as np
 #import roboticstoolbox as rtb
 import toppra as ta
@@ -8,7 +9,7 @@ import toppra.algorithm as algo
 import math
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 
 
 ###############################################
@@ -72,7 +73,7 @@ def rotational_interpolator ( no_of_points, start_orientation, end_rotation):
 
 
 rate  = 1/frequency
-def toppra(current_position=[], goal_js=[], way_pts = [0.005]):    
+def toppra(current_position=[], goal_js=[], way_pts = [0.005], name = "", desired_duration = 0):    
         
         global vlims, alims, no_of_points_jp, rate
 
@@ -106,11 +107,23 @@ def toppra(current_position=[], goal_js=[], way_pts = [0.005]):
         qds_sample = jnt_traj(ts_sample, 1) 
         qdds_sample = jnt_traj(ts_sample, 2)
         trajectory = qs_sample
+        duration = jnt_traj.duration
+
+        if name=="scissor":
+            print(desired_duration)
+            instance = algo.TOPPRAsd([pc_vel, pc_acc], path)
+            instance.set_desired_duration(desired_duration)
+            jnt_traj = instance.compute_trajectory()
+            ts_sample = np.linspace(0, jnt_traj.get_duration(), int(jnt_traj.get_duration()/rate))
+            qs_sample = jnt_traj(ts_sample)
+            trajectory = qs_sample
+            duration = jnt_traj.get_duration()
 
         # print (no_of_points)
-        print (jnt_traj.duration)
-        print (len(ts_sample))
-        duration = jnt_traj.duration
+        #print (jnt_traj.duration)
+        #print (len(ts_sample))
+        #print (duration)
+        
         return trajectory, duration, len(ts_sample)
 
 
@@ -140,10 +153,10 @@ def cartesian_interpolator(current_postion_cartesian, goal):
 
 
 
-def generate_waypoints_jp ( current_jp, goals):
+def generate_waypoints_jp ( current_jp, goals, name, velocity):
     global interpolating_distance
     #print (goals)
-    p = PsmKinematicsSolver(LND400006())
+    p = PsmKinematicsSolver(RTS470007())
     current_postion_cartesian = p.compute_fk(current_jp)
     
     #print (current_postion_cartesian)
@@ -166,6 +179,18 @@ def generate_waypoints_jp ( current_jp, goals):
             t_rot.pop(0)
             waypoints_xyz = waypoints_xyz + t_xyz
             waypoints_rot = waypoints_rot + t_rot
+    duration = 0
+    if name=="scissor":
+        distance =0
+        
+        if len(goals)>1:
+            if velocity == "nil":
+                velocity = input ("please enter a velocity for the cutting portion of the path:")
+            for i in range (1,len(waypoints_xyz)-1):
+                temp = math.sqrt( math.pow((waypoints_xyz[i][0]-waypoints_xyz[i+1][0]),2) +math.pow((waypoints_xyz[i][1]-waypoints_xyz[i+1][1]),2) + math.pow((waypoints_xyz[i][2]-waypoints_xyz[i+1][2]),2) )
+                distance = distance + temp
+            duration = distance / velocity
+            
 
     #plot(waypoints_xyz)
     #
@@ -185,19 +210,19 @@ def generate_waypoints_jp ( current_jp, goals):
         temp_jp = p.compute_ik(np.matrix(temp))
         #print(temp_jp)
         waypoints_jp.append(temp_jp)
-    waypoints = toppra (current_jp, waypoints_jp[len(waypoints_jp)-1], waypoints_jp)
+    waypoints = toppra (current_jp, waypoints_jp[len(waypoints_jp)-1], waypoints_jp, name, duration)
     
     return waypoints
 
 class Trajectories:
     
-    def generate_traj(self, current_jp, goals = []):
+    def generate_traj(self, current_jp, goals = [], name = "", velocity = "nil"):
         global no_of_points_jp
 
         #print (goals)
         durations = []
         points = []
-        tmp, duration, point = generate_waypoints_jp ( current_jp, goals[0])
+        tmp, duration, point = generate_waypoints_jp ( current_jp, goals[0], name, velocity)
         #print (tmp)
         waypoints = tmp.tolist()
         durations.append (duration)
@@ -205,12 +230,12 @@ class Trajectories:
         #print (waypoints)
         if len(goals)>1:
             for i in range (1, len(goals)):
-                temp, duration, point = generate_waypoints_jp ( waypoints[len(waypoints)-1], goals[i])
+                temp, duration, point = generate_waypoints_jp ( waypoints[len(waypoints)-1], goals[i], name, velocity)
                 waypoints = waypoints + temp.tolist()
                 durations.append (duration)
                 points.append (point)
         #print (waypoints)
-        # print (durations)
+        #print (durations)
         # print (points)
         
         return waypoints, durations, points

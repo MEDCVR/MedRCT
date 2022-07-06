@@ -17,7 +17,7 @@ from sensor_msgs.msg import JointState
 
 from threading import Thread
 
-
+cutting_cartesian_velocity = 0.005
 
 current_position = [0.0,0.0,0.0,0.0,0.0,0.0]
 position_update_flag = 0
@@ -112,7 +112,7 @@ def menu():
 
 
 def generator_function():
-    global  current_position,  position_update_flag, instructions, jaw_position, jaw_update_flag
+    global  current_position,  position_update_flag, instructions, jaw_position, jaw_update_flag, cutting_cartesian_velocity
 
     #goal_js = [0.39965444803237915, -0.5209582448005676, 0.13364960253238678, -0.24901601672172546, 1.0345871448516846, -1.196233332157135]
 
@@ -127,14 +127,16 @@ def generator_function():
         # print (position_update_flag)
 
 
+
         #data, mode = menu ()
-        data, mode = teleop_goals()
+        data, mode, name = teleop_goals()
+
+
 
         # goal_obj = teleop_goal_interface.CuttingInput()
         # data = goal_obj.temp()
         # mode = 2
         #print(data)
-        
         #a = input("hold")
         # print("data")
         # print (data)
@@ -150,13 +152,13 @@ def generator_function():
             if mode == 2:
                 if last_point == 0:
                     last_point = current_position
-                trajectory, durations, interpolated_points = generator_obj.generate_traj (last_point, data)
+                trajectory, durations, interpolated_points = generator_obj.generate_traj (last_point, data, name, cutting_cartesian_velocity)
                 if trajectory == []:
                     print("already here, no trajectory to generate")
                 else:
                     #print(trajectory)
                     last_point = trajectory [len(trajectory)-1]
-                    instructions.append(  {'type':'trajectory', 'trajectory': trajectory, 'durations': durations, 'interpolated_points': interpolated_points } )
+                    instructions.append(  {'type':'trajectory', 'trajectory': trajectory, 'durations': durations, 'interpolated_points': interpolated_points, 'name':name } )
                 
             if mode ==1:
                 if jaw_update_flag ==1:
@@ -172,7 +174,7 @@ def generator_function():
     # [[goal1,goal2], [goal3, goal4], [goal5, goal6]]
 
 def follower_function():
-    global current_position, position_update_flag
+    global current_position, position_update_flag, jaw_position
     follower_obj = trajectory_follower.Follower()
 
     display_flag = 0
@@ -184,7 +186,7 @@ def follower_function():
         else: 
             display_flag = 0
             if instructions[0]['type'] == 'trajectory':
-                follower_obj.follow_trajectory(instructions[0]['trajectory'],JointStatePublisher, instructions[0]['durations'], instructions[0]['interpolated_points'])
+                follower_obj.follow_trajectory(instructions[0]['trajectory'],JointStatePublisher, instructions[0]['durations'], instructions[0]['interpolated_points'],instructions[0]['name'], JawStatePublisher, jaw_position)
                 instructions.pop(0)
             elif instructions[0]['type'] == 'jaw':
                 follower_obj.follow_jaw_trajectory(instructions[0]['trajectory'],JawStatePublisher, instructions[0]['duration'], instructions[0]['num_points'])
@@ -217,7 +219,10 @@ def teleop_goals():
     mode = 2
     status = 0
     goal_obj = teleop_goal_interface.CuttingInput()
-    data = goal_obj.sequential_goals()
+    temp = goal_obj.sequential_goals()
+    data = temp[0]
+    name = temp[1]
+    
     if data == []:
         status = 1
     while status: 
@@ -225,12 +230,19 @@ def teleop_goals():
         status = goal_obj.temp()
         a = input("hold")
         if (status == 0):
-            data = goal_obj.sequential_goals()
+             
+            temp = goal_obj.sequential_goals()
+            data = temp[0]
+            name = temp[1]
             if data == []:
                 status = 1
     if data == []:
         print ("some mess here")
-    return [data], mode
+
+    #print (data)
+    # print(temp)
+    # print (name)
+    return [data], mode, name
 
 def jaw_callback(msg):
     global jaw_position, jaw_update_flag

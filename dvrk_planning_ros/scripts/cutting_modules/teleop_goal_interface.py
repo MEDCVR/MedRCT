@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from numpy import deprecate_with_doc
 import rospy
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import JointState
@@ -11,16 +11,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-
-depth = 0.0075
+###############################################
+#config
+###############################################
+# the depth the cutting tool should go further than the waypoint
+depth = 0.0025
+#orientation of the cutting tool to be maintained
 x_incline = 50
 y_incline =  0
 z_rotation = -90
-all_waypoints = []
-current_position = []
+#Interpolation parameters
 interpolated_points = 200
 smoothing_factor = 0.01
 polynomial_degree = 3
+###############################################
+
+all_waypoints = []
+current_position = []
+
 
 def position_callback(msg):
         global current_position, position_update_flag
@@ -63,11 +71,12 @@ class CuttingInput:
     def sequential_goals(self):
         global all_waypoints
         if len(all_waypoints)>0:
-            temp = all_waypoints[0]
+            temp = all_waypoints[0]['waypoints']
+            name = all_waypoints[0]['name']
             all_waypoints.pop(0)
-            return temp
+            return temp, name
         else:
-            return []
+            return [], ""
     def get_goals(self):
         index = 0
         mode = 0
@@ -123,24 +132,37 @@ class CuttingInput:
 
 def send_goals(goal_output):
     global all_waypoints
-    goal_output_cart=[]
     for i in range (0, len(goal_output)):
         waypoints = []
         for j in range(0, len(goal_output[i])):
-            p = PsmKinematicsSolver(LND400006())
+            p = PsmKinematicsSolver(RTS470007())
             current_postion_cartesian = p.compute_fk(goal_output[i][j])
             current_postion_cartesian = current_postion_cartesian.getA()
             waypoints.append (list(current_postion_cartesian))
 
         waypoints = interpolator(waypoints)
-        all_waypoints.append(waypoints)
 
-        # append a raised position
-        temp = waypoints[len(waypoints)-1]
-        temp [2][3] = temp[2][3]+ depth + depth
+        r = R.from_euler('xyz', [(-180 ), y_incline, z_rotation], degrees=True)
+        temp = r.as_matrix()
+        temp = temp.tolist()
 
-        temp = [[0, 1, 0, temp [0][3]],[1, 0, 0, temp [1][3]],[0, 0, -1, temp [2][3]],[0,0,0,1]]
-        all_waypoints. append ([temp])
+        temp_waypointi = waypoints[0]
+        waypoint = temp
+        waypoint[0].append (temp_waypointi [0][3])
+        waypoint[1].append (temp_waypointi [1][3])
+        waypoint[2].append (temp_waypointi [2][3] + (2*depth))
+        waypoint.append ([0,0,0,1])
+
+        all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
+        all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
+
+        temp_waypointf = waypoints[ (len(waypoints)-1)]
+        waypoint [0][3] = (temp_waypointf [0][3])
+        waypoint [1][3] = (temp_waypointf [1][3])
+        waypoint [2][3] = (temp_waypointf [2][3] + (2*depth))
+
+        all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint], 'name':"goal"})
+        
 
         
         #print (goal_output_cart)
