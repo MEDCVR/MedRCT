@@ -48,11 +48,18 @@ joint_state:
 
 ## Launch dvrk_teleop_node
 
+Launch the default keyboard and PSM2 teleop:
+
 ```
-rosrun dvrk_planning_ros dvrk_teleop_node.py
+rosrun dvrk_planning_ros dvrk_teleop_node.py -y config/keyboard_psm2.yaml
 ```
 
-The default arguments tries to find the yaml file in `dvrk_planning_ros` package, with a relative path `/config/teleop.yaml`.
+Then in another terminal, run the keyboard node:
+
+```
+rosrun dvrk_planning_ros psm_teleop_keyboard.py
+```
+
 To specify another config file path, and/or another package where the config is relative to:
 
 ```
