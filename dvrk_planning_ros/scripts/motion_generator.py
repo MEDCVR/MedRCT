@@ -17,7 +17,7 @@ from sensor_msgs.msg import JointState
 
 from threading import Thread
 
-cutting_cartesian_velocity = 0.005
+cutting_cartesian_velocity = 0.001
 
 current_position = [0.0,0.0,0.0,0.0,0.0,0.0]
 position_update_flag = 0
@@ -127,7 +127,7 @@ def generator_function():
         # print (position_update_flag)
 
 
-
+        name =""
         #data, mode = menu ()
         data, mode, name = teleop_goals()
 
@@ -226,9 +226,9 @@ def teleop_goals():
     if data == []:
         status = 1
     while status: 
-        #status = goal_obj.get_goals()
-        status = goal_obj.temp()
-        a = input("hold")
+        status = goal_obj.get_goals()
+        #status = goal_obj.temp()
+        #a = input("hold")
         if (status == 0):
              
             temp = goal_obj.sequential_goals()
@@ -255,8 +255,8 @@ if __name__ == '__main__':
     rospy.init_node('MotionGenerator', anonymous= True)
     rospy.Subscriber("/PSM2/measured_js",JointState,position_callback)
     rospy.Subscriber("/PSM2/jaw/measured_js",JointState,jaw_callback)
-    JointStatePublisher = rospy.Publisher('/PSM2/servo_jp', JointState, queue_size = 1)
-    JawStatePublisher = rospy.Publisher('/PSM2/jaw/servo_jp', JointState, queue_size = 1)
+    JointStatePublisher = rospy.Publisher('/PSM2/servo_jp', JointState, queue_size = 10)
+    JawStatePublisher = rospy.Publisher('/PSM2/jaw/servo_jp', JointState, queue_size = 10)
     Thread(target = generator_function).start()
     Thread(target = follower_function).start()
     try:

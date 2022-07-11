@@ -3,6 +3,8 @@ from numpy import deprecate_with_doc
 import rospy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 
+kinematics = RTS470007()
+
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import JointState
 import math
@@ -17,7 +19,7 @@ from scipy import interpolate
 # the depth the cutting tool should go further than the waypoint
 depth = 0.0025
 #orientation of the cutting tool to be maintained
-x_incline = 50
+x_incline = 80
 y_incline =  0
 z_rotation = -90
 #Interpolation parameters
@@ -43,6 +45,7 @@ class CuttingInput:
         rospy.Subscriber("/PSM2/measured_js", JointState, position_callback)
     
     def temp(self):
+        #cartesian
         # goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
         # goal2  = [[0, 1, 0, 0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
         # goal3  = [[0, 1, 0, 0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
@@ -54,14 +57,33 @@ class CuttingInput:
         # return jaw_orientation (goals)  
 
         #goals = [[[-0.054713692516088486, 0.48224759101867676, 0.11257047206163406, 0.012590869329869747, -0.45482897758483887, -0.520109549164772], [0.3911094069480896, 0.2764164209365845, 0.11329736560583115, -0.009045740589499474, -0.25353044271469116, -0.9698815643787384], [0.3906344771385193, -0.1170898824930191, 0.11087666451931, -0.0009759304230101407, 0.1348545253276825, -0.9718144237995148], [0.08866144716739655, -0.5139707922935486, 0.11582803726196289, -0.00554535910487175, 0.5273154973983765, -0.6652765870094299], [-0.0710441991686821, -0.3180985450744629, 0.10754289478063583, -0.009388613514602184, 0.33412256836891174, -0.5032211691141129]]]
-        
-        goal1 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
-        goal2 =  [0.5080435050560344, 0.49026081966106505, 0.12178957769747238, 0.0, -0.4902608196610651, -0.508043505056034]
-        goal3 =  [0.5080435050560344, -0.49026081966106505, 0.12178957769747238, -0.0, 0.4902608196610651, -0.5080435050560338]
-        goal4 =  [-0.5080435050560344, -0.49026081966106505, 0.12178957769747238, 0.0, 0.4902608196610651, 0.5080435050560345]
-        goal5 =  [-0.5080435050560344, 0.49026081966106505, 0.12178957769747238, -0.0, -0.4902608196610651, 0.508043505056034]
-        goal6 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
-        goal7 =  [0.32241855696929245, -0.0, 0.1011786142695382, 0.0, -0.0, -0.32241855696929195]
+        #needle driver jp
+        # goal1 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
+        # goal2 =  [0.5080435050560344, 0.49026081966106505, 0.12178957769747238, 0.0, -0.4902608196610651, -0.508043505056034]
+        # goal3 =  [0.5080435050560344, -0.49026081966106505, 0.12178957769747238, -0.0, 0.4902608196610651, -0.5080435050560338]
+        # goal4 =  [-0.5080435050560344, -0.49026081966106505, 0.12178957769747238, 0.0, 0.4902608196610651, 0.5080435050560345]
+        # goal5 =  [-0.5080435050560344, 0.49026081966106505, 0.12178957769747238, -0.0, -0.4902608196610651, 0.508043505056034]
+        # goal6 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
+        # goal7 =  [0.32241855696929245, -0.0, 0.1011786142695382, 0.0, -0.0, -0.32241855696929195]
+
+        #scissor 5cm
+
+        # goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+        # goal2 =  [0.5090392201162325, 0.49107539010122325, 0.06782779286340597, 0.0, -0.49107539010122314, -0.5090392201162321]
+        # goal3 =  [0.5090392201162325, -0.49107539010122325, 0.06782779286340597, -0.0, 0.49107539010122286, -0.5090392201162325]
+        # goal4 =  [-0.5090392201162325, -0.49107539010122325, 0.06782779286340597, 0.0, 0.49107539010122286, 0.5090392201162321]
+        # goal5 =  [-0.5090392201162325, 0.49107539010122325, 0.06782779286340597, -0.0, -0.49107539010122314, 0.5090392201162321]
+        # goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+        # goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
+
+        #scissor 3cm
+        goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+        goal2 =  [0.32312284660346086, 0.3378970772970957, 0.05229669581385103, 0.0, -0.3378970772970953, -0.32312284660346097]
+        goal3 =  [0.32312284660346086, -0.3378970772970957, 0.05229669581385103, -0.0, 0.3378970772970953, -0.32312284660346097]
+        goal4 =  [-0.32312284660346086, -0.3378970772970957, 0.05229669581385103, 0.0, 0.3378970772970953, 0.32312284660346136]
+        goal5 =  [-0.32312284660346086, 0.3378970772970957, 0.05229669581385103, -0.0, -0.3378970772970953, 0.32312284660346097]
+        goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+        goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
 
         goals = [[goal2, goal3, goal4]]
 
@@ -135,33 +157,43 @@ def send_goals(goal_output):
     for i in range (0, len(goal_output)):
         waypoints = []
         for j in range(0, len(goal_output[i])):
-            p = PsmKinematicsSolver(RTS470007())
+            p = PsmKinematicsSolver(kinematics)
             current_postion_cartesian = p.compute_fk(goal_output[i][j])
             current_postion_cartesian = current_postion_cartesian.getA()
             waypoints.append (list(current_postion_cartesian))
 
         waypoints = interpolator(waypoints)
 
-        r = R.from_euler('xyz', [(-180 ), y_incline, z_rotation], degrees=True)
-        temp = r.as_matrix()
-        temp = temp.tolist()
+        # r = R.from_euler('xyz', [(-180 ), y_incline, z_rotation], degrees=True)
+        # temp = r.as_matrix()
+        # temp = temp.tolist()
 
-        temp_waypointi = waypoints[0]
+        temp =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
+
+    
+        
         waypoint = temp
-        waypoint[0].append (temp_waypointi [0][3])
-        waypoint[1].append (temp_waypointi [1][3])
-        waypoint[2].append (temp_waypointi [2][3] + (2*depth))
+        waypoint[0].append (waypoints[0] [0][3])
+        waypoint[1].append (waypoints[0] [1][3])
+        waypoint[2].append (waypoints[0] [2][3] + (2*depth))
         waypoint.append ([0,0,0,1])
-
-        all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
+        #print(waypoints[ (len(waypoints)-1)][0][3])
+        #print (waypoint[0][3])
+        #all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
+        
         all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
 
         temp_waypointf = waypoints[ (len(waypoints)-1)]
-        waypoint [0][3] = (temp_waypointf [0][3])
-        waypoint [1][3] = (temp_waypointf [1][3])
-        waypoint [2][3] = (temp_waypointf [2][3] + (2*depth))
+        temp2 =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
+        waypoint2 = temp2
+        waypoint2[0].append (waypoints[ (len(waypoints)-1)] [0][3])
+        waypoint2[1].append (waypoints[ (len(waypoints)-1)] [1][3])
+        waypoint2[2].append (waypoints[ (len(waypoints)-1)] [2][3] + (2*depth))
+        waypoint2.append ([0,0,0,1])
+        #print("all_waypoints", all_waypoints)
 
-        all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint], 'name':"goal"})
+
+        #all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
         
 
         

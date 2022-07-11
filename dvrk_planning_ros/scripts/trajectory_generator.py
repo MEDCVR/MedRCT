@@ -11,6 +11,8 @@ from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 
+kinematics = RTS470007 ()
+
 
 ###############################################
 #config
@@ -110,14 +112,20 @@ def toppra(current_position=[], goal_js=[], way_pts = [0.005], name = "", desire
         duration = jnt_traj.duration
 
         if name=="scissor":
-            print(desired_duration)
+            # print("set")
+            # print(desired_duration)
             instance = algo.TOPPRAsd([pc_vel, pc_acc], path)
             instance.set_desired_duration(desired_duration)
             jnt_traj = instance.compute_trajectory()
+            # print(jnt_traj.get_duration())
+            # print(jnt_traj.get_duration()/rate)
             ts_sample = np.linspace(0, jnt_traj.get_duration(), int(jnt_traj.get_duration()/rate))
             qs_sample = jnt_traj(ts_sample)
             trajectory = qs_sample
             duration = jnt_traj.get_duration()
+            # print("sending")
+            # print (duration)
+            #duration = desired_duration
 
         # print (no_of_points)
         #print (jnt_traj.duration)
@@ -156,7 +164,7 @@ def cartesian_interpolator(current_postion_cartesian, goal):
 def generate_waypoints_jp ( current_jp, goals, name, velocity):
     global interpolating_distance
     #print (goals)
-    p = PsmKinematicsSolver(RTS470007())
+    p = PsmKinematicsSolver(kinematics)
     current_postion_cartesian = p.compute_fk(current_jp)
     
     #print (current_postion_cartesian)

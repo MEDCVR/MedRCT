@@ -7,16 +7,17 @@ import rospy
 
 import math
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
+kinematics = RTS470007()
 
 ###############################################
 #config
 ###############################################
 mode = ""
 
-max_open = 30
-max_close = 10
+max_open = 40
+max_close = 0
 distance_close_open = 0.0025
-point_ratio  = 50
+point_ratio  = 20
 ###############################################
 
 
@@ -35,7 +36,7 @@ def jaw_cutting(traj, jaw_position):
 
     points = inc_points
     points = points + 1
-    p = PsmKinematicsSolver(RTS470007())
+    p = PsmKinematicsSolver(kinematics)
 
     mode = 0
     curr = jaw_position
@@ -93,19 +94,20 @@ class Follower:
         mode = name
         print (mode)
         print("Following the trajectory ........")
-        # print (durations)
+        #print ("recd")
+        #print (durations)
         # print (interpolated_points)
         rate = durations[0]/interpolated_points[0]
         durations_index = 1
         points_index = 0
         curr = 0
-        #print (rate)
+        #print ("o_rate: ", rate)
         # print(len(trajectory))
         # print(trajectory)
         # print(len(durations))
         # print(len(interpolated_points))
         # print (interpolated_points[0])
-        
+
         if mode == "scissor":
             # print ("index?")
             # print(0+ interpolated_points[0]-1)
@@ -119,11 +121,12 @@ class Follower:
             #print(dat)
             JointStatePublisher.publish(dat)
 
+            time.sleep(rate/2)
             if mode == "scissor":
-                dat = JointState()
-                dat.position = [jaw_trajectory[i]]
-                JawStatePublisher.publish(dat)
 
+                dat1 = JointState()
+                dat1.position = [jaw_trajectory[i]]
+                JawStatePublisher.publish(dat1)
                     
 
             if ((i-curr) >= interpolated_points[points_index]):
@@ -135,11 +138,11 @@ class Follower:
                 # print (durations[durations_index])
                 # print (interpolated_points)
                 # print(rate)
-                #print (rate)
+                #print ("rate ", rate)
                 if mode == "scissor":
                     jaw_cutting(trajectory[0:interpolated_points[points_index]-1],jaw_position)
 
-            time.sleep(rate)
+            time.sleep(rate/2)
         print("done")
 
     def follow_jaw_trajectory(self, trajectory, JointStatePublisher, duration, interpolated_points):
