@@ -17,11 +17,11 @@ from scipy import interpolate
 #config
 ###############################################
 # the depth the cutting tool should go further than the waypoint
-depth = 0.0025
+depth = 0.0001
 #orientation of the cutting tool to be maintained
 x_incline = 80
 y_incline =  0
-z_rotation = -90
+z_rotation = 90
 #Interpolation parameters
 interpolated_points = 200
 smoothing_factor = 0.01
@@ -164,6 +164,8 @@ def send_goals(goal_output):
 
         waypoints = interpolator(waypoints)
 
+        waypoints.reverse()
+
         # r = R.from_euler('xyz', [(-180 ), y_incline, z_rotation], degrees=True)
         # temp = r.as_matrix()
         # temp = temp.tolist()
@@ -175,11 +177,12 @@ def send_goals(goal_output):
         waypoint = temp
         waypoint[0].append (waypoints[0] [0][3])
         waypoint[1].append (waypoints[0] [1][3])
-        waypoint[2].append (waypoints[0] [2][3] + (2*depth))
+        waypoint[2].append (waypoints[0] [2][3] )
         waypoint.append ([0,0,0,1])
         #print(waypoints[ (len(waypoints)-1)][0][3])
         #print (waypoint[0][3])
         #all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
+        all_waypoints.append({ 'waypoints':[ waypoints[0]], 'name':"goal"})
         
         all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
 
@@ -193,7 +196,7 @@ def send_goals(goal_output):
         #print("all_waypoints", all_waypoints)
 
 
-        #all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
+        all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
         
 
         

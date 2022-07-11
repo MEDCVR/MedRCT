@@ -244,7 +244,7 @@ class Trajectories:
                 points.append (point)
         #print (waypoints)
         #print (durations)
-        # print (points)
+        #print (points)
         
         return waypoints, durations, points
     
@@ -274,7 +274,7 @@ class Trajectories:
             print ("invalid choice")
 
         
-        #print (trajectory)
+        #print (len(trajectory))
         
         return trajectory, (rate* len(trajectory)), len(trajectory)
 

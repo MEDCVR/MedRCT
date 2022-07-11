@@ -17,7 +17,7 @@ from sensor_msgs.msg import JointState
 
 from threading import Thread
 
-cutting_cartesian_velocity = 0.001
+cutting_cartesian_velocity = 0.0015
 
 current_position = [0.0,0.0,0.0,0.0,0.0,0.0]
 position_update_flag = 0

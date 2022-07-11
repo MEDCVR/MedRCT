@@ -15,8 +15,8 @@ kinematics = RTS470007()
 mode = ""
 
 max_open = 40
-max_close = 0
-distance_close_open = 0.0025
+max_close = 5
+distance_close_open = 0.002
 point_ratio  = 20
 ###############################################
 
@@ -25,6 +25,8 @@ jaw_trajectory = []
 
 def jaw_cutting(traj, jaw_position):
     global jaw_trajectory, max_open, max_close, distance_close_open, point_ratio
+    print ("trajectory", len(traj))
+    jaw_trajectory = []
 
     max_open = max_open * (3.14/180)
     max_close = max_close * (3.14/180)
@@ -83,14 +85,15 @@ def jaw_cutting(traj, jaw_position):
                 jaw_trajectory.append(curr - increment)
                 curr = curr - increment
     #print (jaw_trajectory)
+    print ("jaw trajectory", len(jaw_trajectory))
 
 
 
 class Follower:
     
-    def follow_trajectory(self, trajectory, JointStatePublisher, durations, interpolated_points, name, JawStatePublisher=[], jaw_position=[]):
-        global mode, jaw_trajectory
-
+    def follow_trajectory(self, traj, JointStatePublisher, durations, interpolated_points, name, JawStatePublisher=[], jaw_position=[]):
+        global mode
+        trajectory = traj.copy()
         mode = name
         print (mode)
         print("Following the trajectory ........")
