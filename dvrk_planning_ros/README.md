@@ -1,8 +1,23 @@
 # dvrk_planning_ros
 
+## Dependencies
+Insall ROS: http://wiki.ros.org/noetic/Installation/Ubuntu
+Install catkin tools https://catkin-tools.readthedocs.io/en/latest/installing.html
 
 ## Build
 Make workspace so folder structure is <your_workspace>/src/dvrk_planning
+
+source ros:
+
+```
+source /opt/ros/noetic/setup.bash
+
+or
+
+source /opt/ros/<your_distro>/setup.bash
+```
+
+build:
 
 ```
 cd <your_workspace>
@@ -27,14 +42,14 @@ Call the ik service:
 Output should be:
 
 ```bash
-joint_state: 
-  header: 
+joint_state:
+  header:
     seq: 0
-    stamp: 
+    stamp:
       secs: 0
       nsecs:         0
     frame_id: ''
-  name: 
+  name:
     - outer_yaw
     - outer_pitch
     - outer_insertion
