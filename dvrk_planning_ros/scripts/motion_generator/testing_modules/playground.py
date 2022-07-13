@@ -122,68 +122,68 @@
 # menu()
 
 
-temp = [-0.04894161596894264, 0.29180410504341125, 0.10410408675670624, 0.05287863314151764, -0.25886258482933044, -0.011124979704618454]
-temp = [0.0003846920153591782, 0.01227362547069788, 0.10040482878684998, -3.604878656915389e-06, -0.0013414063723757863, 4.482344593270682e-06]
+# temp = [-0.04894161596894264, 0.29180410504341125, 0.10410408675670624, 0.05287863314151764, -0.25886258482933044, -0.011124979704618454]
+# temp = [0.0003846920153591782, 0.01227362547069788, 0.10040482878684998, -3.604878656915389e-06, -0.0013414063723757863, 4.482344593270682e-06]
 
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006 , RTS470007
-#from timer import Timer
+# from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006 , RTS470007
+# #from timer import Timer
 
-import numpy as np
+# import numpy as np
 
-np.set_printoptions(precision = 4, suppress = True)
+# np.set_printoptions(precision = 4, suppress = True)
 
-#t = Timer(timer_repeat_times = 100)
-p = PsmKinematicsSolver(RTS470007())
+# #t = Timer(timer_repeat_times = 100)
+# p = PsmKinematicsSolver(RTS470007())
 
-def test_fk_ik(joint_pos, test_time = False):
-    # if(test_time):
-    #     output_fk = t.time_average(lambda : p.compute_fk(joint_pos))
-    #     fk_avg_time = t.str_average()
-    #     output_jp = t.time_average(lambda : p.compute_ik(output_fk))
-    #     ik_avg_time = t.str_average()
-    # else:
-    #output_fk = p.compute_fk(joint_pos)
-    output_jp = p.compute_ik(joint_pos)  
+# def test_fk_ik(joint_pos, test_time = False):
+#     # if(test_time):
+#     #     output_fk = t.time_average(lambda : p.compute_fk(joint_pos))
+#     #     fk_avg_time = t.str_average()
+#     #     output_jp = t.time_average(lambda : p.compute_ik(output_fk))
+#     #     ik_avg_time = t.str_average()
+#     # else:
+#     #output_fk = p.compute_fk(joint_pos)
+#     output_jp = p.compute_ik(joint_pos)  
       
-    # Print results
-    print("Input joint pos: \n", joint_pos)
-    #print("FK: \n", output_fk)
-    print("IK: \n", output_jp)
-    # if(test_time):
-    #     print("FK time: ", fk_avg_time)
-    #     print("IK time: ", ik_avg_time)
+#     # Print results
+#     print("Input joint pos: \n", joint_pos)
+#     #print("FK: \n", output_fk)
+#     print("IK: \n", output_jp)
+#     # if(test_time):
+#     #     print("FK time: ", fk_avg_time)
+#     #     print("IK time: ", ik_avg_time)
 
-    print("-------------------------------------")
+#     print("-------------------------------------")
 
-joint_change = 0.1
+# joint_change = 0.1
 
-temp = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+# temp = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
 
-goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
-goal2  = [[0, 1, 0, 0.03],[1, 0, 0, -0.03],[0, 0, -1, -0.1],[0,0,0,1]]
-goal3  = [[0, 1, 0, 0.03],[1, 0, 0, 0.03],[0, 0, -1, -0.1],[0,0,0,1]]
-goal4  = [[0, 1, 0, -0.03],[1, 0, 0, 0.03],[0, 0, -1, -0.1],[0,0,0,1]]
-goal5  = [[0, 1, 0, -0.03],[1, 0, 0, -0.03],[0, 0, -1, -0.1],[0,0,0,1]]
-goal6  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
-goal7  = [[0, 1, 0, 0.03],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal2  = [[0, 1, 0, 0.03],[1, 0, 0, -0.03],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal3  = [[0, 1, 0, 0.03],[1, 0, 0, 0.03],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal4  = [[0, 1, 0, -0.03],[1, 0, 0, 0.03],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal5  = [[0, 1, 0, -0.03],[1, 0, 0, -0.03],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal6  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+# goal7  = [[0, 1, 0, 0.03],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
 
 
 
-temp = goal2
-joint_pos = np.matrix(temp)
-test_fk_ik(joint_pos)
+# temp = goal2
+# joint_pos = np.matrix(temp)
+# test_fk_ik(joint_pos)
 
-temp = goal3
-joint_pos = np.matrix(temp)
-test_fk_ik(joint_pos)
+# temp = goal3
+# joint_pos = np.matrix(temp)
+# test_fk_ik(joint_pos)
 
-temp = goal4
-joint_pos = np.matrix(temp)
-test_fk_ik(joint_pos)
+# temp = goal4
+# joint_pos = np.matrix(temp)
+# test_fk_ik(joint_pos)
 
-temp = goal5
-joint_pos = np.matrix(temp)
-test_fk_ik(joint_pos)
+# temp = goal5
+# joint_pos = np.matrix(temp)
+# test_fk_ik(joint_pos)
 
 
 # from scipy.spatial.transform import Rotation as R

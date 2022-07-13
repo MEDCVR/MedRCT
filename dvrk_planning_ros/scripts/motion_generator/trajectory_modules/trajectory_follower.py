@@ -7,7 +7,6 @@ import rospy
 
 import math
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
-kinematics = RTS470007()
 
 ###############################################
 #config
@@ -16,7 +15,7 @@ mode = ""
 
 max_open = 40
 max_close = 5
-distance_close_open = 0.002
+distance_close_open = 0.0015
 point_ratio  = 20
 ###############################################
 
@@ -38,7 +37,7 @@ def jaw_cutting(traj, jaw_position):
 
     points = inc_points
     points = points + 1
-    p = PsmKinematicsSolver(kinematics)
+    p = PsmKinematicsSolver(RTS470007())
 
     mode = 0
     curr = jaw_position
@@ -88,29 +87,32 @@ def jaw_cutting(traj, jaw_position):
     print ("jaw trajectory", len(jaw_trajectory))
 
 
-
+follower_interrupt_flag = [1]
 class Follower:
     
+    def set_follower_status(self,msg):
+        global follower_interrupt_flag
+        follower_interrupt_flag = msg
+
     def follow_trajectory(self, traj, JointStatePublisher, durations, interpolated_points, name, JawStatePublisher=[], jaw_position=[]):
         global mode
         trajectory = traj.copy()
         mode = name
         print (mode)
         print("Following the trajectory ........")
-        #print ("recd")
-        #print (durations)
+        # print (durations)
         # print (interpolated_points)
         rate = durations[0]/interpolated_points[0]
         durations_index = 1
         points_index = 0
         curr = 0
-        #print ("o_rate: ", rate)
+        #print (rate)
         # print(len(trajectory))
         # print(trajectory)
         # print(len(durations))
         # print(len(interpolated_points))
         # print (interpolated_points[0])
-
+        
         if mode == "scissor":
             # print ("index?")
             # print(0+ interpolated_points[0]-1)
@@ -119,17 +121,19 @@ class Follower:
         for i in range(0,len(trajectory)):
             if rospy.is_shutdown():
                 return
+            if follower_interrupt_flag[0] == 0:
+                print("Interupting follwer")
+                return
             dat = JointState()
             dat.position = trajectory[i]
             #print(dat)
             JointStatePublisher.publish(dat)
 
-            time.sleep(rate/2)
             if mode == "scissor":
+                dat = JointState()
+                dat.position = [jaw_trajectory[i]]
+                JawStatePublisher.publish(dat)
 
-                dat1 = JointState()
-                dat1.position = [jaw_trajectory[i]]
-                JawStatePublisher.publish(dat1)
                     
 
             if ((i-curr) >= interpolated_points[points_index]):
@@ -141,15 +145,15 @@ class Follower:
                 # print (durations[durations_index])
                 # print (interpolated_points)
                 # print(rate)
-                #print ("rate ", rate)
+                #print (rate)
                 if mode == "scissor":
                     jaw_cutting(trajectory[0:interpolated_points[points_index]-1],jaw_position)
 
-            time.sleep(rate/2)
+            time.sleep(rate)
         print("done")
 
     def follow_jaw_trajectory(self, trajectory, JointStatePublisher, duration, interpolated_points):
-        
+        global follower_interrupt_flag
         # print (durations)
         # print (interpolated_points)
         if len(trajectory)>0:
@@ -160,6 +164,8 @@ class Follower:
             
             for i in range(0,len(trajectory)):
                 if rospy.is_shutdown():
+                    return
+                if follower_interrupt_flag[0] == 0:
                     return
                 dat = JointState()
                 dat.position = [trajectory[i]]
