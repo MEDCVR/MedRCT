@@ -12,6 +12,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
+from dvrk_planning_msgs.msg import Waypoints
+from geometry_msgs.msg import Transform
 
 ###############################################
 #config
@@ -32,124 +34,67 @@ all_waypoints = []
 current_position = []
 
 
-def position_callback(msg):
-        global current_position, position_update_flag
-        current_position = msg.position
-        
-        #print( current_position)
-
-class CuttingInput:
-
-    def __init__(self):
-        #rospy.init_node('TeleopGoals', anonymous= True)
-        rospy.Subscriber("/PSM2/measured_js", JointState, position_callback)
+def remove_duplicates (x_sample,y_sample,z_sample):
     
-    def temp(self):
-        #cartesian
-        # goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal2  = [[0, 1, 0, 0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal3  = [[0, 1, 0, 0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal4  = [[0, 1, 0, -0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal5  = [[0, 1, 0, -0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal6  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goal7  = [[0, 1, 0, 0.03],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
-        # goals = [ [goal2, goal7, goal3  ]]
-        # return jaw_orientation (goals)  
+    #Todo
+    #for i in range():
+    return x_sample,y_sample,z_sample
+        
+       
 
-        #goals = [[[-0.054713692516088486, 0.48224759101867676, 0.11257047206163406, 0.012590869329869747, -0.45482897758483887, -0.520109549164772], [0.3911094069480896, 0.2764164209365845, 0.11329736560583115, -0.009045740589499474, -0.25353044271469116, -0.9698815643787384], [0.3906344771385193, -0.1170898824930191, 0.11087666451931, -0.0009759304230101407, 0.1348545253276825, -0.9718144237995148], [0.08866144716739655, -0.5139707922935486, 0.11582803726196289, -0.00554535910487175, 0.5273154973983765, -0.6652765870094299], [-0.0710441991686821, -0.3180985450744629, 0.10754289478063583, -0.009388613514602184, 0.33412256836891174, -0.5032211691141129]]]
-        #needle driver jp
-        # goal1 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
-        # goal2 =  [0.5080435050560344, 0.49026081966106505, 0.12178957769747238, 0.0, -0.4902608196610651, -0.508043505056034]
-        # goal3 =  [0.5080435050560344, -0.49026081966106505, 0.12178957769747238, -0.0, 0.4902608196610651, -0.5080435050560338]
-        # goal4 =  [-0.5080435050560344, -0.49026081966106505, 0.12178957769747238, 0.0, 0.4902608196610651, 0.5080435050560345]
-        # goal5 =  [-0.5080435050560344, 0.49026081966106505, 0.12178957769747238, -0.0, -0.4902608196610651, 0.508043505056034]
-        # goal6 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
-        # goal7 =  [0.32241855696929245, -0.0, 0.1011786142695382, 0.0, -0.0, -0.32241855696929195]
 
-        #scissor 5cm
-
-        # goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
-        # goal2 =  [0.5090392201162325, 0.49107539010122325, 0.06782779286340597, 0.0, -0.49107539010122314, -0.5090392201162321]
-        # goal3 =  [0.5090392201162325, -0.49107539010122325, 0.06782779286340597, -0.0, 0.49107539010122286, -0.5090392201162325]
-        # goal4 =  [-0.5090392201162325, -0.49107539010122325, 0.06782779286340597, 0.0, 0.49107539010122286, 0.5090392201162321]
-        # goal5 =  [-0.5090392201162325, 0.49107539010122325, 0.06782779286340597, -0.0, -0.49107539010122314, 0.5090392201162321]
-        # goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
-        # goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
-
-        #scissor 3cm
-        goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
-        goal2 =  [0.32312284660346086, 0.3378970772970957, 0.05229669581385103, 0.0, -0.3378970772970953, -0.32312284660346097]
-        goal3 =  [0.32312284660346086, -0.3378970772970957, 0.05229669581385103, -0.0, 0.3378970772970953, -0.32312284660346097]
-        goal4 =  [-0.32312284660346086, -0.3378970772970957, 0.05229669581385103, 0.0, 0.3378970772970953, 0.32312284660346136]
-        goal5 =  [-0.32312284660346086, 0.3378970772970957, 0.05229669581385103, -0.0, -0.3378970772970953, 0.32312284660346097]
-        goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
-        goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
-
-        goals = [[goal2, goal3, goal4]]
-
-        send_goals (goals)
-        return 0
-
-    def sequential_goals(self):
-        global all_waypoints
-        if len(all_waypoints)>0:
-            temp = all_waypoints[0]['waypoints']
-            name = all_waypoints[0]['name']
-            all_waypoints.pop(0)
-            return temp, name
+def get_goals():
+    index = 0
+    mode = 0
+    goal_output = []
+    global current_position
+    
+    
+    while not rospy.is_shutdown():
+        print("g if current location is a goal")
+        print("w if current location is a waypoint")
+        print("s to send the points to the generator")
+        print("d to discard the points")
+        choice = input()
+        #try:
+        temp = list(choice)
+        #curr_position = motion_generator.get_current_position()
+        curr_position = current_position
+        if temp[0] == 'g' or temp[0] == 'G':
+            mode = 0 
+        elif temp[0] == 'w' or temp[0] == 'W' or temp[0] == 's' or temp[0] == 'S':
+            mode = 1
+        elif temp[0] == 'd' or temp[0] == 'D':
+            goal_output = []
+            mode = 2
+        else: 
+            print ("invalid input, try again ......")
+        
+        if len (goal_output) ==0 and mode!=2:
+            rospy.wait_for_message("/PSM2/measured_js",JointState, timeout=2)
+            goal_output.append([list( curr_position )] )
         else:
-            return [], ""
-    def get_goals(self):
-        index = 0
-        mode = 0
-        goal_output = []
-        global current_position
-        
-        
-        while not rospy.is_shutdown():
-            print("g if current location is a goal")
-            print("w if current location is a waypoint")
-            print("s to send the points to the generator")
-            print("d to discard the points")
-            choice = input()
-            #try:
-            temp = list(choice)
-            #curr_position = motion_generator.get_current_position()
-            curr_position = current_position
-            if temp[0] == 'g' or temp[0] == 'G':
-                mode = 0 
-            elif temp[0] == 'w' or temp[0] == 'W':
-                mode = 1
-            elif temp[0] == 's' or temp[0] == 'S':
-                if (len(goal_output))<1:
-                    print("nothing to send")
-                    return 1
-                elif (len(goal_output[0]))<2:
-                    print("choose at least 2 points")
-                    return 1
-                else: 
-                    send_goals(goal_output)
-                    return 0
-            elif temp[0] == 'd' or temp[0] == 'D':
-                goal_output = []
-                mode = 2
+            rospy.wait_for_message("/PSM2/measured_js",JointState, timeout=2)
+            if mode == 1:
+                goal_output[index].append( list( curr_position ))
+            elif mode == 0:
+                goal_output[index].append( list( curr_position ) )
+                goal_output.append ([list( curr_position )])
+                index = index + 1
+        if temp[0] == 's' or temp[0] == 'S':
+            if (len(goal_output))<1:
+                print("nothing to send")
+                get_goals()
+            elif (len(goal_output[0]))<2:
+                print("choose at least 2 points")
+                get_goals()
             else: 
-                print ("invalid input, try again ......")
-            
-            if len (goal_output) ==0 and mode!=2:
-                goal_output.append([list( curr_position )] )
-            else:
-
-                if mode == 1:
-                    goal_output[index].append( list( curr_position ))
-                elif mode == 0:
-                    goal_output[index].append( list( curr_position ) )
-                    goal_output.append ([list( curr_position )])
-                    index = index + 1
-            print(goal_output)
-            # except:
-            #     print ("something went wrong, try again ......")
-            #     return 1 
+                send_goals(goal_output)
+                get_goals()
+        print(goal_output)
+        # except:
+        #     print ("something went wrong, try again ......")
+        #     return 1 
 
 
 def send_goals(goal_output):
@@ -182,9 +127,11 @@ def send_goals(goal_output):
         #print(waypoints[ (len(waypoints)-1)][0][3])
         #print (waypoint[0][3])
         #all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
-        all_waypoints.append({ 'waypoints':[ waypoints[0]], 'name':"goal"})
+        #all_waypoints.append({ 'waypoints':[ waypoints[0]], 'name':"goal"})
+        publish_goals("goal", [ waypoints[0]])
         
-        all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
+        #all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
+        publish_goals("scissor", waypoints)
 
         temp_waypointf = waypoints[ (len(waypoints)-1)]
         temp2 =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
@@ -196,17 +143,46 @@ def send_goals(goal_output):
         #print("all_waypoints", all_waypoints)
 
 
-        all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
+        #all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
+        publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
+        
         
 
         
         #print (goal_output_cart)
 
-def remove_duplicates (x_sample,y_sample,z_sample):
+
+def rotMatix_msg(goals):
     
-    #Todo
-    #for i in range():
-    return x_sample,y_sample,z_sample
+    waypoints_output=[]
+    #print("all goals", goals)
+    for i in range(0, len(goals)):
+        
+        temp = Transform()
+        temp.translation.x = goals[i][0][3]
+        temp.translation.y = goals[i][1][3]
+        temp.translation.z = goals[i][2][3]
+        
+        goal = goals[i]
+        #print(goal)
+        r = R.from_matrix([goal[0][:3], goal[1][:3], goal[2][:3]])
+        quat = r.as_quat()
+
+        temp.rotation.x = quat[0]
+        temp.rotation.y = quat[1]
+        temp.rotation.z = quat[2]
+        temp.rotation.w = quat[3]
+
+        waypoints_output.append(temp)
+    #print("wayout", waypoints_output)
+    return waypoints_output
+
+def publish_goals(name, goals):
+    dat = Waypoints()
+    dat.trajectory_name = name
+    dat.instruction_mode = "arm"
+    dat.waypoints = rotMatix_msg(goals)
+    GoalStatePublisher.publish(dat)
 
 
 from scipy import interpolate
@@ -276,6 +252,26 @@ def jaw_orientation(goals):
 
     return(waypoints)
 
+def position_callback(msg):
+    global current_position, position_update_flag
+    current_position = msg.position
+
+if __name__ == '__main__':
+
+
+    rospy.init_node('Teleop_Goal_interface', anonymous= True)
+    rospy.Subscriber("/PSM2/measured_js", JointState, position_callback)
+    GoalStatePublisher = rospy.Publisher("/input/waypoints", Waypoints, queue_size = 10)
+    get_goals()
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        print("shutting down")
+
+
+
+
+#################################################################################################################################
         # final_waypoints = []
         # for k in range(0,3):
         #     for l in range(0,3):
@@ -323,3 +319,67 @@ def jaw_orientation(goals):
 
     
 
+ #print( current_position)
+
+
+
+    # def __init__():
+    #     #rospy.init_node('TeleopGoals', anonymous= True)
+    #     rospy.Subscriber("/PSM2/measured_js", JointState, position_callback)
+    
+def temp():
+    #cartesian
+    # goal1  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal2  = [[0, 1, 0, 0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal3  = [[0, 1, 0, 0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal4  = [[0, 1, 0, -0.05],[1, 0, 0, 0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal5  = [[0, 1, 0, -0.05],[1, 0, 0, -0.05],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal6  = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goal7  = [[0, 1, 0, 0.03],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+    # goals = [ [goal2, goal7, goal3  ]]
+    # return jaw_orientation (goals)  
+
+    #goals = [[[-0.054713692516088486, 0.48224759101867676, 0.11257047206163406, 0.012590869329869747, -0.45482897758483887, -0.520109549164772], [0.3911094069480896, 0.2764164209365845, 0.11329736560583115, -0.009045740589499474, -0.25353044271469116, -0.9698815643787384], [0.3906344771385193, -0.1170898824930191, 0.11087666451931, -0.0009759304230101407, 0.1348545253276825, -0.9718144237995148], [0.08866144716739655, -0.5139707922935486, 0.11582803726196289, -0.00554535910487175, 0.5273154973983765, -0.6652765870094299], [-0.0710441991686821, -0.3180985450744629, 0.10754289478063583, -0.009388613514602184, 0.33412256836891174, -0.5032211691141129]]]
+    #needle driver jp
+    # goal1 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
+    # goal2 =  [0.5080435050560344, 0.49026081966106505, 0.12178957769747238, 0.0, -0.4902608196610651, -0.508043505056034]
+    # goal3 =  [0.5080435050560344, -0.49026081966106505, 0.12178957769747238, -0.0, 0.4902608196610651, -0.5080435050560338]
+    # goal4 =  [-0.5080435050560344,alims -0.49026081966106505, 0.12178957769747238, 0.0, 0.4902608196610651, 0.5080435050560345]
+    # goal5 =  [-0.5080435050560344, 0.49026081966106505, 0.12178957769747238, -0.0, -0.4902608196610651, 0.508043505056034]
+    # goal6 =  [0.0, -0.0, 0.09630000000000001, 0.0, -0.0, 0.0]
+    # goal7 =  [0.32241855696929245, -0.0, 0.1011786142695382, 0.0, -0.0, -0.32241855696929195]
+
+    #scissor 5cm
+
+    # goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+    # goal2 =  [0.5090392201162325, 0.49107539010122325, 0.06782779286340597, 0.0, -0.49107539010122314, -0.5090392201162321]
+    # goal3 =  [0.5090392201162325, -0.49107539010122325, 0.06782779286340597, -0.0, 0.49107539010122286, -0.5090392201162325]
+    # goal4 =  [-0.5090392201162325, -0.49107539010122325, 0.06782779286340597, 0.0, 0.49107539010122286, 0.5090392201162321]
+    # goal5 =  [-0.5090392201162325, 0.49107539010122325, 0.06782779286340597, -0.0, -0.49107539010122314, 0.5090392201162321]
+    # goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+    # goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
+
+    #scissor 3cm
+    goal1 =   [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+    goal2 =  [0.32312284660346086, 0.3378970772970957, 0.05229669581385103, 0.0, -0.3378970772970953, -0.32312284660346097]
+    goal3 =  [0.32312284660346086, -0.3378970772970957, 0.05229669581385103, -0.0, 0.3378970772970953, -0.32312284660346097]
+    goal4 =  [-0.32312284660346086, -0.3378970772970957, 0.05229669581385103, 0.0, 0.3378970772970953, 0.32312284660346136]
+    goal5 =  [-0.32312284660346086, 0.3378970772970957, 0.05229669581385103, -0.0, -0.3378970772970953, 0.32312284660346097]
+    goal6 =  [0.0, -0.0, 0.04229000000000005, 0.0, -0.0, 0.0]
+    goal7 =  [0.32312284660346086, -0.0, 0.04717945861402896, 0.0, -0.0, -0.32312284660346136]
+
+    goals = [[goal2, goal3, goal4]]
+
+    send_goals (goals)
+    return 0
+
+
+def sequential_goals():
+    global all_waypoints
+    if len(all_waypoints)>0:
+        temp = all_waypoints[0]['waypoints']
+        name = all_waypoints[0]['name']
+        all_waypoints.pop(0)
+        return temp, name
+    else:
+        return [], ""

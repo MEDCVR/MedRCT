@@ -1,29 +1,31 @@
 ros_communication:
   - name: "communication_topics"
-    input: 
-      
-cartesian_controllers:
-  - name: "Keyboard-PSM2"
     input:
-      type: "increment"
-      topic: "/keyboard/twist"
+      waypoint_input: "/input/waypoints"
+      joint_positions_topic: "/PSM2/measured_js"
+      jaw_position_topic: "/PSM2/jaw/measured_js"
     output:
-      control_topic: "/PSM2/servo_jp"
-      feedback_topic: "/PSM2/measured_js"
+      joint_control_topic: "/PSM2/servo_jp"
+      jaw_control_topic: "/PSM2/jaw/servo_jp"
+      trajectory_status_topic: "/trajectory/status"
+toggle_topic: "/toggle/mode"
+motion_generation_parameters:
+    general: 
+      output_frequency: 50                    # In Hz
+      cartesian_interpolating_distance: 0.01  # In meters
+      no_of_points_jp: 10                     # Number of points in joint space per cartesian interpolating distance
+    jaw:
+      interpolating_angle: 0.25               # In degrees
+      jaw_angle_open: 30                      # In degrees
+      jaw_angle_close: 0                      # In degrees
+    default_joint_constraints:
+      vlims: [0.3,0.3,0.3,0.3,0.3,0.3]        # Default velocity limits for each joint
+      alims: [0.15,0.15,0.15,0.15,0.15,0.15]  # Default acceleration limits for each joint
     kinematics:
-      robot: "psm"
-      tool:
-        type: "RTS470007"
-joint_controllers:
-  - name: "Keyboard-PSM2Jaw"
-    input:
-      type: "increment"
-      topic: "/keyboard/joint_state"
-    output:
-      control_topic: "/PSM2/jaw/servo_jp"
-      feedback_topic: "/PSM2/jaw/measured_js"
-clutch_topic: "/console/clutch"
-switcher:
-  switch_topic: "/toggle/mode"
-  disable_list: ["Keyboard-PSM2", Keyboard-PSM2Jaw]
-  enable_list: []
+      tool: "RTS470007"
+cutting_parameters:                           # These come into play only if you are using a scissor
+    cutting_cartesian_velocity: 0.00125
+    max_open: 40                              # Maximum jaw open angle during cutting (in degrees)
+    max_close: 5                              # Maximum jaw closing angle during cutting (in degrees)
+    distance_close_open: 0.0015               # Distance traveled (m) when the jaw closes/opens
+    

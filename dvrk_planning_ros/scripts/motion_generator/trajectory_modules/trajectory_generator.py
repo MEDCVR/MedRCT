@@ -11,11 +11,9 @@ from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 
-kinematics = RTS470007 ()
-
 
 ###############################################
-#config
+# Global Variables
 ###############################################
 interpolating_distance = 0.01
 no_of_points_jp = 10
@@ -28,9 +26,19 @@ alims = np.array([0.075, 0.075, 0.075, 0.075, 0.075, 0.075]) * 2
 interpolating_angle_jaw = 0.25          #degrees
 jaw_angle_open = 30                     #degrees
 jaw_angle_close = 0                     #degrees
+kinematics = LND400006()                #default kinematics, change from config
 ###############################################
 
-
+def set_config(config):
+    global interpolating_distance, no_of_points_jp, frequency, interpolating_angle_jaw, jaw_angle_close, jaw_angle_open, vlims, alims, kinematics
+    interpolating_distance = config['motion_generation_parameters']['general']['cartesian_interpolating_distance']
+    no_of_points_jp = config['motion_generation_parameters']['general']['no_of_points_jp']
+    frequency = config['motion_generation_parameters']['general']['output_frequency']
+    jaw_angle_open = config['motion_generation_parameters']['jaw']['jaw_angle_open']
+    jaw_angle_close = config['motion_generation_parameters']['jaw']['jaw_angle_close']
+    vlims = config['motion_generation_parameters']['default_joint_constraints']['vlims']
+    alims = config['motion_generation_parameters']['default_joint_constraints']['alims']
+    kinematics = eval(config['motion_generation_parameters']['kinematics']['tool']+ "()")
 
 def linear_interpolator_function( start_point, end_point):
     global interpolating_distance
