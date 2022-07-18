@@ -1,0 +1,73 @@
+#include <memory>
+#include <yaml-cpp/yaml.h>
+
+#include <medrct_common/file_paths.hh>
+#include <medrct_common/log.hh>
+#include <medrct_controller/controller_factory.hh>
+#include <medrct_controller/controller_manager_yaml.hh>
+#include <medrct_controller/controller_manager.hh>
+#include <medrct_ros/ros_singleton.hh>
+#include <medrct_ros/ros_stream_factory.hh>
+#include <ros/ros.h>
+
+using namespace medrct::stream;
+using namespace medrct::controller;
+
+int main(int argc, char** argv)
+{
+  if (argc != 2)
+  {
+    medrctlog::error(
+        "Argument must be exactly one: Relative path to config yaml");
+    return -1;
+  }
+  std::string relative_path_to_yaml = argv[1];
+  std::string full_path_to_yaml =
+      medrct::getInstallDirectoryPath() + "/" + relative_path_to_yaml;
+  YAML::Node config;
+  try
+  {
+    config = YAML::LoadFile(full_path_to_yaml);
+  }
+  catch (const std::exception& e)
+  {
+    medrctlog::error("full_path_to_yaml {}", full_path_to_yaml);
+    throw;
+  }
+
+  if (!RosSingleton::getInstance().init(argc, argv, "medrct_ros_teleop_node"))
+  {
+    return -1;
+  }
+  RosStreamFactory::Ptr ros_stream_factory =
+      std::make_shared<RosStreamFactory>();
+  ControllerFactory cf(ros_stream_factory);
+  ControllerManagerConfig cmc = fromYAMLControllerManagerConfig(config, cf);
+  ControllerManager cm;
+  if (!cm.init(cmc))
+  {
+    medrctlog::error("Controller manager failed to initialize.");
+    return -1;
+  }
+  std::thread thd([]() {
+    ros::MultiThreadedSpinner spinner(4);
+    spinner.spin();
+  });
+
+  BasicControllerManagerCommunicator communicator;
+  YAML::Node communicator_config = config["basic_communicator"];
+  if (!communicator_config)
+  {
+    medrctlog::error("No [basic_communicator] key in config");
+    return -1;
+  }
+  BasicControllerManagerCommunicatorConfig bcmc_cfg =
+      fromYAMLBasicControllerCommunicatorConfig(
+          communicator_config, *ros_stream_factory);
+  if (!communicator.init(std::move(cm), bcmc_cfg))
+  {
+    return -1;
+  }
+  thd.join();
+  return 0;
+}

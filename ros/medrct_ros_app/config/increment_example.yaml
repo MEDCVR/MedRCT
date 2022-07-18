@@ -1,0 +1,35 @@
+controllers:
+  - name: "Keyboard-PSM2"
+    class_name: "CartesianIncrementController"
+    input_stream:
+      topic_name: "/keyboard/twist"
+    output_stream:
+      topic_name: "/PSM2/servo_jp"
+    feedback_stream:
+      topic_name: "/PSM2/measured_js"
+    kinematics_tree: ""
+    forward_kinematics:
+      lib_name: "medrct_dvrk"
+      package_name: "medrct_dvrk"
+      class_name: "PsmForwardKinematicsFactory"
+      tool_name: "LND400006"
+    inverse_kinematics:
+      lib_name: "medrct_dvrk"
+      package_name: "medrct_dvrk"
+      class_name: "PsmInverseKinematicsFactory"
+      tool_name: "LND400006"
+  - name: "Keyboard-PSM2-Jaw"
+    class_name: "JointIncrementController"
+    input_stream:
+      topic_name: "/keyboard/joint_state"
+    output_stream:
+      topic_name: "/PSM2/jaw/servo_jp"
+    feedback_stream:
+      topic_name: "/PSM2/jaw/measured_js"
+    kinematics_tree: ""
+basic_communicator:
+  clutch_input_stream:
+    topic_name: "console/clutch"
+  switch_input_stream:
+    topic_name: "console/switch"
+  auto_enable: True
