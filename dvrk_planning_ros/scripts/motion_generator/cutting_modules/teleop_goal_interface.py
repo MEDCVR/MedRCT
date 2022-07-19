@@ -30,9 +30,8 @@ smoothing_factor = 0.01
 polynomial_degree = 3
 ###############################################
 
-all_waypoints = []
+last_data = []
 current_position = []
-
 
 def remove_duplicates (x_sample,y_sample,z_sample):
     
@@ -55,6 +54,7 @@ def get_goals():
         print("w if current location is a waypoint")
         print("s to send the points to the generator")
         print("d to discard the points")
+        print("r to retry")
         choice = input()
         #try:
         temp = list(choice)
@@ -66,6 +66,9 @@ def get_goals():
             mode = 1
         elif temp[0] == 'd' or temp[0] == 'D':
             goal_output = []
+            mode = 2
+        elif temp[0] == 'r' or temp[0] == 'R':
+            send_goals(goal_output)
             mode = 2
         else: 
             print ("invalid input, try again ......")
@@ -90,7 +93,7 @@ def get_goals():
                 get_goals()
             else: 
                 send_goals(goal_output)
-                get_goals()
+                #get_goals()
         print(goal_output)
         # except:
         #     print ("something went wrong, try again ......")
@@ -98,7 +101,6 @@ def get_goals():
 
 
 def send_goals(goal_output):
-    global all_waypoints
     for i in range (0, len(goal_output)):
         waypoints = []
         for j in range(0, len(goal_output[i])):
@@ -126,11 +128,11 @@ def send_goals(goal_output):
         waypoint.append ([0,0,0,1])
         #print(waypoints[ (len(waypoints)-1)][0][3])
         #print (waypoint[0][3])
-        #all_waypoints.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
-        #all_waypoints.append({ 'waypoints':[ waypoints[0]], 'name':"goal"})
+        #last_data.append({ 'waypoints':[ waypoint, waypoints[0]], 'name':"goal"})
+        #last_data.append({ 'waypoints':[ waypoints[0]], 'name':"goal"})
         publish_goals("goal", [ waypoints[0]])
         
-        #all_waypoints.append({ 'waypoints':waypoints, 'name':"scissor"})
+        #last_data.append({ 'waypoints':waypoints, 'name':"scissor"})
         publish_goals("scissor", waypoints)
 
         temp_waypointf = waypoints[ (len(waypoints)-1)]
@@ -140,13 +142,13 @@ def send_goals(goal_output):
         waypoint2[1].append (waypoints[ (len(waypoints)-1)] [1][3])
         waypoint2[2].append (waypoints[ (len(waypoints)-1)] [2][3] + (2*depth))
         waypoint2.append ([0,0,0,1])
-        #print("all_waypoints", all_waypoints)
+        #print("last_data", last_data)
 
 
-        #all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
+        #last_data.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
         #publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
         
-        
+    
 
         
         #print (goal_output_cart)
@@ -375,11 +377,11 @@ def temp():
 
 
 def sequential_goals():
-    global all_waypoints
-    if len(all_waypoints)>0:
-        temp = all_waypoints[0]['waypoints']
-        name = all_waypoints[0]['name']
-        all_waypoints.pop(0)
+    global last_data
+    if len(last_data)>0:
+        temp = last_data[0]['waypoints']
+        name = last_data[0]['name']
+        last_data.pop(0)
         return temp, name
     else:
         return [], ""
