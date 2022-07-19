@@ -144,7 +144,7 @@ def send_goals(goal_output):
 
 
         #all_waypoints.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
-        publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
+        #publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
         
         
 

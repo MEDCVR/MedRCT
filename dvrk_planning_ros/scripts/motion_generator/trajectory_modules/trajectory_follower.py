@@ -17,6 +17,9 @@ distance_close_open = 0.0015
 point_ratio  = 15
 jaw_trajectory = []
 kinematics = LND400006()                #default kinematics, change from config
+offset_update_flag = 0
+offset = []
+follower_interrupt_flag = [1]
 
 
 def set_config(config):
@@ -25,6 +28,11 @@ def set_config(config):
     max_open = config['cutting_parameters']['max_open']
     max_close = config['cutting_parameters']['max_close']
     distance_close_open = config['cutting_parameters']['distance_close_open']
+
+def set_offset(data):
+        global offset_update_flag, offset
+        offset = data
+        offset_update_flag = 1
 
 
 def jaw_cutting(traj, jaw_position):
@@ -65,7 +73,23 @@ def jaw_cutting(traj, jaw_position):
                 curr = curr - increment
     #print ("jaw trajectory", len(jaw_trajectory))
 
-follower_interrupt_flag = [1]
+def offset_update_function(i, trajectory):
+    global offset_update_flag
+    while i< len(trajectory):
+        p = PsmKinematicsSolver(kinematics)
+        point = p.compute_fk(trajectory[i])
+        point = point.getA()
+        point[0][3] = point[0][3] + offset[0]
+        point[1][3] = point[1][3] + offset[1]
+        point[2][3] = point[2][3] + offset[2]
+
+        trajectory[i] = p.compute_ik(np.matrix(point))
+
+        i = i+1
+
+    offset_update_flag = 0
+    return trajectory
+
 class Follower:
     
     def set_follower_status(self,msg):
@@ -91,6 +115,10 @@ class Follower:
             if follower_interrupt_flag[0] == 0:
                 print("Interupting follwer")
                 return
+
+            if offset_update_flag == 1:
+                trajectory = offset_update_function(i, trajectory)
+
             dat = JointState()
             dat.position = trajectory[i]
             JointStatePublisher.publish(dat)

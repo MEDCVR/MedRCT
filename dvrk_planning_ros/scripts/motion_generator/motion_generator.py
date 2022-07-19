@@ -19,6 +19,7 @@ from dvrk_planning_msgs.msg import Waypoints
 from dvrk_planning_msgs.msg import TrajectoryStatus
 from scipy.spatial.transform import Rotation as R
 from geometry_msgs.msg import Transform
+from std_msgs.msg import Float32MultiArray
 
 cutting_cartesian_velocity = 0.00125
 
@@ -156,6 +157,13 @@ def set_config(config):
     cutting_cartesian_velocity = config['cutting_parameters']['cutting_cartesian_velocity']
     trajectory_follower.set_config(config)
     trajectory_generator.set_config(config)
+    if config['default_follower_status'] == "enabled":
+        enable()
+    else:
+        disable()
+
+def offset_callback(offset):
+    trajectory_follower.set_offset(offset.data)
 
 def msg_rotMatrix(waypoints):
     waypoints_output=[]
@@ -210,6 +218,7 @@ if __name__ == '__main__':
 
     rospy.init_node('MotionGenerator', anonymous= True)
     rospy.Subscriber(config_yaml['ros_communication'][0]['input']['waypoint_input'],Waypoints,waypoint_callback)
+    rospy.Subscriber(config_yaml['ros_communication'][0]['input']['trajectory_offset_topic'],Float32MultiArray,offset_callback)
     rospy.Subscriber(config_yaml['ros_communication'][0]['input']['joint_positions_topic'],JointState,position_callback)
     rospy.Subscriber(config_yaml['ros_communication'][0]['input']['jaw_position_topic'],JointState,jaw_callback)
     rospy.Subscriber(config_yaml['toggle_topic'], Joy, switching_callback)

@@ -1,9 +1,11 @@
+default_follower_status: "enabled"                      # can be "enabled" or "disabled"
 ros_communication:
   - name: "communication_topics"
     input:
       waypoint_input: "/input/waypoints"
       joint_positions_topic: "/PSM2/measured_js"
       jaw_position_topic: "/PSM2/jaw/measured_js"
+      trajectory_offset_topic: "/trajectory/offset"
     output:
       joint_control_topic: "/PSM2/servo_jp"
       jaw_control_topic: "/PSM2/jaw/servo_jp"
