@@ -7,7 +7,8 @@ import rospy
 import math
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
 from dvrk_planning_msgs.msg import TrajectoryStatus
-
+from threading import Thread
+from std_msgs.msg import Float64MultiArray
 
 mode = ""
 
@@ -20,6 +21,9 @@ kinematics = LND400006()                #default kinematics, change from config
 offset_update_flag = 0
 offset = []
 follower_interrupt_flag = [1]
+current_trajectory = []
+plot_message = []
+plot_message_update_flag = 0
 
 
 def set_config(config):
@@ -33,6 +37,27 @@ def set_offset(data):
         global offset_update_flag, offset
         offset = data
         offset_update_flag = 1
+
+def plot():
+    global plot_message, plot_message_update_flag
+    trajectory = current_trajectory
+    msg = []
+    for i in range(0, len(trajectory)):
+        p = PsmKinematicsSolver(kinematics)
+        point = p.compute_fk(trajectory[i])
+        point = point.getA()
+        msg.append(point[0][3]) 
+        msg.append(point[1][3]) 
+        msg.append(point[2][3])
+    plot_message = msg
+    plot_message_update_flag = 1 
+
+def publish_plot_message(RvizTrajPublisher):
+    global plot_message, plot_message_update_flag
+    dat = Float64MultiArray()
+    dat.data = plot_message
+    RvizTrajPublisher.publish(dat)
+    plot_message_update_flag = 0
 
 
 def jaw_cutting(traj, jaw_position):
@@ -73,22 +98,35 @@ def jaw_cutting(traj, jaw_position):
                 curr = curr - increment
     #print ("jaw trajectory", len(jaw_trajectory))
 
-def offset_update_function(i, trajectory):
+def offset_update_function(i, traj, cart_trajectory):
+    import time
+    # get the start time
+    st = time.time()
+
+
     global offset_update_flag
-    while i< len(trajectory):
+    temp = traj.copy()
+    while i< len(cart_trajectory):
         p = PsmKinematicsSolver(kinematics)
-        point = p.compute_fk(trajectory[i])
-        point = point.getA()
+        # point = p.compute_fk(trajectory[i])
+        # point = point.getA()
+        point = cart_trajectory[i]
+        #print (point)
         point[0][3] = point[0][3] + offset[0]
         point[1][3] = point[1][3] + offset[1]
         point[2][3] = point[2][3] + offset[2]
 
-        trajectory[i] = p.compute_ik(np.matrix(point))
+        temp[i] = p.compute_ik(np.matrix(point))
 
         i = i+1
 
+    et = time.time()
+    # get the execution time
+    elapsed_time = et - st
+    print('Execution time:', elapsed_time, 'seconds')
+
     offset_update_flag = 0
-    return trajectory
+    return temp
 
 class Follower:
     
@@ -96,9 +134,12 @@ class Follower:
         global follower_interrupt_flag
         follower_interrupt_flag = msg
 
-    def follow_trajectory(self, traj, JointStatePublisher, durations, interpolated_points, name, StatusPublisher,  JawStatePublisher=[], jaw_position=[]):
-        global mode
+    def follow_trajectory(self, traj, JointStatePublisher, durations, interpolated_points, name, cartesian_traj, StatusPublisher, RvizTrajPublisher, JawStatePublisher=[], jaw_position=[]):
+        global mode, current_trajectory
         trajectory = traj.copy()
+        current_trajectory = trajectory.copy()
+        cartesian_trajectory = cartesian_traj.copy()
+        Thread(target = plot).start()
         mode = name
         print ("Name:", mode)
         print("Following the trajectory ........")
@@ -117,7 +158,13 @@ class Follower:
                 return
 
             if offset_update_flag == 1:
-                trajectory = offset_update_function(i, trajectory)
+                trajectory = offset_update_function(i, trajectory, cartesian_trajectory).copy()
+                current_trajectory = trajectory.copy()
+                Thread(target = plot).start()
+
+            if plot_message_update_flag == 1:
+                publish_plot_message(RvizTrajPublisher)
+
 
             dat = JointState()
             dat.position = trajectory[i]

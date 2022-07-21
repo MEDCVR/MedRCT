@@ -25,7 +25,7 @@ x_incline = 80
 y_incline =  0
 z_rotation = 90
 #Interpolation parameters
-interpolated_points = 200
+interpolated_points = 75
 smoothing_factor = 0.01
 polynomial_degree = 3
 ###############################################
@@ -212,15 +212,15 @@ def interpolator(waypoints):
     x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
 
 
-    # fig2 = plt.figure(2)
-    # ax3d = fig2.add_subplot(111, projection='3d')
+    fig2 = plt.figure(2)
+    ax3d = fig2.add_subplot(111, projection='3d')
 
-    # ax3d.plot(x_sample, y_sample, z_sample, 'r*')
-    # ax3d.plot(x_knots, y_knots, z_knots, 'go')
-    # ax3d.plot(x_fine, y_fine, z_fine, 'g')
-    # #print(x_fine[0])
-    # fig2.show()
-    # plt.show()
+    ax3d.plot(x_sample, y_sample, z_sample, 'r*')
+    ax3d.plot(x_knots, y_knots, z_knots, 'go')
+    ax3d.plot(x_fine, y_fine, z_fine, 'g')
+    #print(x_fine[0])
+    fig2.show()
+    plt.show()
 
     return jaw_orientation([x_fine, y_fine, z_fine])
 

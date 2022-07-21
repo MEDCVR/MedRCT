@@ -157,6 +157,10 @@ def generate_waypoints_jp ( current_jp, goals, name, velocity):
 class Trajectories:
     
     def generate_traj(self, current_jp, goals = [], name = "", velocity = "nil"):
+        import time
+        # get the start time
+        st = time.time()
+
         global no_of_points_jp
         durations = []
         points = []
@@ -170,7 +174,22 @@ class Trajectories:
                 waypoints = waypoints + temp.tolist()
                 durations.append (duration)
                 points.append (point)
-        return waypoints, durations, points
+
+        
+        waypoints_cartesian = []
+        for i in range(0,len(waypoints)):
+            p = PsmKinematicsSolver(kinematics)
+            point = p.compute_fk(waypoints[i])
+            point = point.getA()
+            waypoints_cartesian.append(point)
+
+
+        et = time.time()
+        # get the execution time
+        elapsed_time = et - st
+        print('Execution time:', elapsed_time, 'seconds')
+        print("number of points", len(waypoints))
+        return waypoints, durations, points, waypoints_cartesian
     
     def generate_traj_jaw(self, current_jaw, goal_data):
         print ("generating jaw trajectory ........")

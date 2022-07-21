@@ -10,6 +10,7 @@ ros_communication:
       joint_control_topic: "/PSM2/servo_jp"
       jaw_control_topic: "/PSM2/jaw/servo_jp"
       trajectory_status_topic: "/trajectory/status"
+      rviz_trajectory_topic: "/plot/trajectory/rviz"
 toggle_topic: "/toggle/mode"
 motion_generation_parameters:
     general: 

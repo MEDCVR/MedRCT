@@ -20,6 +20,7 @@ from dvrk_planning_msgs.msg import TrajectoryStatus
 from scipy.spatial.transform import Rotation as R
 from geometry_msgs.msg import Transform
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64MultiArray
 
 cutting_cartesian_velocity = 0.00125
 
@@ -53,12 +54,12 @@ def generator_function(data, mode, name):
         if mode == "arm":
             if last_point == 0:
                 last_point = current_position
-            trajectory, durations, interpolated_points = generator_obj.generate_traj (last_point, data, name, cutting_cartesian_velocity)
+            trajectory, durations, interpolated_points, waypoints_cartesian = generator_obj.generate_traj (last_point, data, name, cutting_cartesian_velocity)
             if trajectory == []:
                 print("already here, no trajectory to generate")
             else:
                 last_point = trajectory [len(trajectory)-1]
-                instructions.append(  {'type':'trajectory', 'trajectory': trajectory, 'durations': durations, 'interpolated_points': interpolated_points, 'name':name } )
+                instructions.append(  {'type':'trajectory', 'trajectory': trajectory, 'durations': durations, 'interpolated_points': interpolated_points, 'name':name, 'waypoints_cartesian': waypoints_cartesian } )
         if mode == "jaw":
             if jaw_update_flag ==1:
                 if last_jaw == 0:
@@ -81,7 +82,7 @@ def follower_function():
             else: 
                 display_flag = 0
                 if instructions[0]['type'] == 'trajectory':
-                    follower_obj.follow_trajectory(instructions[0]['trajectory'],JointStatePublisher, instructions[0]['durations'], instructions[0]['interpolated_points'],instructions[0]['name'], StatusPublisher, JawStatePublisher, jaw_position)
+                    follower_obj.follow_trajectory(instructions[0]['trajectory'],JointStatePublisher, instructions[0]['durations'], instructions[0]['interpolated_points'],instructions[0]['name'], instructions[0]['waypoints_cartesian'], StatusPublisher, RvizTrajPublisher, JawStatePublisher, jaw_position)
                     instructions.pop(0)
                 elif instructions[0]['type'] == 'jaw':
                     follower_obj.follow_jaw_trajectory(instructions[0]['trajectory'],JawStatePublisher, instructions[0]['duration'], instructions[0]['num_points'])
@@ -225,6 +226,7 @@ if __name__ == '__main__':
     JointStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['joint_control_topic'], JointState, queue_size = 10)
     JawStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['jaw_control_topic'], JointState, queue_size = 10)
     StatusPublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['trajectory_status_topic'], TrajectoryStatus, queue_size = 10)
+    RvizTrajPublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['rviz_trajectory_topic'], Float64MultiArray, queue_size = 10)
     #Thread(target = generator_function).start()
     Thread(target = follower_function).start()
     try:
