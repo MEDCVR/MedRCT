@@ -13,7 +13,7 @@ from std_msgs.msg import Float64MultiArray
 mode = ""
 
 max_open = 40
-max_close = 5
+max_close = 0
 distance_close_open = 0.0015
 point_ratio  = 15
 jaw_trajectory = []
@@ -73,6 +73,7 @@ def jaw_cutting(traj, jaw_position):
     mode = 0
     curr = jaw_position
     l=0
+    
     while (l+inc_points) < (len(traj)):
         start = traj[l]
         l= l+ inc_points
@@ -84,10 +85,14 @@ def jaw_cutting(traj, jaw_position):
         distance = math.sqrt( math.pow((start[0][3]-end[0][3]),2) +math.pow((start[1][3]-end[1][3]),2) + math.pow((start[2][3]-end[2][3]),2) )
         increment_points = points / (distance/ distance_close_open)
         increment = (max_open - max_close )/increment_points
+        #print("increment",increment)
+        increment = 0.045
+        max_open = 1
+        max_close = -0.5
         for i in range (0,points):
-            if curr >= max_open:
+            if curr > max_open:
                 mode = 1
-            elif curr <=max_close:
+            elif curr <max_close:
                 mode = 0
 
             if mode == 0:

@@ -26,12 +26,14 @@ y_incline =  0
 z_rotation = 90
 #Interpolation parameters
 interpolated_points = 75
-smoothing_factor = 0.01
-polynomial_degree = 3
+smoothing_factor = 0
+polynomial_degree = 2
 ###############################################
 
 last_data = []
 current_position = []
+
+circle_radius = 0.03
 
 def remove_duplicates (x_sample,y_sample,z_sample):
     
@@ -50,9 +52,11 @@ def get_goals():
     
     
     while not rospy.is_shutdown():
-        print("g if current location is a goal")
+        #print("g if current location is a goal")
         print("w if current location is a waypoint")
         print("s to send the points to the generator")
+        print("o to home to origin")
+        print("c for circle")
         print("d to discard the points")
         print("r to retry")
         choice = input()
@@ -62,13 +66,20 @@ def get_goals():
         curr_position = current_position
         if temp[0] == 'g' or temp[0] == 'G':
             mode = 0 
-        elif temp[0] == 'w' or temp[0] == 'W' or temp[0] == 's' or temp[0] == 'S':
+        elif temp[0] == 'w' or temp[0] == 'W' or temp[0] == 's' or temp[0] == 'S' :
             mode = 1
         elif temp[0] == 'd' or temp[0] == 'D':
             goal_output = []
             mode = 2
         elif temp[0] == 'r' or temp[0] == 'R':
             send_goals(goal_output)
+            mode = 2
+        elif temp[0] == 'o' or temp[0] == 'O':
+            reorient_goal = [[0, 1, 0, 0],[1, 0, 0, 0],[0, 0, -1, -0.1],[0,0,0,1]]
+            publish_goals("goal", [ reorient_goal])
+            mode = 2
+        elif temp[0] == 'c' or temp[0] == 'C':
+            create_circle()
             mode = 2
         else: 
             print ("invalid input, try again ......")
@@ -152,6 +163,30 @@ def send_goals(goal_output):
 
         
         #print (goal_output_cart)
+
+def create_circle():
+    global circle_radius
+    p = PsmKinematicsSolver(kinematics)
+    current_postion_cartesian = p.compute_fk(current_position)
+    current_postion_cartesian = current_postion_cartesian.getA()
+    circle_waypoints = []
+    point_temp = current_postion_cartesian
+    circle_waypoints.append(p.compute_ik(np.matrix(point_temp)))
+    point_temp1 = point_temp
+    point_temp[0][3] = point_temp[0][3] - circle_radius
+    point_temp[1][3] = point_temp[1][3] + circle_radius
+    circle_waypoints.append(p.compute_ik(np.matrix(point_temp.copy())))
+    point_temp[0][3] = point_temp[0][3] + circle_radius
+    point_temp[1][3] = point_temp[1][3] + circle_radius
+    circle_waypoints.append(p.compute_ik(np.matrix(point_temp)))
+    point_temp[0][3] = point_temp[0][3] + circle_radius
+    point_temp[1][3] = point_temp[1][3] - circle_radius
+    circle_waypoints.append(p.compute_ik(np.matrix(point_temp)))
+    point_temp[0][3] = point_temp[0][3] - circle_radius
+    point_temp[1][3] = point_temp[1][3] - circle_radius
+    circle_waypoints.append(p.compute_ik(np.matrix(point_temp)))
+    send_goals([circle_waypoints])
+
 
 
 def rotMatix_msg(goals):
