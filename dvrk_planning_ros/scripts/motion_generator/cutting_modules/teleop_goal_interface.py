@@ -2,7 +2,7 @@
 from numpy import deprecate_with_doc
 import rospy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
-
+import copy
 kinematics = RTS470007()
 
 from scipy.spatial.transform import Rotation as R
@@ -23,11 +23,13 @@ depth = 0.0001
 #orientation of the cutting tool to be maintained
 x_incline = 80
 y_incline =  0
-z_rotation = 90
+z_rotation = -90
 #Interpolation parameters
 interpolated_points = 75
 smoothing_factor = 0
 polynomial_degree = 2
+spline_mode = 1
+
 ###############################################
 
 last_data = []
@@ -48,26 +50,30 @@ def get_goals():
     index = 0
     mode = 0
     goal_output = []
-    global current_position
+    global current_position, spline_mode
     
     
     while not rospy.is_shutdown():
         #print("g if current location is a goal")
         print("w if current location is a waypoint")
         print("s to send the points to the generator")
+        print("g to send the points as goals")
         print("o to home to origin")
         print("c for circle")
         print("d to discard the points")
         print("r to retry")
+        #print("b to toggle B spline")
         choice = input()
         #try:
         temp = list(choice)
         #curr_position = motion_generator.get_current_position()
         curr_position = current_position
         if temp[0] == 'g' or temp[0] == 'G':
-            mode = 0 
-        elif temp[0] == 'w' or temp[0] == 'W' or temp[0] == 's' or temp[0] == 'S' :
+            mode = 2 
+        elif temp[0] == 'w' or temp[0] == 'W':# or temp[0] == 's' or temp[0] == 'S' :
             mode = 1
+        elif temp[0] == 's' or temp[0] == 'S':
+            mode = 2
         elif temp[0] == 'd' or temp[0] == 'D':
             goal_output = []
             mode = 2
@@ -81,6 +87,14 @@ def get_goals():
         elif temp[0] == 'c' or temp[0] == 'C':
             create_circle()
             mode = 2
+        # elif temp[0] == 'b' or temp[0] == 'B':
+        #     if spline_mode == 1:
+        #         spline_mode = 0
+        #         print("spline disabled")
+        #     else:
+        #         spline_mode = 1
+        #         print("spline enabled")
+        #     mode = 2
         else: 
             print ("invalid input, try again ......")
         
@@ -95,13 +109,19 @@ def get_goals():
                 goal_output[index].append( list( curr_position ) )
                 goal_output.append ([list( curr_position )])
                 index = index + 1
-        if temp[0] == 's' or temp[0] == 'S':
-            if (len(goal_output))<1:
+        if temp[0] == 'g' or temp[0] == 'G':
+            if (len(goal_output))<1: 
                 print("nothing to send")
-                get_goals()
-            elif (len(goal_output[0]))<2:
+            elif(len(goal_output[0])<2):
                 print("choose at least 2 points")
-                get_goals()
+            else: 
+                send_as_goals(goal_output)
+
+        if temp[0] == 's' or temp[0] == 'S':
+            if (len(goal_output))<1: 
+                print("nothing to send")
+            elif(len(goal_output[0])<2):
+                print("choose at least 2 points")
             else: 
                 send_goals(goal_output)
                 #get_goals()
@@ -109,6 +129,63 @@ def get_goals():
         # except:
         #     print ("something went wrong, try again ......")
         #     return 1 
+def send_as_goals(goal_output):
+    for i in range (0, len(goal_output)):
+        waypoints = []
+        #print("lenght goal", len(goal_output[0]))
+        for j in range(0, len(goal_output[i])):
+            p = PsmKinematicsSolver(kinematics)
+            current_postion_cartesian = p.compute_fk(goal_output[i][j])
+            current_postion_cartesian = current_postion_cartesian.getA()
+            waypoints.append (list(current_postion_cartesian))
+        #print("lenght", len(waypoints))
+
+        waypoints.reverse()
+        x_sample = []
+        y_sample = []
+        z_sample = []
+        for i in range(0, len(waypoints)):
+            x_sample.append(waypoints[i][0][3])
+            y_sample.append(waypoints[i][1][3])
+            z_sample.append(waypoints[i][2][3])
+
+        # print("lenght", len(waypoints))
+        # print("lenght x", len(x_sample))
+        waypoints = jaw_orientation([x_sample, y_sample, z_sample])
+        #print("lenght", len(waypoints))
+        
+        #print("waypoints", waypoints)
+        # print("lenght", len(waypoints))
+        #waypoints.append(waypoints[len(waypoints)-1])
+        for i in range(0, len(waypoints)-1):
+            # close_jaw()
+            # open_jaw()
+            
+            # import time
+            # time.sleep(0.5)
+            # open_jaw()
+            # time.sleep(0.5)
+            # #print(waypoints[i])
+            # temp = copy.deepcopy( waypoints[i])
+            # temp[0][3] =  waypoints[i+1][0][3]
+            # temp[1][3] =  waypoints[i+1][1][3]
+            # temp[2][3] =  waypoints[i+1][2][3]
+            # #print(temp)
+            # # close_jaw()
+            # # open_jaw()
+            
+            # time.sleep(0.5)
+            # close_jaw()
+            # time.sleep(0.5)
+            # open_jaw()
+
+            publish_goals("goal", [ waypoints[i]])
+            temp = copy.deepcopy( waypoints[i])
+            temp[0][3] =  waypoints[i+1][0][3]
+            temp[1][3] =  waypoints[i+1][1][3]
+            temp[2][3] =  waypoints[i+1][2][3]
+            publish_goals("scissor", [ waypoints[i],temp])
+
 
 
 def send_goals(goal_output):
@@ -120,9 +197,10 @@ def send_goals(goal_output):
             current_postion_cartesian = current_postion_cartesian.getA()
             waypoints.append (list(current_postion_cartesian))
 
+        waypoints.reverse()
         waypoints = interpolator(waypoints)
 
-        waypoints.reverse()
+        
 
         # r = R.from_euler('xyz', [(-180 ), y_incline, z_rotation], degrees=True)
         # temp = r.as_matrix()
@@ -146,6 +224,8 @@ def send_goals(goal_output):
         #last_data.append({ 'waypoints':waypoints, 'name':"scissor"})
         publish_goals("scissor", waypoints)
 
+        #publish_goals("scissor", [ waypoints[0]])
+
         temp_waypointf = waypoints[ (len(waypoints)-1)]
         temp2 =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
         waypoint2 = temp2
@@ -159,7 +239,7 @@ def send_goals(goal_output):
         #last_data.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
         #publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
         
-    
+        
 
         
         #print (goal_output_cart)
@@ -220,7 +300,27 @@ def publish_goals(name, goals):
     dat.instruction_mode = "arm"
     dat.waypoints = rotMatix_msg(goals)
     GoalStatePublisher.publish(dat)
+def open_jaw():
+    dat = Waypoints()
+    dat.trajectory_name = "jaw"
+    dat.instruction_mode = "jaw"
+    dat.jaw_instruction = "o"
+    GoalStatePublisher.publish(dat)
+def close_jaw():
+    dat = Waypoints()
+    dat.trajectory_name = "jaw"
+    dat.instruction_mode = "jaw"
+    dat.jaw_instruction = "c"
+    GoalStatePublisher.publish(dat)
 
+# def linear_interpolator_function( start_point, end_point):
+#     distance = math.sqrt( math.pow((start_point[0][3]-end_point[0][3]),2) +math.pow((start_point[1][3]-end_point[1][3]),2) + math.pow((start_point[2][3]-end_point[2][3]),2) )
+#     interpolating_distance =temp] + (factor * (end_point[1][3]-start_point[1][3]) )
+#         z = start_point[2][3] + (factor * (end_point[2][3]-start_point[2][3]) )
+#         n = interpolating_distance+n
+#         waypoints.append([x,y,z])
+#     #waypoints.append(end_point)
+#     return waypoints
 
 from scipy import interpolate
 from mpl_toolkits.mplot3d import Axes3D
@@ -239,20 +339,36 @@ def interpolator(waypoints):
     # print(z_sample)
     
     x_sample,y_sample,z_sample = remove_duplicates (x_sample,y_sample,z_sample)
-    if (len(x_sample))<4:
-        polynomial_degree = len(x_sample)-1
-    tck, u = interpolate.splprep([x_sample,y_sample,z_sample], s=smoothing_factor, k = polynomial_degree)
-    x_knots, y_knots, z_knots = interpolate.splev(tck[0], tck)
-    u_fine = np.linspace(0,1,interpolated_points )
-    x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
+
+    if spline_mode ==1:
+        if (len(x_sample))<4:
+            polynomial_degree = len(x_sample)-1
+        tck, u = interpolate.splprep([x_sample,y_sample,z_sample], s=smoothing_factor, k = polynomial_degree)
+        x_knots, y_knots, z_knots = interpolate.splev(tck[0], tck)
+        u_fine = np.linspace(0,1,interpolated_points )
+        x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
+    # else:
+    #     fine_points = []
+    #     for i in range(0,len(waypoints)-1):
+    #         fine_points = fine_points + linear_interpolator_function(waypoints[i], waypoints[i+1])
+    #     for i in range(0, len(fine_points)):
+    #         #print(fine_points)
+    #         x_sample.append(fine_points[i][0])
+    #         y_sample.append(fine_points[i][1])
+    #         z_sample.append(fine_points[i][2])
 
 
     fig2 = plt.figure(2)
     ax3d = fig2.add_subplot(111, projection='3d')
 
+    
     ax3d.plot(x_sample, y_sample, z_sample, 'r*')
-    ax3d.plot(x_knots, y_knots, z_knots, 'go')
+    if spline_mode == 1:
+        ax3d.plot(x_knots, y_knots, z_knots, 'go')
+    # else:
+    #     x_fine, y_fine, z_fine = x_sample, y_sample, z_sample
     ax3d.plot(x_fine, y_fine, z_fine, 'g')
+    
     #print(x_fine[0])
     fig2.show()
     plt.show()
@@ -272,20 +388,25 @@ def jaw_orientation(goals):
         r = R.from_euler('xyz', [(-180 + x_incline), y_incline, (angle)+ z_rotation], degrees=True)
         temp = r.as_matrix()
         temp = temp.tolist()
-
-        waypoint = temp
+        # print(" ")
+        # print(" ")
+        # print(goals)
+        # print(" ")
+        waypoint = copy.deepcopy(temp)
         waypoint[0].append (goals[0][i])
         waypoint[1].append (goals[1][i])
         waypoint[2].append (goals[2][i])
         waypoint.append ([0,0,0,1])
         waypoints.append(waypoint)
         
-        if i == len(goals[0])-1:
-            waypoint = temp
-            waypoint[0].append (goals[0][i+1])
-            waypoint[1].append (goals[1][i+1])
-            waypoint[2].append (goals[2][i+1])
-            waypoints.append(waypoint)
+        if i == len(goals[0])-2:
+            waypoint1 = copy.deepcopy(temp)
+            waypoint1[0].append (goals[0][i+1])
+            waypoint1[1].append (goals[1][i+1])
+            waypoint1[2].append (goals[2][i+1])
+            waypoint1.append ([0,0,0,1])
+            # print("waypoint1\n", waypoint1)
+            waypoints.append(waypoint1)
 
     return(waypoints)
 

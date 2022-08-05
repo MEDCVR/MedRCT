@@ -24,20 +24,25 @@ follower_interrupt_flag = [1]
 current_trajectory = []
 plot_message = []
 plot_message_update_flag = 0
-
+back_flag = 0
+experiment_name = "test"
+total_offset = [0,0,0]
+shared_clicks = 0
+shared_invoked_index = []
 
 def set_config(config):
-    global max_close, max_open, distance_close_open, kinematics
+    global max_close, max_open, distance_close_open, kinematics, experiment_name
     kinematics = eval(config['motion_generation_parameters']['kinematics']['tool']+ "()")
     max_open = config['cutting_parameters']['max_open']
     max_close = config['cutting_parameters']['max_close']
     distance_close_open = config['cutting_parameters']['distance_close_open']
+    experiment_name = config['experiment_name']
 
 def set_offset(data):
         global offset_update_flag, offset
         offset = data
         offset_update_flag = 1
-
+trajectory_edit_status =0
 def plot():
     global plot_message, plot_message_update_flag
     trajectory = current_trajectory
@@ -51,6 +56,11 @@ def plot():
         msg.append(point[2][3])
     plot_message = msg
     plot_message_update_flag = 1 
+    #if trajectory_edit_status==1:
+    f = open(experiment_name, "a")
+    f.write("\n")
+    f.write(str(msg))
+    f.close()
 
 def publish_plot_message(RvizTrajPublisher):
     global plot_message, plot_message_update_flag
@@ -86,10 +96,10 @@ def jaw_cutting(traj, jaw_position):
         increment_points = points / (distance/ distance_close_open)
         increment = (max_open - max_close )/increment_points
         #print("increment",increment)
-        increment = 0.045
+        increment = 0.06
         max_open = 1
-        max_close = -0.5
-        for i in range (0,points):
+        max_close = 0
+        for i in range (0,points+5):
             if curr > max_open:
                 mode = 1
             elif curr <max_close:
@@ -107,23 +117,37 @@ def offset_update_function(i, traj, cart_trajectory):
     import time
     # get the start time
     st = time.time()
-
-
-    global offset_update_flag
     temp = traj.copy()
-    while i< len(cart_trajectory):
-        p = PsmKinematicsSolver(kinematics)
-        # point = p.compute_fk(trajectory[i])
-        # point = point.getA()
-        point = cart_trajectory[i]
-        #print (point)
-        point[0][3] = point[0][3] + offset[0]
-        point[1][3] = point[1][3] + offset[1]
-        point[2][3] = point[2][3] + offset[2]
 
-        temp[i] = p.compute_ik(np.matrix(point))
+    global shared_clicks, total_offset
 
-        i = i+1
+    global offset_update_flag, back_flag, trajectory_edit_status
+    global shared_invoked_index
+    total_offset[0] = total_offset[0] + offset[0]
+    
+    if offset[3]==1:
+        back_flag =1
+    else:
+        total_offset[1] = total_offset[1] + offset[1]
+        total_offset[2] = total_offset[2] + offset[2]
+        shared_clicks = shared_clicks +1
+        trajectory_edit_status = 1
+        shared_invoked_index.append(i)
+        while i< len(cart_trajectory):
+            p = PsmKinematicsSolver(kinematics)
+            # point = p.compute_fk(trajectory[i])
+            # point = point.getA()
+            point = cart_trajectory[i]
+            #print (point)
+            point[0][3] = point[0][3] + offset[0]
+            point[1][3] = point[1][3] + offset[1]
+            point[2][3] = point[2][3] + offset[2]
+            
+
+            temp[i] = p.compute_ik(np.matrix(point))
+
+            i = i+1
+        
 
     et = time.time()
     # get the execution time
@@ -140,7 +164,7 @@ class Follower:
         follower_interrupt_flag = msg
 
     def follow_trajectory(self, traj, JointStatePublisher, durations, interpolated_points, name, cartesian_traj, StatusPublisher, RvizTrajPublisher, JawStatePublisher=[], jaw_position=[]):
-        global mode, current_trajectory
+        global mode, current_trajectory, back_flag
         trajectory = traj.copy()
         current_trajectory = trajectory.copy()
         cartesian_trajectory = cartesian_traj.copy()
@@ -152,10 +176,15 @@ class Follower:
         durations_index = 1
         points_index = 0
         curr = 0
+
+        import time
+        # get the start time
+        st = time.time()
         
         if mode == "scissor":
             jaw_cutting(trajectory[0:interpolated_points[points_index]-1],jaw_position)
-        for i in range(0,len(trajectory)):
+        i=0
+        while i<len(trajectory):
             if rospy.is_shutdown():
                 return
             if follower_interrupt_flag[0] == 0:
@@ -170,7 +199,14 @@ class Follower:
             if plot_message_update_flag == 1:
                 publish_plot_message(RvizTrajPublisher)
 
-
+            if back_flag == 1:
+                if i>15:
+                    i = i - 15 
+                else: 
+                    i = 0
+                back_flag=0
+                #print("recd")
+            
             dat = JointState()
             dat.position = trajectory[i]
             JointStatePublisher.publish(dat)
@@ -196,6 +232,29 @@ class Follower:
                     jaw_cutting(trajectory[0:interpolated_points[points_index]-1],jaw_position)
 
             time.sleep(rate/2)
+            i=i+1
+            
+            global shared_clicks, shared_invoked_index, total_offset
+        if mode == "scissor":
+            et = time.time()
+            # get the execution time
+            elapsed_time = et - st
+            f = open("time-"+experiment_name, "a")
+            f.write("\n")
+            f.write("generated time: " + str(durations[0]))
+            f.write("\n")
+            f.write("actual time: " + str(elapsed_time))
+            f.write("\n")
+            f.write("number of times shared autonomy is invoked: " + str(shared_clicks))
+            f.write("\n")
+            f.write("total offset: " + str(total_offset))
+            f.write("\n")
+            f.write("trajectory indeces that shared was invoked at: " + str(shared_invoked_index))
+            f.close()
+            
+            shared_clicks =0
+            shared_invoked_index = []
+            total_offset = [0,0,0]
         print("done")
 
     def follow_jaw_trajectory(self, trajectory, JointStatePublisher, duration, interpolated_points):

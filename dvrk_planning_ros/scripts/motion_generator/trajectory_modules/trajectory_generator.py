@@ -27,10 +27,11 @@ interpolating_angle_jaw = 0.25          #degrees
 jaw_angle_open = 30                     #degrees
 jaw_angle_close = 0                     #degrees
 kinematics = LND400006()                #default kinematics, change from config
+experiment_name = "test"
 ###############################################
 
 def set_config(config):
-    global interpolating_distance, no_of_points_jp, frequency, interpolating_angle_jaw, jaw_angle_close, jaw_angle_open, vlims, alims, kinematics
+    global interpolating_distance, no_of_points_jp, frequency, interpolating_angle_jaw, jaw_angle_close, jaw_angle_open, vlims, alims, kinematics, experiment_name
     interpolating_distance = config['motion_generation_parameters']['general']['cartesian_interpolating_distance']
     no_of_points_jp = config['motion_generation_parameters']['general']['no_of_points_jp']
     frequency = config['motion_generation_parameters']['general']['output_frequency']
@@ -39,6 +40,7 @@ def set_config(config):
     vlims = config['motion_generation_parameters']['default_joint_constraints']['vlims']
     alims = config['motion_generation_parameters']['default_joint_constraints']['alims']
     kinematics = eval(config['motion_generation_parameters']['kinematics']['tool']+ "()")
+    experiment_name = config['experiment_name']
 
 def linear_interpolator_function( start_point, end_point):
     global interpolating_distance
@@ -93,7 +95,11 @@ def toppra(current_position=[], goal_js=[], way_pts = [0.005], name = "", desire
             ts_sample = np.linspace(0, jnt_traj.get_duration(), int(jnt_traj.get_duration()/rate))
             qs_sample = jnt_traj(ts_sample)
             trajectory = qs_sample
-            duration = jnt_traj.get_duration()        
+            duration = jnt_traj.get_duration() 
+            # f = open(experiment_name, "a")
+            # f.write("\n")
+            # f.write("generated trajectory duration: "+ str(duration))
+            # f.close()                                          
         return trajectory, duration, len(ts_sample)
 
 
@@ -138,6 +144,8 @@ def generate_waypoints_jp ( current_jp, goals, name, velocity):
             for i in range (1,len(waypoints_xyz)-1):
                 temp = math.sqrt( math.pow((waypoints_xyz[i][0]-waypoints_xyz[i+1][0]),2) +math.pow((waypoints_xyz[i][1]-waypoints_xyz[i+1][1]),2) + math.pow((waypoints_xyz[i][2]-waypoints_xyz[i+1][2]),2) )
                 distance = distance + temp
+            print("duration", duration)
+            print("distance", distance)
             duration = distance / velocity
             
     # plot(waypoints_xyz)
@@ -193,20 +201,21 @@ class Trajectories:
     
     def generate_traj_jaw(self, current_jaw, goal_data):
         print ("generating jaw trajectory ........")
+        print ("data", goal_data)
         global jaw_angle_open, jaw_angle_close, interpolating_angle_jaw, rate
         goal = 0.0
         int_angle = interpolating_angle_jaw * (3.14/18)
-        if goal_data == 'o':
+        trajectory = []
+        if goal_data[0] == 'o':
             goal = jaw_angle_open * (3.14/18)
-            trajectory = []
             pub = current_jaw
             while pub <  goal:
                 pub = pub + int_angle
                 trajectory.append(pub)
 
-        elif goal_data == 'c':
+        elif goal_data[0] == 'c':
             goal = jaw_angle_close * (3.14/18)
-            trajectory = []
+            
             pub = current_jaw
             while pub >  goal:
                 pub = pub - int_angle

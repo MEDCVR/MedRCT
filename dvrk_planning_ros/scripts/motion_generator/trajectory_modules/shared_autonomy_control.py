@@ -49,6 +49,7 @@ if __name__=="__main__":
     while not rospy.is_shutdown():
         clock.tick(rate)
         x = 0
+        back =0
         y = 0
         z = 0
         rot_x = 0
@@ -100,6 +101,9 @@ if __name__=="__main__":
             else:
                 z = -1
             is_key_pressed = True
+        if keys[pygame.K_b]:
+            back = 1
+            is_key_pressed = True
         if keys[pygame.K_p]:
             jaw_inc = 1
             is_key_pressed = True
@@ -123,6 +127,7 @@ if __name__=="__main__":
             # print("jaw_inc: {}".format(jaw_inc))
             # print(x)
             dat = Float32MultiArray()
-            dat. data = [ x* offset_distance, y*offset_distance, z*offset_distance]
+            dat. data = [ x* offset_distance, y*offset_distance, z*offset_distance, back]
+            #print(back)
             Publisher.publish(dat)
 

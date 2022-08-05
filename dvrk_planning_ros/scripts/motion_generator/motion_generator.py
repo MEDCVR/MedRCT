@@ -187,8 +187,11 @@ def msg_rotMatrix(waypoints):
     return waypoints_output
 
 def waypoint_callback(msg):
-    data = msg_rotMatrix(msg.waypoints)
-    generator_function([data], msg.instruction_mode, msg.trajectory_name)
+    if msg.instruction_mode == "jaw":
+        generator_function([msg.jaw_instruction], msg.instruction_mode, msg.trajectory_name)
+    else:
+        data = msg_rotMatrix(msg.waypoints)
+        generator_function([data], msg.instruction_mode, msg.trajectory_name)
 
 
 if __name__ == '__main__':

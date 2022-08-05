@@ -63,6 +63,8 @@ roscore
 Tab 2:
 cd 
 source /opt/ros/noetic/setup.bash
+cd dvrk_ws
+source devel/setup.bash 
 roscd dvrk_config
 rosrun dvrk_robot dvrk_console_json -j hsc-dVRK/console-PSM2.json
 

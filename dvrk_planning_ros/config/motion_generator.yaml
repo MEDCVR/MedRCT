@@ -20,15 +20,15 @@ motion_generation_parameters:
     jaw:
       interpolating_angle: 0.25               # In degrees
       jaw_angle_open: 30                      # In degrees
-      jaw_angle_close: 0                      # In degrees
+      jaw_angle_close: -5                      # In degrees
     default_joint_constraints:
       vlims: [0.3,0.3,0.3,0.3,0.3,0.3]        # Default velocity limits for each joint
       alims: [0.15,0.15,0.15,0.15,0.15,0.15]  # Default acceleration limits for each joint
     kinematics:
       tool: "RTS470007"
 cutting_parameters:                           # These come into play only if you are using a scissor
-    cutting_cartesian_velocity: 0.00075
+    cutting_cartesian_velocity: 0.002
     max_open: 40                              # Maximum jaw open angle during cutting (in degrees)
     max_close: 0                              # Maximum jaw closing angle during cutting (in degrees)
     distance_close_open: 0.0015               # Distance traveled (m) when the jaw closes/opens
-    
+experiment_name: "circle6.txt"

@@ -1,3 +1,46 @@
+#!/usr/bin/env python3
+import cv2
+from cv_bridge import CvBridge
+import rospy
+from sensor_msgs.msg import Image
+import numpy as np
+
+# frame_width = 1280
+# frame_height = 800
+# frame_size = (frame_width,frame_height)
+# fps = 60
+# output = cv2.VideoWriter('001.mp4', cv2.VideoWriter_fourcc(*'XVID'), 60, frame_size)
+
+def callback(data):
+    # Used to convert between ROS and OpenCV images
+    br = CvBridge()
+
+    # Output debugging information to the terminal
+    #rospy.loginfo("receiving video frame")
+    # Convert ROS Image message to OpenCV image
+    current_frame = br.imgmsg_to_cv2(data)
+
+    cv2.imshow("camera", current_frame)
+
+    cv2.waitKey(1)
+
+    #print(len(current_frame.shape))
+    
+    #output.write(current_frame)
+
+
+def listener():
+    rospy.init_node("video_sub_py", anonymous=True)
+    rospy.Subscriber("/rgb_publisher/color/image", Image, callback)
+
+    rospy.spin()
+
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    listener()
+
 
 # import numpy as np
 # import matplotlib.pyplot as plt

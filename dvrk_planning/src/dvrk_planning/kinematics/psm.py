@@ -62,7 +62,8 @@ class RTS470007(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
         super().__init__(
             L_rcc = 0.4318,  # From dVRK documentation
-            L_tool = 0.4162,  # From dVRK documentation
+            # L_tool = 0.4677,  # From dVRK documentation
+            L_tool = 0.47,  # From dVRK documentation
             L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
             L_yaw2ctrlpnt = 0.01041,  # From CAD measurement
             scale = scale
@@ -155,7 +156,10 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         for i in range(up_to_link_num):
             link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
-            T_N_0 = T_N_0 * link_dh.get_trans(j[i])
+            if(i==3):
+                T_N_0 = T_N_0 * link_dh.get_trans(-j[i])
+            else:
+                T_N_0 = T_N_0 * link_dh.get_trans(j[i])
 
         return T_N_0
 
@@ -265,7 +269,7 @@ class PsmKinematicsSolver(KinematicsSolver):
         j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(),
                     up_vector=-T_5_0.M.UnitY())
 
-        return [j1, j2, j3, j4, j5, j6]
+        return [j1, j2, j3, -j4, j5, j6]
 
     def get_active_joint_names(self):
         return self.kinematics_data.joint_names
