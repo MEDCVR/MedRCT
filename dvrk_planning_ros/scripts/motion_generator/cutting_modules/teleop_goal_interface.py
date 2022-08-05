@@ -226,20 +226,23 @@ def send_goals(goal_output):
 
         #publish_goals("scissor", [ waypoints[0]])
 
-        temp_waypointf = waypoints[ (len(waypoints)-1)]
-        temp2 =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
-        waypoint2 = temp2
-        waypoint2[0].append (waypoints[ (len(waypoints)-1)] [0][3])
-        waypoint2[1].append (waypoints[ (len(waypoints)-1)] [1][3])
-        waypoint2[2].append (waypoints[ (len(waypoints)-1)] [2][3] + (2*depth))
-        waypoint2.append ([0,0,0,1])
+        # temp_waypointf = waypoints[ (len(waypoints)-1)]
+        # temp2 =  [[0, 1, 0],[1, 0, 0],[0, 0, -1]]
+        # waypoint2 = temp2
+        # waypoint2[0].append (waypoints[ (len(waypoints)-1)] [0][3])
+        # waypoint2[1].append (waypoints[ (len(waypoints)-1)] [1][3])
+        # waypoint2[2].append (waypoints[ (len(waypoints)-1)] [2][3] + (2*depth))
+        # waypoint2.append ([0,0,0,1])
         #print("last_data", last_data)
 
 
         #last_data.append({ 'waypoints':[waypoints[ (len(waypoints)-1)], waypoint2], 'name':"goal"})
         #publish_goals("goal", [waypoints[ (len(waypoints)-1)], waypoint2])
         
-        
+        temp2 = copy.deepcopy(waypoints[len(waypoints)-1])
+        temp2[0][3] = temp2[0][3] + 0.005
+        #temp2[1][3] = temp2[1][3] - 0.0025
+        publish_goals("scissor", [temp2])
 
         
         #print (goal_output_cart)
