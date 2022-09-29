@@ -1,3 +1,13 @@
+
+# Installation
+
+Install toppra:
+```
+pip install toppra
+```
+
+# Running
+
 Tab 1: 
 cd sim_ws/ambf/bin/lin-x86_64/
 ./ambf_simulator -l 5
