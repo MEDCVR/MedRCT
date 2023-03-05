@@ -101,7 +101,8 @@ public class Kinematics
         {
             throw new InvalidOperationException("activeJointPos.Length must be less than " + kinematicsData.numLinks.ToString());
         }
-        for(int i = 0; i < activeJointPos.Length; i++)
+        int activeJointPosLength = Math.Min(activeJointPos.Length, 6);
+        for(int i = 0; i < activeJointPosLength; i++)
         {
             returnTransform =
                 returnTransform *
