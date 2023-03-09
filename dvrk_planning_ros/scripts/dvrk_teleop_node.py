@@ -27,7 +27,11 @@ class DvrkTeleopNode:
                     else:
                         module = importlib.import_module("dvrk_planning.kinematics.psm")
                         class_ = getattr(module, tool_yaml["type"])
-                        kin_solver = PsmKinematicsSolver(class_())
+                        scale = 1.0
+                        if "scale" in tool_yaml:
+                            scale = tool_yaml["scale"] 
+                            print("Choosing scale {}".format(scale))
+                        kin_solver = PsmKinematicsSolver(class_(scale))
                 else:
                     raise KeyError ("Only [psm] available now")
                 self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)

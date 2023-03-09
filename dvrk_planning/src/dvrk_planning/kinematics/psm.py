@@ -36,6 +36,7 @@ class SphericalWristToolParams():
         # Delta between tool tip and the Remote Center of Motion
         # self.L_tool2rcm_offset = 0.0229
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
+        self.scale = scale
 
 class LND400006(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
