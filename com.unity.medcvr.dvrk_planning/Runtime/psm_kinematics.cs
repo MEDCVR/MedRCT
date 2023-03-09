@@ -133,14 +133,14 @@ public class Kinematics
         }
         else if (1.0f + vDot < 0.000001)
         {
-            angle = MathF.PI;
+            angle = Mathf.PI;
         }
         else
         {
-            angle = MathF.Acos(vDot);
+            angle = Mathf.Acos(vDot);
         }
 
-        if (useUpVec && MathF.Sign(Vector3.Dot(crossAB, upVec)) < 0.0f) // Check same direction
+        if (useUpVec && Mathf.Sign(Vector3.Dot(crossAB, upVec)) < 0.0f) // Check same direction
         {
             angle = -angle;
         }
