@@ -57,8 +57,8 @@ namespace Medcvr.DvrkPlanning
         // theta: m for PRISMATIC, Rad for revolute 
         public Matrix4x4 ToMat(float theta = 0.0f)
         {
-            float ca = MathF.Cos(alpha);
-            float sa = MathF.Sin(alpha);
+            float ca = Mathf.Cos(alpha);
+            float sa = Mathf.Sin(alpha);
             float th = 0.0f;
             float local_d = d;
             if (joint_type == JointType.REVOLUTE){
@@ -67,8 +67,8 @@ namespace Medcvr.DvrkPlanning
             else if (joint_type == JointType.PRISMATIC){
                 local_d = local_d + offset + theta;
             }
-            float ct = MathF.Cos(th);
-            float st = MathF.Sin(th);
+            float ct = Mathf.Cos(th);
+            float st = Mathf.Sin(th);
 
             Matrix4x4 newMat = new Matrix4x4();
             newMat.SetRow(0, new Vector4(     ct,     -st, 0.0f,       a));
