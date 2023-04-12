@@ -1,18 +1,15 @@
-#pragma once
+#include <algorithm>
+#include <utility>
 
-#include <vector>
-
-#include <medrct_common/interface/stream.hh>
-#include <medrct_common/interface/stream_factory.hh>
-#include "controller_factory.hh"
-#include "controller_manager.hh"
+#include <medrct/loader/class_loader.hh>
+#include <medrct/log.hh>
+#include <medrct_controller/controller_manager_config.hh>
 
 namespace medrct
 {
 namespace controller
 {
-
-ControlGroup fromYAMLControlGroup(const YAML::Node& control_group_cfg)
+ControlGroup FromYAMLControlGroup(const YAML::Node& control_group_cfg)
 {
   ControlGroup control_group;
   if (YAML::Node n = control_group_cfg["name"])
@@ -46,21 +43,33 @@ ControlGroup fromYAMLControlGroup(const YAML::Node& control_group_cfg)
   return control_group;
 }
 
-ControllerManagerConfig fromYAMLControllerManagerConfig(
-    const YAML::Node& config, const ControllerFactory& cf)
+ControllerManagerConfig FromYAMLControllerManagerConfig(
+    const YAML::Node& config, const medrct::stream::StreamFactory& sf)
 {
-  ControllerManagerConfig cmc;
   const YAML::Node controllers_config = config["controllers"];
   if (!controllers_config)
   {
     throw std::runtime_error("No [controllers] key in config");
   }
+  ControllerManagerConfig cmc;
   for (YAML::const_iterator it = controllers_config.begin();
        it != controllers_config.end();
        ++it)
   {
     const YAML::Node& controller_cfg = *it;
-    cmc.controllers.emplace_back(cf.create(controller_cfg));
+    controller::ControllerFactory::Ptr controller_factory;
+    try
+    {
+      controller_factory =
+          medrct_loader::createSharedInstance<controller::ControllerFactory>(
+              controller_cfg["loader"]);
+    }
+    catch (const std::exception& e)
+    {
+      throw std::runtime_error("controller factory failed to load");
+    }
+    cmc.controllers.emplace_back(
+        controller_factory->create(sf, controller_cfg));
   }
 
   if (const YAML::Node control_groups_cfg = config["control_groups"])
@@ -69,7 +78,7 @@ ControllerManagerConfig fromYAMLControllerManagerConfig(
          it != control_groups_cfg.end();
          ++it)
     {
-      cmc.control_groups.emplace_back(fromYAMLControlGroup(*it));
+      cmc.control_groups.emplace_back(FromYAMLControlGroup(*it));
     }
   }
 
@@ -81,7 +90,7 @@ ControllerManagerConfig fromYAMLControllerManagerConfig(
 }
 
 BasicControllerManagerCommunicatorConfig
-fromYAMLBasicControllerCommunicatorConfig(
+FromYAMLBasicControllerCommunicatorConfig(
     const YAML::Node& config, const medrct::stream::StreamFactory& sf)
 {
   BasicControllerManagerCommunicatorConfig bcmcc;

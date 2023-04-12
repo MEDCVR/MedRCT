@@ -3,38 +3,29 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 
-#include <medrct_common/interface/stream_factory.hh>
-#include <medrct_common/joint_state.hh>
+#include <medrct/stream/stream_factory.hh>
+#include <medrct/types/joint_state.hh>
 #include <medrct_controller/controller.hh>
 namespace medrct
 {
-namespace env
-{
-class ForwardKinematics;
-class InverseKinematics;
-} // namespace env
+
 namespace controller
 {
 
 class ControllerFactory
 {
 public:
-  ControllerFactory(stream::StreamFactory::ConstPtr stream_factory);
+  using Ptr = std::shared_ptr<ControllerFactory>;
+  using ConstPtr = std::shared_ptr<const ControllerFactory>;
+  ControllerFactory() = default;
   virtual ~ControllerFactory() = default;
-  virtual ControllerInterface::Ptr create(YAML::Node config) const;
+  virtual Controller::Ptr create(
+      const medrct::stream::StreamFactory& stream_factory,
+      YAML::Node config) const = 0;
 
 protected:
   void getControllerName(
       std::string& name, const YAML::Node& controller_config) const;
-  void createOutputAndMeasuredStreams(
-      stream::OutputStream<JointState>::Ptr& output_js_stream,
-      stream::InputStream<JointState>::Ptr& measured_js_stream,
-      const YAML::Node& controller_config) const;
-  void createKinematicsSolvers(
-      std::shared_ptr<env::ForwardKinematics>& forward_kinematics,
-      std::shared_ptr<env::InverseKinematics>& inverse_kinematics,
-      const YAML::Node& controller_config) const;
-  const stream::StreamFactory::ConstPtr stream_factory;
 };
 
 } // namespace controller

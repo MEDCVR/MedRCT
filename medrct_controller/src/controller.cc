@@ -1,94 +1,12 @@
 #include <algorithm>
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 #include <medrct_controller/controller.hh>
 
 namespace medrct
 {
 namespace controller
 {
-
-using namespace medrct::stream;
-
-DataStore::DataStore()
-{
-}
-DataStore::~DataStore()
-{
-}
-
-StreamMap::StreamMap()
-{
-}
-StreamMap::~StreamMap()
-{
-}
-void StreamMap::add(const std::shared_ptr<Stream> stream)
-{
-  std::string name = stream->name;
-  name_to_streams[name] = stream;
-}
-bool StreamMap::removeBuffer(const std::string& stream_name)
-{
-  auto it = buffered_stream_name_to_functions.find(stream_name);
-  if (it == buffered_stream_name_to_functions.end())
-  {
-    return false;
-  }
-  it->second.remove_buffer_func();
-  buffered_stream_name_to_functions.erase(it);
-  return true;
-}
-
-bool StreamMap::waitForOneBufferedDataInput(const std::string& name, bool print)
-{
-  auto it = buffered_stream_name_to_functions.find(name);
-  if (it == buffered_stream_name_to_functions.end())
-  {
-    throw std::logic_error{"buffered stream name [" + name + "] not found"};
-  }
-  if (print)
-    medrctlog::info("Waiting one data from stream: {}", it->first);
-  if (!it->second.wait_data_once_func())
-  {
-    return false;
-  }
-  if (print)
-    medrctlog::info("Finished waiting one data from stream: {}", it->first);
-  return true;
-}
-
-void StreamMap::getDataFromAllBufferedStreams(DataStore& data_store)
-{
-  for (auto it = buffered_stream_name_to_functions.begin();
-       it != buffered_stream_name_to_functions.end();
-       it++)
-  {
-    it->second.get_data_func(data_store);
-  }
-}
-
-Task::Task()
-{
-}
-Task::~Task()
-{
-}
-
-bool IsValidPreviousState(
-    const controller_state_t destination_state,
-    const controller_state_t current_state)
-{
-  const auto& valid_prev_states =
-      PREVIOUS_VALID_CONTROLLER_STATES.at(destination_state);
-  if (std::find(
-          valid_prev_states.begin(), valid_prev_states.end(), current_state) ==
-      valid_prev_states.end())
-  {
-    return false;
-  }
-  return true;
-}
 
 inline bool CIsValidPreviousState(
     const std::string& controller_name,
@@ -108,14 +26,13 @@ inline bool CIsValidPreviousState(
   return true;
 }
 
-ControllerInterface::ControllerInterface()
-    : current_state(controller_state_t::UNINITIALIZED)
+Controller::Controller() : current_state(controller_state_t::UNINITIALIZED)
 {
 }
-ControllerInterface::~ControllerInterface()
+Controller::~Controller()
 {
 }
-bool ControllerInterface::init(const std::string& controller_name)
+bool Controller::init(const std::string& controller_name)
 {
   if (controller_name == "")
   {
@@ -130,7 +47,7 @@ bool ControllerInterface::init(const std::string& controller_name)
   }
   return true;
 }
-bool ControllerInterface::enable()
+bool Controller::enable()
 {
   if (!CIsValidPreviousState(name, controller_state_t::ENABLED, current_state))
   {
@@ -144,7 +61,7 @@ bool ControllerInterface::enable()
   current_state = controller_state_t::ENABLED;
   return true;
 }
-bool ControllerInterface::disable()
+bool Controller::disable()
 {
   if (!CIsValidPreviousState(name, controller_state_t::DISABLED, current_state))
   {
@@ -159,7 +76,7 @@ bool ControllerInterface::disable()
   current_state = controller_state_t::DISABLED;
   return true;
 }
-bool ControllerInterface::clutch()
+bool Controller::clutch()
 {
   if (!CIsValidPreviousState(name, controller_state_t::CLUTCHED, current_state))
   {
@@ -173,7 +90,7 @@ bool ControllerInterface::clutch()
   current_state = controller_state_t::CLUTCHED;
   return true;
 }
-bool ControllerInterface::unclutch()
+bool Controller::unclutch()
 {
   if (!CIsValidPreviousState(name, controller_state_t::ENABLED, current_state))
   {
@@ -187,31 +104,31 @@ bool ControllerInterface::unclutch()
   current_state = controller_state_t::ENABLED;
   return true;
 }
-controller_state_t ControllerInterface::getState() const
+controller_state_t Controller::getState() const
 {
   return current_state;
 }
-std::string ControllerInterface::getName() const
+std::string Controller::getName() const
 {
   return name;
 }
-bool ControllerInterface::onEnable()
+bool Controller::onEnable()
 {
   return true;
 }
-bool ControllerInterface::onDisable()
+bool Controller::onDisable()
 {
   return true;
 }
-bool ControllerInterface::onClutch()
+bool Controller::onClutch()
 {
   return true;
 }
-bool ControllerInterface::onUnclutch()
+bool Controller::onUnclutch()
 {
   return true;
 }
-void ControllerInterface::updateProcess(DataStore& input_data)
+void Controller::updateProcess(DataStore& input_data)
 {
   input_stream_map.getDataFromAllBufferedStreams(input_data);
   update(input_data);

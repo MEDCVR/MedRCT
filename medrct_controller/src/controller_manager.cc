@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <utility>
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 #include <medrct_controller/controller_manager.hh>
 
 namespace medrct
@@ -65,7 +65,7 @@ bool ControllerManager::init(const ControllerManagerConfig& config)
     return false;
   }
   std::set<std::string> controller_names;
-  for (std::shared_ptr<ControllerInterface> controller : config.controllers)
+  for (std::shared_ptr<Controller> controller : config.controllers)
   {
     std::string name = controller->getName();
     if (controller->getState() == controller_state_t::UNINITIALIZED)
@@ -81,7 +81,7 @@ bool ControllerManager::init(const ControllerManagerConfig& config)
     }
     controller_names.insert(name);
     name_to_controllers.insert(
-        std::make_pair<std::string, std::shared_ptr<ControllerInterface>>(
+        std::make_pair<std::string, std::shared_ptr<Controller>>(
             std::move(name), std::move(controller)));
   }
 

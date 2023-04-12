@@ -7,33 +7,16 @@
 #include <vector>
 
 #include <yaml-cpp/yaml.h>
-#include <medrct_common/types.hh>
-#include <medrct_common/interface/stream.hh>
+#include <medrct/types/types.hh>
+#include <medrct/stream/stream.hh>
 
 #include "controller.hh"
+#include "controller_manager_config.hh"
 
 namespace medrct
 {
 namespace controller
 {
-
-struct ControlGroup
-{
-  std::string name;
-  std::set<std::string> controller_names;
-};
-
-struct ControllerManagerConfig
-{
-  // Each control group must have a unique name
-  // The controller_names must be a valid name in controllers
-  std::vector<ControlGroup> control_groups;
-  // Controllers must have been initialized beforehand
-  std::vector<std::shared_ptr<ControllerInterface>> controllers;
-  // (Optional) If left empty, will be the first control group in
-  // control_groups.
-  std::string active_control_group_name = "";
-};
 
 class ControllerManager
 {
@@ -61,17 +44,8 @@ private:
   std::string active_control_group_name;
   std::vector<std::string> control_group_names;
   std::unordered_map<std::string, ControlGroup> name_to_control_groups;
-  std::unordered_map<std::string, std::shared_ptr<ControllerInterface>>
+  std::unordered_map<std::string, std::shared_ptr<Controller>>
       name_to_controllers;
-};
-
-struct BasicControllerManagerCommunicatorConfig
-{
-  std::shared_ptr<stream::InputStream<medrct::Joy>> clutch_subscriber;
-  std::shared_ptr<stream::InputStream<medrct::Joy>> switch_subscriber;
-  std::string active_control_group_name;
-  std::string switched_control_group_name = "";
-  bool auto_enable = false;
 };
 
 class BasicControllerManagerCommunicator

@@ -11,11 +11,11 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-  src/controller.cc
   src/controller_factory.cc
+  src/controller_manager_config.cc
   src/controller_manager.cc
-  src/controllers/cartesian_teleop_controller.cc
-  src/controllers/joint_teleop_controller.cc
+  src/controller.cc
+  src/utils.cc
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -32,10 +32,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 find_package(medrct_common REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 
-find_package(medrct_environment REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC medrct_environment::medrct_environment)
-
-
 #############
 ## Testing ##
 #############
@@ -48,8 +44,6 @@ if(BUILD_TESTING)
 
   add_executable(tests
     tests/main.cc
-    tests/cartesian_teleop_controller_test.cc
-    tests/joint_teleop_controller_test.cc
   )
 
   target_compile_options(tests
