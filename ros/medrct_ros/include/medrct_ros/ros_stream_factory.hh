@@ -3,7 +3,7 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 
-#include <medrct_common/interface/stream_factory.hh>
+#include <medrct/stream/stream_factory.hh>
 
 namespace medrct
 {

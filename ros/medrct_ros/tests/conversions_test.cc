@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <medrct_ros/conversions/conversions.hh>
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 using namespace medrct_ros;
 

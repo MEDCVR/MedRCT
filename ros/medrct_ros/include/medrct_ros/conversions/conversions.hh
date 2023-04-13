@@ -1,8 +1,8 @@
 #pragma once
 
-#include <medrct_common/joint_state.hh>
-#include <medrct_common/types.hh>
-#include <medrct_common/twist.hh>
+#include <medrct/types/joint_state.hh>
+#include <medrct/types/types.hh>
+#include <medrct/types/twist.hh>
 
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/TwistStamped.h>

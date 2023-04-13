@@ -3,7 +3,7 @@
 #include <functional>
 
 #include <ros/ros.h>
-#include <medrct_common/interface/stream.hh>
+#include <medrct/stream/stream.hh>
 
 namespace medrct
 {

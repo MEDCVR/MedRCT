@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 namespace medrct
 {

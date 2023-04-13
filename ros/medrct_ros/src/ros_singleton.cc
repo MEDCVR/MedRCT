@@ -1,5 +1,5 @@
-#include <medrct_common/interface/condition_wait.hh>
-#include <medrct_common/log.hh>
+#include <medrct/stream/condition_wait.hh>
+#include <medrct/log.hh>
 
 #include <medrct_ros/ros_singleton.hh>
 

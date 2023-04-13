@@ -3,8 +3,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
-#include <medrct_common/joint_state.hh>
-#include <medrct_common/log.hh>
+#include <medrct/types/joint_state.hh>
+#include <medrct/log.hh>
 #include <medrct_ros/conversions/conversions.hh>
 #include <medrct_ros/ros_stream.hh>
 

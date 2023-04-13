@@ -1,8 +1,8 @@
 #include <vector>
 
-#include <medrct_common/joint_state.hh>
-#include <medrct_common/types.hh>
-#include <medrct_common/twist.hh>
+#include <medrct/types/joint_state.hh>
+#include <medrct/types/types.hh>
+#include <medrct/types/twist.hh>
 
 #include <medrct_ros/ros_singleton.hh>
 #include <medrct_ros/ros_stream_factory.hh>
