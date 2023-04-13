@@ -1,9 +1,8 @@
-#include <medrct_common/log.hh>
-#include <medrct_common/loader/class_loader.hh>
-#include <medrct_dvrk/psm_kinematics_solver.hh>
-#include <medrct_dvrk/psm_tool_params.hh>
-
-#include <medrct_dvrk/psm_kinematics_factory.hh>
+#include <medrct/log.hh>
+#include <medrct/loader/class_loader.hh>
+#include <medrct_dvrk_env/psm_kinematics_solver.hh>
+#include <medrct_dvrk_env/psm_tool_params.hh>
+#include <medrct_dvrk_env/psm_kinematics_factory.hh>
 
 namespace medrct
 {

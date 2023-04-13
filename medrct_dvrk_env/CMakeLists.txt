@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(medrct_dvrk VERSION 0.0.1)
+project(medrct_dvrk_env VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -28,8 +28,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 find_package(medrct_common REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 
-find_package(medrct_environment REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC medrct_environment::medrct_environment)
+find_package(medrct_env REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC medrct_env::medrct_env)
 
 #############
 ## Testing ##

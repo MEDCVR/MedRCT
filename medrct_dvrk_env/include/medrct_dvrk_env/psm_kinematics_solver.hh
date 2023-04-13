@@ -3,10 +3,10 @@
 #include <memory>
 #include <vector>
 
-#include <medrct_common/types.hh>
-#include <medrct_environment/description/chain.hh>
-#include <medrct_environment/kinematics/inverse_kinematics.hh>
-#include <medrct_environment/kinematics/simple_forward_kinematics.hh>
+#include <medrct/types/types.hh>
+#include <medrct_env/description/chain.hh>
+#include <medrct_env/kinematics/inverse_kinematics.hh>
+#include <medrct_env/kinematics/simple_forward_kinematics.hh>
 
 #include "psm_tool_params.hh"
 

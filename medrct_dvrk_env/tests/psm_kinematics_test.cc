@@ -2,12 +2,12 @@
 
 #include <memory>
 
-#include <medrct_common/log.hh>
-#include <medrct_common/types.hh>
+#include <medrct/log.hh>
+#include <medrct/types/types.hh>
 
-#include <medrct_dvrk/psm_tool_params.hh>
-#include <medrct_dvrk/psm_kinematics_solver.hh>
-#include <medrct_dvrk/psm_kinematics_factory.hh>
+#include <medrct_dvrk_env/psm_tool_params.hh>
+#include <medrct_dvrk_env/psm_kinematics_solver.hh>
+#include <medrct_dvrk_env/psm_kinematics_factory.hh>
 
 using namespace medrct;
 using namespace medrct::env;

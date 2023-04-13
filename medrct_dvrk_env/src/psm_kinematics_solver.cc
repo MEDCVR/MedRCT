@@ -1,11 +1,11 @@
 #include <cmath>
 
-#include <medrct_common/log.hh>
-#include <medrct_environment/description/joint.hh>
-#include <medrct_environment/description/kinematics_tree.hh>
-#include <medrct_environment/description/link.hh>
+#include <medrct/log.hh>
+#include <medrct_env/description/joint.hh>
+#include <medrct_env/description/kinematics_tree.hh>
+#include <medrct_env/description/link.hh>
 
-#include <medrct_dvrk/psm_kinematics_solver.hh>
+#include <medrct_dvrk_env/psm_kinematics_solver.hh>
 
 namespace medrct
 {

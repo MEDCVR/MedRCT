@@ -2,13 +2,13 @@
 
 #include <memory>
 
-#include <medrct_common/log.hh>
-#include <medrct_common/types.hh>
-#include <medrct_common/loader/class_loader.hh>
+#include <medrct/log.hh>
+#include <medrct/types/types.hh>
+#include <medrct/loader/class_loader.hh>
 
-#include <medrct_environment/description/kinematics_tree.hh>
-#include <medrct_environment/kinematics/forward_kinematics.hh>
-#include <medrct_environment/kinematics/kinematics_factory.hh>
+#include <medrct_env/description/kinematics_tree.hh>
+#include <medrct_env/kinematics/forward_kinematics.hh>
+#include <medrct_env/kinematics/kinematics_factory.hh>
 
 using namespace medrct;
 using namespace medrct::env;
@@ -29,8 +29,8 @@ TEST(PsmFactoryTest, testFKIKOutput)
 {
   std::string yaml_params_string =
       R"(test_load:
-          lib_name: medrct_dvrk
-          package_name: medrct_dvrk
+          lib_name: medrct_dvrk_env
+          package_name: medrct_dvrk_env
           class_name: PsmForwardKinematicsFactory
           tool_name: LND400006)";
   YAML::Node config = YAML::Load(yaml_params_string);
