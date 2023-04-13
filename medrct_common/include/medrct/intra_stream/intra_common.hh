@@ -7,7 +7,7 @@
 #include <mutex>
 #include <vector>
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 namespace medrct
 {

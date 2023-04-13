@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "types.hh"
+#include "precision.hh"
 
 namespace medrct
 {

@@ -5,8 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <medrct_common/interface/stream.hh>
-#include <medrct_common/intra/intra.hh>
+#include <medrct/stream/stream.hh>
+#include <medrct/intra_stream/intra_stream.hh>
 
 using namespace medrct::stream;
 
@@ -52,9 +52,9 @@ TEST(TestSharedStream, testPublishSubscribe)
   StreamMaster::init();
 
   std::shared_ptr<OutputStream<int>> output_int =
-      std::make_shared<SharedOutputStream<int>>("integer", "output_int");
-  std::shared_ptr<SharedInputStream<int>> input_int =
-      std::make_shared<SharedInputStream<int>>("integer", "input_int");
+      std::make_shared<IntraOutputStream<int>>("integer", "output_int");
+  std::shared_ptr<IntraInputStream<int>> input_int =
+      std::make_shared<IntraInputStream<int>>("integer", "input_int");
 
   IntCallbackChecker icc;
   input_int->addCallback(

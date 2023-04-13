@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <medrct_common/intra/intra_common.hh>
-#include <medrct_common/interface/condition_wait.hh>
+#include <medrct/intra_stream/intra_common.hh>
+#include <medrct/stream/condition_wait.hh>
 
 namespace medrct
 {

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <medrct_common/types.hh>
-#include <medrct_common/log.hh>
+#include <medrct/types/types.hh>
+#include <medrct/log.hh>
 
 using namespace medrct;
 

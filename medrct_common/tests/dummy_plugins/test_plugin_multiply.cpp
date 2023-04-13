@@ -25,7 +25,7 @@
  */
 
 #include "test_plugin_multiply.h"
-#include <medrct_common/loader/class_loader.hh>
+#include <medrct/loader/class_loader.hh>
 
 double tesseract_common::TestPluginMultiply::multiply(double x, double y) { return x * y; }
 

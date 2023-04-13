@@ -1,5 +1,5 @@
 #include <eigen3/Eigen/Geometry>
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 using real_t = float;
 using Vector3 = Eigen::Matrix<real_t, 3, 1>;

@@ -10,7 +10,7 @@
 
 #include "safe_queue.hh"
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 namespace medrct
 {

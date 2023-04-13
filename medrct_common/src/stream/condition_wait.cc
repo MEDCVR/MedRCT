@@ -1,4 +1,4 @@
-#include <medrct_common/interface/condition_wait.hh>
+#include <medrct/stream/condition_wait.hh>
 
 namespace medrct
 {

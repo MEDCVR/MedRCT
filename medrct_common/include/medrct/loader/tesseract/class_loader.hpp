@@ -45,7 +45,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include "class_loader.h"
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 // clang-format off
 namespace tesseract_common
@@ -57,6 +57,7 @@ std::shared_ptr<ClassBase> ClassLoader::createSharedInstance(const std::string& 
 {
   // @Radian Temporary fix: boost::dll::shared_library
   // libs must always be open during the program
+  // TODO, use map and check name, and dont load the shared lib again
   // to actually use the class and call it's functions
 
   static std::vector<boost::dll::shared_library> libs;

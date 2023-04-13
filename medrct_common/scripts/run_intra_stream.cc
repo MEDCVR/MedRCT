@@ -1,8 +1,8 @@
 #include <iostream>
-#include <thread> // std::this_thread::sleep_for
-#include <chrono> // std::chrono::seconds
+#include <thread>
+#include <chrono>
 
-#include <medrct_common/intra/intra.hh>
+#include <medrct/intra_stream/intra_stream.hh>
 
 using namespace medrct::stream;
 

@@ -7,7 +7,7 @@
 
 #include "intra_common.hh"
 #include "intra_executor.hh"
-#include "medrct_common/interface/stream.hh"
+#include "medrct/stream/stream.hh"
 
 namespace medrct
 {
@@ -15,17 +15,17 @@ namespace stream
 {
 
 template <class dataT>
-class SharedOutputStream : public OutputStream<dataT>
+class IntraOutputStream : public OutputStream<dataT>
 {
 public:
-  SharedOutputStream(const std::string& topic_name, const std::string& name)
+  IntraOutputStream(const std::string& topic_name, const std::string& name)
       : OutputStream<dataT>(name)
   {
     StreamMaster& stream_master_ref = StreamMaster::getInstance();
     pub_connector_ptr =
         stream_master_ref.registerPublisher<dataT>(topic_name, deregister_func);
   }
-  virtual ~SharedOutputStream() { deregister_func(); }
+  virtual ~IntraOutputStream() { deregister_func(); }
 
 private:
   void publishImpl(const dataT& data) const final
@@ -37,22 +37,22 @@ private:
 };
 
 template <class dataT>
-class SharedInputStream : public InputStream<dataT>, public ExecutionProcess
+class IntraInputStream : public InputStream<dataT>, public ExecutionProcess
 {
 public:
-  SharedInputStream(const std::string& topic_name, const std::string& name)
+  IntraInputStream(const std::string& topic_name, const std::string& name)
       : InputStream<dataT>(name)
   {
     StreamMaster& stream_master_ref = StreamMaster::getInstance();
     stream_master_ref.registerSubscriber<dataT>(
         topic_name,
         std::bind(
-            &SharedInputStream::bufferDataToProcess,
+            &IntraInputStream::bufferDataToProcess,
             this,
             std::placeholders::_1),
         deregister_func);
   }
-  virtual ~SharedInputStream() { deregister_func(); }
+  virtual ~IntraInputStream() { deregister_func(); }
 
 protected:
   void bufferDataToProcess(const dataT& data)

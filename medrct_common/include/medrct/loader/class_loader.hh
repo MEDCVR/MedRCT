@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include <medrct_common/file_paths.hh>
+#include <medrct/file_paths.hh>
 #include "tesseract/class_loader.h"
 
 namespace medrct_loader = tesseract_common;
@@ -29,15 +29,15 @@ std::shared_ptr<T> createSharedInstance(const YAML::Node& loader_config)
     throw std::runtime_error("No [lib_name] key in config");
   if (YAML::Node m = loader_config["package_name"])
     package_name = m.as<std::string>();
-  else
-    throw std::runtime_error("No [package_name] key in config");
+  else // Try package name as lib name
+    package_name = lib_name;
   if (YAML::Node m = loader_config["class_name"])
     class_name = m.as<std::string>();
   else
     throw std::runtime_error("No [class_name] key in config");
 
   std::string lib_dir;
-  lib_dir = medrct::getBuildDirectoryPath() + "/" + package_name;
+  lib_dir = medrct::GetBuildDirectoryPath() + "/" + package_name;
   // Should throw if problem
   return medrct_loader::ClassLoader::createSharedInstance<T>(
       class_name, lib_name, lib_dir);

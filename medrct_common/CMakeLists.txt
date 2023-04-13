@@ -11,12 +11,12 @@ endif()
 
 # Build Library
 add_library(${PROJECT_NAME} SHARED
-  src/condition_wait.cc
+  src/intra_stream/intra_common.cc
+  src/intra_stream/intra_executor.cc
+  src/intra_stream/intra_stream_factory.cc
+  src/stream/condition_wait.cc
+  src/stream/stream.cc
   src/file_paths.cc
-  src/intra_common.cc
-  src/intra_executor.cc
-  src/intra_stream_factory.cc
-  src/stream.cc
 )
 
 target_include_directories(${PROJECT_NAME}

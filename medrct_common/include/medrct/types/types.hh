@@ -1,19 +1,15 @@
 #pragma once
 
 #include <iostream>
-#include <math.h>
+#include <vector>
+
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+#include "precision.hh"
+
 namespace medrct
 {
-// #Define here for compiler options in CMAKE.
-using real_t = double;
-// using real_t = float;
-
-constexpr real_t PI = M_PI;
-constexpr real_t PI_2 = M_PI / 2;
-
 using Vector3 = Eigen::Matrix<real_t, 3, 1>;
 using AngleAxis = Eigen::AngleAxis<real_t>;
 using Quaternion = Eigen::Quaternion<real_t>;

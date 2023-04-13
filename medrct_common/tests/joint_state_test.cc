@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <medrct_common/joint_state.hh>
+#include <medrct/types/joint_state.hh>
 
 using namespace medrct;
 

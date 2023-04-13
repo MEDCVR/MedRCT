@@ -1,5 +1,5 @@
-#include <medrct_common/intra/intra_stream_factory.hh>
-#include <medrct_common/intra/intra_stream.hh>
+#include <medrct/intra_stream/intra_stream_factory.hh>
+#include <medrct/intra_stream/intra_stream.hh>
 #include "helper.hh"
 
 namespace medrct
@@ -33,12 +33,12 @@ Stream::Ptr IntraStreamFactory::create(const YAML::Node& config) const
   Stream::Ptr stream;
   if (input_or_output_type == "input")
   {
-    stream = createStreamWithDataType<SharedInputStream>(
-        topic_name, name, data_type);
+    stream =
+        createStreamWithDataType<IntraInputStream>(topic_name, name, data_type);
   }
   else if (input_or_output_type == "output")
   {
-    stream = createStreamWithDataType<SharedOutputStream>(
+    stream = createStreamWithDataType<IntraOutputStream>(
         topic_name, name, data_type);
   }
   else

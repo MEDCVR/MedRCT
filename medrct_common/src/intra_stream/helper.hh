@@ -3,10 +3,10 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 
-#include <medrct_common/intra/intra_stream.hh>
-#include <medrct_common/joint_state.hh>
-#include <medrct_common/types.hh>
-#include <medrct_common/twist.hh>
+#include <medrct/intra_stream/intra_stream.hh>
+#include <medrct/types/joint_state.hh>
+#include <medrct/types/types.hh>
+#include <medrct/types/twist.hh>
 
 namespace medrct
 {

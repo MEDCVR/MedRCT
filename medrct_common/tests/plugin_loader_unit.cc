@@ -34,8 +34,8 @@
 
 #include <gtest/gtest.h>
 
-#include <medrct_common/loader/class_loader.hh>
-#include <medrct_common/log.hh>
+#include <medrct/loader/class_loader.hh>
+#include <medrct/log.hh>
 #include "dummy_plugins/test_plugin_base.h"
 
 TEST(TesseractClassLoaderUnit, LoadTestPlugin) // NOLINT

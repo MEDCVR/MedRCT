@@ -1,10 +1,10 @@
 
-#include <medrct_common/file_paths.hh>
+#include <medrct/file_paths.hh>
 
 namespace medrct
 {
 
-std::string getBuildDirectoryPath()
+std::string GetBuildDirectoryPath()
 {
   static bool is_path_processed = false;
   static std::string bin_dir_path;
@@ -18,7 +18,7 @@ std::string getBuildDirectoryPath()
   return bin_dir_path;
 }
 
-std::string getInstallDirectoryPath()
+std::string GetInstallDirectoryPath()
 {
   static bool is_path_processed = false;
   static std::string install_dir_path;

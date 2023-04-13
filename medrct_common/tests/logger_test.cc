@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 // Declare a test
 TEST(TestLogger, simpleString)

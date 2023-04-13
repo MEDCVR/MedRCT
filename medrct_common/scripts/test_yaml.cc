@@ -1,5 +1,5 @@
 #include <yaml-cpp/yaml.h>
-#include <medrct_common/log.hh>
+#include <medrct/log.hh>
 
 int main(int, char**)
 {

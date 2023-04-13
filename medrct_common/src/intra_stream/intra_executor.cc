@@ -1,6 +1,6 @@
 
-#include <medrct_common/intra/intra_executor.hh>
-#include <medrct_common/log.hh>
+#include <medrct/intra_stream/intra_executor.hh>
+#include <medrct/log.hh>
 
 namespace medrct
 {

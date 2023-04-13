@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <medrct_common/twist.hh>
-#include <medrct_common/types.hh>
+#include <medrct/types/twist.hh>
+#include <medrct/types/types.hh>
 
 using namespace medrct;
 
