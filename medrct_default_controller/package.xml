@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>medrct_default_controller</name>
+  <version>0.0.1</version>
+  <description>Collaborative controllers based on the da Vinci Surgical teleoperation logic</description>
+  <maintainer email="radian.gondokaryono@mail.utoronto.ca">radian</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>medrct_common</depend>
+  <depend>medrct_env</depend>
+  <depend>medrct_controller</depend>
+  <depend>medrct_constrained</depend>
+</package>
