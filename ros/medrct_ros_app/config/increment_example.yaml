@@ -1,5 +1,8 @@
 controllers:
   - name: "Keyboard-PSM2"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
     class_name: "CartesianIncrementController"
     input_stream:
       topic_name: "/keyboard/twist"
@@ -9,16 +12,17 @@ controllers:
       topic_name: "/PSM2/measured_js"
     kinematics_tree: ""
     forward_kinematics:
-      lib_name: "medrct_dvrk"
-      package_name: "medrct_dvrk"
+      lib_name: "medrct_dvrk_env"
       class_name: "PsmForwardKinematicsFactory"
       tool_name: "LND400006"
     inverse_kinematics:
-      lib_name: "medrct_dvrk"
-      package_name: "medrct_dvrk"
+      lib_name: "medrct_dvrk_env"
       class_name: "PsmInverseKinematicsFactory"
       tool_name: "LND400006"
   - name: "Keyboard-PSM2-Jaw"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
     class_name: "JointIncrementController"
     input_stream:
       topic_name: "/keyboard/joint_state"

@@ -11,6 +11,6 @@
   <depend>medrct_ros</depend>
   <depend>medrct_common</depend>
   <depend>medrct_controller</depend>
-  <depend>medrct_environment</depend>
+  <depend>medrct_env</depend>
 </package>
 

@@ -12,7 +12,7 @@ endif()
 
 find_package(medrct_common REQUIRED)
 find_package(medrct_controller REQUIRED)
-find_package(medrct_environment REQUIRED)
+find_package(medrct_env REQUIRED)
 find_package(medrct_ros REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp)
 
@@ -21,12 +21,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   )
 
-add_executable(ros_teleop_node scripts/ros_teleop_node.cc)
+add_executable(ros_teleop_node src/ros_teleop_node.cc)
 target_link_libraries(ros_teleop_node PRIVATE
   ${catkin_LIBRARIES}
   medrct_common::medrct_common
   medrct_controller::medrct_controller
-  medrct_environment::medrct_environment
+  medrct_env::medrct_env
   medrct_ros::medrct_ros)
 
 install(

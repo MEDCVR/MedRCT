@@ -1,10 +1,9 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 
-#include <medrct_common/file_paths.hh>
-#include <medrct_common/log.hh>
-#include <medrct_controller/controller_factory.hh>
-#include <medrct_controller/controller_manager_yaml.hh>
+#include <medrct/file_paths.hh>
+#include <medrct/log.hh>
+#include <medrct_controller/controller_manager_config.hh>
 #include <medrct_controller/controller_manager.hh>
 #include <medrct_ros/ros_singleton.hh>
 #include <medrct_ros/ros_stream_factory.hh>
@@ -23,7 +22,7 @@ int main(int argc, char** argv)
   }
   std::string relative_path_to_yaml = argv[1];
   std::string full_path_to_yaml =
-      medrct::getInstallDirectoryPath() + "/" + relative_path_to_yaml;
+      medrct::GetInstallDirectoryPath() + "/" + relative_path_to_yaml;
   YAML::Node config;
   try
   {
@@ -41,8 +40,9 @@ int main(int argc, char** argv)
   }
   RosStreamFactory::Ptr ros_stream_factory =
       std::make_shared<RosStreamFactory>();
-  ControllerFactory cf(ros_stream_factory);
-  ControllerManagerConfig cmc = fromYAMLControllerManagerConfig(config, cf);
+
+  ControllerManagerConfig cmc =
+      FromYAMLControllerManagerConfig(config, *ros_stream_factory);
   ControllerManager cm;
   if (!cm.init(cmc))
   {
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     return -1;
   }
   BasicControllerManagerCommunicatorConfig bcmc_cfg =
-      fromYAMLBasicControllerCommunicatorConfig(
+      FromYAMLBasicControllerCommunicatorConfig(
           communicator_config, *ros_stream_factory);
   if (!communicator.init(std::move(cm), bcmc_cfg))
   {
