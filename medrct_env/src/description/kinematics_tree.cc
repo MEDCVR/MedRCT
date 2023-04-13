@@ -1,7 +1,7 @@
 #include <algorithm>
 
-#include <medrct_common/log.hh>
-#include <medrct_environment/description/kinematics_tree.hh>
+#include <medrct/log.hh>
+#include <medrct_env/description/kinematics_tree.hh>
 
 namespace medrct
 {

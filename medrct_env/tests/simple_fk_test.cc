@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <medrct_common/types.hh>
-#include <medrct_environment/description/joint.hh>
-#include <medrct_environment/description/kinematics_tree.hh>
-#include <medrct_environment/description/link.hh>
-#include <medrct_environment/kinematics/simple_forward_kinematics.hh>
+#include <medrct/types/types.hh>
+#include <medrct_env/description/joint.hh>
+#include <medrct_env/description/kinematics_tree.hh>
+#include <medrct_env/description/link.hh>
+#include <medrct_env/kinematics/simple_forward_kinematics.hh>
 
 TEST(TestSimpleFK, testOutput)
 {

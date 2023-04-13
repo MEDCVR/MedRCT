@@ -1,6 +1,6 @@
-#include <medrct_environment/description/link.hh>
-#include <medrct_environment/description/joint.hh>
-#include <medrct_environment/description/world.hh>
+#include <medrct_env/description/link.hh>
+#include <medrct_env/description/joint.hh>
+#include <medrct_env/description/world.hh>
 
 #include <urdf_parser/urdf_parser.h>
 namespace medrct

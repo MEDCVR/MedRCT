@@ -3,9 +3,9 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 
-#include <medrct_environment/description/kinematics_tree.hh>
-#include <medrct_environment/kinematics/forward_kinematics.hh>
-#include <medrct_environment/kinematics/inverse_kinematics.hh>
+#include <medrct_env/description/kinematics_tree.hh>
+#include <medrct_env/kinematics/forward_kinematics.hh>
+#include <medrct_env/kinematics/inverse_kinematics.hh>
 
 namespace medrct
 {

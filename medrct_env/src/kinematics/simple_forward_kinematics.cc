@@ -1,6 +1,6 @@
-#include <medrct_common/log.hh>
-#include <medrct_environment/description/joint.hh>
-#include <medrct_environment/kinematics/simple_forward_kinematics.hh>
+#include <medrct/log.hh>
+#include <medrct_env/description/joint.hh>
+#include <medrct_env/kinematics/simple_forward_kinematics.hh>
 
 namespace medrct
 {

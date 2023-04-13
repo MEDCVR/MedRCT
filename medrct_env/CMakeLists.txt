@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(medrct_environment VERSION 0.0.1)
+project(medrct_env VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME} SHARED
   src/description/chain.cc
   src/description/joint.cc
   src/description/kinematics_tree.cc
+  src/description/object.cc
   src/description/world.cc
   src/kinematics/simple_forward_kinematics.cc
 )

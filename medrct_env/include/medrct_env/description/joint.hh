@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 
-#include <medrct_common/types.hh>
-#include <medrct_environment/joint_limit.hh>
+#include <medrct/types/types.hh>
+#include <medrct_env/joint_limit.hh>
 
 namespace medrct
 {

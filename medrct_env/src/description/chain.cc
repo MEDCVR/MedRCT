@@ -1,4 +1,4 @@
-#include <medrct_environment/description/chain.hh>
+#include <medrct_env/description/chain.hh>
 
 namespace medrct
 {

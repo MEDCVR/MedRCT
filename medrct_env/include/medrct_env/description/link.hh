@@ -2,18 +2,11 @@
 
 #include <memory>
 #include <vector>
-
+#include "object.hh"
 namespace medrct
 {
 namespace env
 {
-struct Visual
-{
-};
-
-struct Collision
-{
-};
 
 class Link
 {
@@ -34,10 +27,10 @@ public:
   const std::string& getName() const { return name; }
 
   /// Visual Elements
-  std::vector<Visual> visual;
+  std::vector<Object> visual_objects;
 
   /// Collision Elements
-  std::vector<Collision> collision;
+  std::vector<Object> collision_objects;
 
 private:
   std::string name;

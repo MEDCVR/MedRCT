@@ -1,8 +1,8 @@
 #pragma once
 
-#include <medrct_environment/description/chain.hh>
-#include <medrct_environment/description/kinematics_tree.hh>
-#include <medrct_environment/kinematics/forward_kinematics.hh>
+#include <medrct_env/description/chain.hh>
+#include <medrct_env/description/kinematics_tree.hh>
+#include <medrct_env/kinematics/forward_kinematics.hh>
 
 namespace medrct
 {

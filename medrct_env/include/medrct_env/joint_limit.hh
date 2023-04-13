@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <medrct_common/types.hh>
+#include <medrct/types/types.hh>
 
 namespace medrct
 {

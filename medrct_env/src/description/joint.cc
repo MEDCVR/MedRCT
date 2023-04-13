@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <cmath>
 
-#include <medrct_common/log.hh>
-#include <medrct_environment/description/joint.hh>
+#include <medrct/log.hh>
+#include <medrct_env/description/joint.hh>
 
 namespace medrct
 {
