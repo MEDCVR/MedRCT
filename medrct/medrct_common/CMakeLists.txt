@@ -11,6 +11,11 @@ endif()
 
 # Build Library
 add_library(${PROJECT_NAME} SHARED
+  src/controller/controller_factory.cc
+  src/controller/controller_manager_config.cc
+  src/controller/controller_manager.cc
+  src/controller/controller.cc
+  src/controller/utils.cc
   src/intra_stream/intra_common.cc
   src/intra_stream/intra_executor.cc
   src/intra_stream/intra_stream_factory.cc

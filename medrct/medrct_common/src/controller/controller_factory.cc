@@ -2,7 +2,7 @@
 
 #include <medrct/loader/class_loader.hh>
 #include <medrct/log.hh>
-#include <medrct_controller/controller_factory.hh>
+#include <medrct/controller/controller_factory.hh>
 
 namespace medrct
 {

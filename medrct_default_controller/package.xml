@@ -9,6 +9,5 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>medrct_common</depend>
   <depend>medrct_env</depend>
-  <depend>medrct_controller</depend>
   <depend>medrct_constrained</depend>
 </package>

@@ -8,7 +8,7 @@
 #include <medrct/types/types.hh>
 #include <medrct/types/twist.hh>
 #include <medrct/log.hh>
-#include <medrct_controller/controller.hh>
+#include <medrct/controller/controller.hh>
 #include <medrct_env/kinematics/forward_kinematics.hh>
 #include <medrct_env/kinematics/inverse_kinematics.hh>
 

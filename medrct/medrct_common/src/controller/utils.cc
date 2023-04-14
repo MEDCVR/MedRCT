@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include <medrct/log.hh>
-#include <medrct_controller/controller.hh>
+#include <medrct/controller/controller.hh>
 
 namespace medrct
 {

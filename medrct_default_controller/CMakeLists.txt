@@ -33,10 +33,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 find_package(medrct_env REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_env::medrct_env)
 
-find_package(medrct_controller REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC medrct_controller::medrct_controller)
-
-
 #############
 ## Testing ##
 #############

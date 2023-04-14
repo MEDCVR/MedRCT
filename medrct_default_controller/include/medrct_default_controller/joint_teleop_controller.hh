@@ -5,7 +5,7 @@
 
 #include <medrct/stream/stream.hh>
 #include <medrct/types/joint_state.hh>
-#include <medrct_controller/controller.hh>
+#include <medrct/controller/controller.hh>
 
 namespace medrct
 {

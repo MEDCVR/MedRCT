@@ -2,7 +2,7 @@
 #include <utility>
 
 #include <medrct/log.hh>
-#include <medrct_controller/controller_manager.hh>
+#include <medrct/controller/controller_manager.hh>
 
 namespace medrct
 {

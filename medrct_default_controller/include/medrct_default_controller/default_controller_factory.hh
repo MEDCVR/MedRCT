@@ -4,8 +4,8 @@
 #include <yaml-cpp/yaml.h>
 
 #include <medrct/stream/stream_factory.hh>
-#include <medrct_controller/controller.hh>
-#include <medrct_controller/controller_factory.hh>
+#include <medrct/controller/controller.hh>
+#include <medrct/controller/controller_factory.hh>
 
 namespace medrct
 {

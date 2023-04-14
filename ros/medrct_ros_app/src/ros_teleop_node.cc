@@ -3,8 +3,8 @@
 
 #include <medrct/file_paths.hh>
 #include <medrct/log.hh>
-#include <medrct_controller/controller_manager_config.hh>
-#include <medrct_controller/controller_manager.hh>
+#include <medrct/controller/controller_manager_config.hh>
+#include <medrct/controller/controller_manager.hh>
 #include <medrct_ros/ros_singleton.hh>
 #include <medrct_ros/ros_stream_factory.hh>
 #include <ros/ros.h>

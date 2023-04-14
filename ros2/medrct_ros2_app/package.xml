@@ -8,8 +8,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <!-- <depend>roscpp</depend> -->
-  <depend>medrct_ros</depend>
   <depend>medrct_common</depend>
-  <depend>medrct_controller</depend>
   <depend>medrct_env</depend>
 </package>
