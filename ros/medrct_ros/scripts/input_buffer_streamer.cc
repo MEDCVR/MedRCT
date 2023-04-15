@@ -31,8 +31,8 @@ int main(int argc, char** argv)
   ros::NodeHandle node_handle;
 
   // Store as a pointer to the base class to keep abstract interfaces
-  std::shared_ptr<InputStream<JointState>> input_buffer_stream =
-      std::make_shared<RosInputStream<JointState, sensor_msgs::JointState>>(
+  std::shared_ptr<SubStream<JointState>> input_buffer_stream =
+      std::make_shared<RosSubStream<JointState, sensor_msgs::JointState>>(
           "input_buffer_stream",
           &medrct_ros::RosToMedrctJs,
           node_handle,

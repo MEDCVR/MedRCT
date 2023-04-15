@@ -10,16 +10,16 @@ namespace medrct
 namespace stream
 {
 template <typename medrctT, typename rosT>
-class RosOutputStream : public OutputStream<medrctT>
+class RosPubStream : public PubStream<medrctT>
 {
 public:
-  RosOutputStream(
+  RosPubStream(
       const std::string& name,
       const std::function<rosT(const medrctT&)>& medrct_to_ros,
       ros::NodeHandle& n,
       const std::string& topic_name,
       int queue = 10);
-  virtual ~RosOutputStream();
+  virtual ~RosPubStream();
 
 private:
   virtual void publishImpl(const medrctT& data) const override;
@@ -28,16 +28,16 @@ private:
 };
 
 template <typename medrctT, typename rosT>
-class RosInputStream : public InputStream<medrctT>
+class RosSubStream : public SubStream<medrctT>
 {
 public:
-  RosInputStream(
+  RosSubStream(
       const std::string& name,
       const std::function<medrctT(const rosT&)>& ros_to_medrct,
       ros::NodeHandle& n,
       const std::string& topic_name,
       int queue_size = 1000);
-  virtual ~RosInputStream();
+  virtual ~RosSubStream();
 
 private:
   void runCallback(const rosT& data);

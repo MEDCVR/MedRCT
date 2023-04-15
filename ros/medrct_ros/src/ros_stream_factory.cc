@@ -59,24 +59,24 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
     if (data_type == "JointState")
     {
       stream =
-          std::make_shared<RosInputStream<JointState, sensor_msgs::JointState>>(
+          std::make_shared<RosSubStream<JointState, sensor_msgs::JointState>>(
               name, &medrct_ros::RosToMedrctJs, *nh, topic_name);
     }
     else if (data_type == "Transform")
     {
       stream = std::make_shared<
-          RosInputStream<Transform, geometry_msgs::TransformStamped>>(
+          RosSubStream<Transform, geometry_msgs::TransformStamped>>(
           name, &medrct_ros::RosToMedrctTf, *nh, topic_name, queue_size);
     }
     else if (data_type == "Twist")
     {
       stream =
-          std::make_shared<RosInputStream<Twist, geometry_msgs::TwistStamped>>(
+          std::make_shared<RosSubStream<Twist, geometry_msgs::TwistStamped>>(
               name, &medrct_ros::RosToMedrctTwist, *nh, topic_name, queue_size);
     }
     else if (data_type == "Joy")
     {
-      stream = std::make_shared<RosInputStream<medrct::Joy, sensor_msgs::Joy>>(
+      stream = std::make_shared<RosSubStream<medrct::Joy, sensor_msgs::Joy>>(
           name, &medrct_ros::RosToMedrctJoy, *nh, topic_name, queue_size);
     }
     else
@@ -89,25 +89,25 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
   {
     if (data_type == "JointState")
     {
-      stream = std::make_shared<
-          RosOutputStream<JointState, sensor_msgs::JointState>>(
-          name, &medrct_ros::MedrctToRosJs, *nh, topic_name, queue_size);
+      stream =
+          std::make_shared<RosPubStream<JointState, sensor_msgs::JointState>>(
+              name, &medrct_ros::MedrctToRosJs, *nh, topic_name, queue_size);
     }
     else if (data_type == "Transform")
     {
       stream = std::make_shared<
-          RosOutputStream<Transform, geometry_msgs::TransformStamped>>(
+          RosPubStream<Transform, geometry_msgs::TransformStamped>>(
           name, &medrct_ros::MedrctToRosTf, *nh, topic_name, queue_size);
     }
     else if (data_type == "Twist")
     {
       stream =
-          std::make_shared<RosOutputStream<Twist, geometry_msgs::TwistStamped>>(
+          std::make_shared<RosPubStream<Twist, geometry_msgs::TwistStamped>>(
               name, &medrct_ros::MedrctToRosTwist, *nh, topic_name, queue_size);
     }
     else if (data_type == "Joy")
     {
-      stream = std::make_shared<RosOutputStream<medrct::Joy, sensor_msgs::Joy>>(
+      stream = std::make_shared<RosPubStream<medrct::Joy, sensor_msgs::Joy>>(
           name, &medrct_ros::MedrctToRosJoy, *nh, topic_name, queue_size);
     }
     else

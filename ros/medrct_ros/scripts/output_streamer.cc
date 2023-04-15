@@ -19,9 +19,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "listener");
   ros::NodeHandle node_handle;
 
-  // Put as the abstract base class pointer OutputStream
-  std::shared_ptr<OutputStream<JointState>> output_stream =
-      std::make_shared<RosOutputStream<JointState, sensor_msgs::JointState>>(
+  // Put as the abstract base class pointer PubStream
+  std::shared_ptr<PubStream<JointState>> output_stream =
+      std::make_shared<RosPubStream<JointState, sensor_msgs::JointState>>(
           "output_stream",
           &medrct_ros::MedrctToRosJs,
           node_handle,
