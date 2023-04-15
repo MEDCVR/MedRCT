@@ -34,12 +34,12 @@ Stream::Ptr IntraStreamFactory::create(const YAML::Node& config) const
   if (input_or_output_type == "input")
   {
     stream =
-        createStreamWithDataType<IntraInputStream>(topic_name, name, data_type);
+        createStreamWithDataType<IntraSubStream>(topic_name, name, data_type);
   }
   else if (input_or_output_type == "output")
   {
-    stream = createStreamWithDataType<IntraOutputStream>(
-        topic_name, name, data_type);
+    stream =
+        createStreamWithDataType<IntraPubStream>(topic_name, name, data_type);
   }
   else
     throw std::runtime_error(

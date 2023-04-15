@@ -103,7 +103,7 @@ FromYAMLBasicControllerCommunicatorConfig(
     n["name"] = "clutch_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
-    bcmcc.clutch_subscriber = sf.create<stream::InputStream<medrct::Joy>>(n);
+    bcmcc.clutch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
   else
     throw std::runtime_error("No [clutch_input_stream] in controller config");
@@ -112,7 +112,7 @@ FromYAMLBasicControllerCommunicatorConfig(
     n["name"] = "switch_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
-    bcmcc.switch_subscriber = sf.create<stream::InputStream<medrct::Joy>>(n);
+    bcmcc.switch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
   else
     throw std::runtime_error("No [switch_input_stream] in controller config");

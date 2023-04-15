@@ -60,9 +60,9 @@ public:
 private:
   ControllerManager controller_manager;
   std::string active_control_group_name;
-  std::shared_ptr<stream::InputStream<medrct::Joy>> clutch_subscriber;
+  std::shared_ptr<stream::SubStream<medrct::Joy>> clutch_subscriber;
   void clutchCallback(const medrct::Joy& joy);
-  std::shared_ptr<stream::InputStream<medrct::Joy>> switch_subscriber;
+  std::shared_ptr<stream::SubStream<medrct::Joy>> switch_subscriber;
   std::string switched_control_group_name;
   std::function<void()> switch_function;
   std::function<void()> unswitch_function;

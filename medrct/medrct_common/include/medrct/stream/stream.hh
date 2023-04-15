@@ -40,13 +40,13 @@ struct Stream
 };
 
 template <class T>
-class OutputStream : public Stream
+class PubStream : public Stream
 {
 public:
-  using Ptr = std::shared_ptr<OutputStream<T>>;
-  using ConstPtr = std::shared_ptr<const OutputStream<T>>;
-  OutputStream(const std::string& name) : Stream(stream_type_t::OUTPUT, name) {}
-  virtual ~OutputStream() {}
+  using Ptr = std::shared_ptr<PubStream<T>>;
+  using ConstPtr = std::shared_ptr<const PubStream<T>>;
+  PubStream(const std::string& name) : Stream(stream_type_t::OUTPUT, name) {}
+  virtual ~PubStream() {}
   void publish(const T& data) const { publishImpl(data); }
 
 private:
@@ -54,13 +54,13 @@ private:
 };
 
 template <class T>
-class InputStream : public Stream
+class SubStream : public Stream
 {
 public:
-  using Ptr = std::shared_ptr<InputStream<T>>;
-  using ConstPtr = std::shared_ptr<const InputStream<T>>;
-  InputStream(const std::string& name) : Stream(stream_type_t::INPUT, name) {}
-  virtual ~InputStream() = 0;
+  using Ptr = std::shared_ptr<SubStream<T>>;
+  using ConstPtr = std::shared_ptr<const SubStream<T>>;
+  SubStream(const std::string& name) : Stream(stream_type_t::INPUT, name) {}
+  virtual ~SubStream() = 0;
   bool addCallback(
       const std::string& callback_name,
       const std::function<void(const T&)>& callback)
@@ -148,7 +148,7 @@ private:
 };
 
 template <class T>
-InputStream<T>::~InputStream()
+SubStream<T>::~SubStream()
 {
 }
 } // namespace stream

@@ -12,7 +12,7 @@ using namespace medrct::stream;
 
 struct IntCallbackChecker
 {
-  void inline publish(std::shared_ptr<OutputStream<int>> output_js)
+  void inline publish(std::shared_ptr<PubStream<int>> output_js)
   {
     for (const int int_data : int_datas)
     {
@@ -47,14 +47,14 @@ struct IntCallbackChecker
   std::condition_variable cv;
 };
 
-TEST(TestSharedStream, testPublishSubscribe)
+TEST(TestIntraStream, testPublishSubscribe)
 {
   StreamMaster::init();
 
-  std::shared_ptr<OutputStream<int>> output_int =
-      std::make_shared<IntraOutputStream<int>>("integer", "output_int");
-  std::shared_ptr<IntraInputStream<int>> input_int =
-      std::make_shared<IntraInputStream<int>>("integer", "input_int");
+  std::shared_ptr<PubStream<int>> output_int =
+      std::make_shared<IntraPubStream<int>>("integer", "output_int");
+  std::shared_ptr<IntraSubStream<int>> input_int =
+      std::make_shared<IntraSubStream<int>>("integer", "input_int");
 
   IntCallbackChecker icc;
   input_int->addCallback(

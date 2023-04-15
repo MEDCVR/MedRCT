@@ -16,6 +16,15 @@ DataStore::DataStore()
 DataStore::~DataStore()
 {
 }
+bool DataStore::contains(const std::string& name) const
+{
+  return data_map.find(name) != data_map.end();
+}
+void DataStore::resetAllWithDefaultValues()
+{
+  for (auto& reset_func : reset_default_functions)
+    reset_func();
+}
 
 StreamMap::StreamMap()
 {
@@ -65,6 +74,16 @@ void StreamMap::getDataFromAllBufferedStreams(DataStore& data_store)
        it++)
   {
     it->second.get_data_func(data_store);
+  }
+}
+
+void StreamMap::setDefaultDataFromAllBufferedStreams(DataStore& data_store)
+{
+  for (auto it = buffered_stream_name_to_functions.begin();
+       it != buffered_stream_name_to_functions.end();
+       it++)
+  {
+    it->second.set_default_data_func(data_store);
   }
 }
 

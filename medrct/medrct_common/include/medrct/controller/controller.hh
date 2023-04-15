@@ -79,18 +79,18 @@ protected:
   template <typename dataT>
   bool initAggragate(
       const std::string& controller_name,
-      const std::shared_ptr<stream::InputStream<dataT>> input_callback_stream)
+      const std::shared_ptr<stream::SubStream<dataT>> input_callback_stream)
   {
     if (!init(controller_name))
     {
       return false;
     }
     // auto input_callback_stream =
-    // std::dynamic_pointer_cast<InputStream<dataT>>(input_callback_stream);
+    // std::dynamic_pointer_cast<SubStream<dataT>>(input_callback_stream);
     // if(!input_callback_stream)
     // {
     //   throw std::logic_error{"aggragate_stream must be of type
-    //   InputStream"}; return false;
+    //   SubStream"}; return false;
     // }
     task = std::make_unique<AggragateTask<dataT>>(
         input_stream_map,
@@ -100,7 +100,6 @@ protected:
     return true;
   }
   StreamMap input_stream_map;
-  StreamMap output_stream_map;
 
 private:
   bool init(const std::string& controller_name);

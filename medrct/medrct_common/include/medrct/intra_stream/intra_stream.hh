@@ -15,17 +15,17 @@ namespace stream
 {
 
 template <class dataT>
-class IntraOutputStream : public OutputStream<dataT>
+class IntraPubStream : public PubStream<dataT>
 {
 public:
-  IntraOutputStream(const std::string& topic_name, const std::string& name)
-      : OutputStream<dataT>(name)
+  IntraPubStream(const std::string& topic_name, const std::string& name)
+      : PubStream<dataT>(name)
   {
     StreamMaster& stream_master_ref = StreamMaster::getInstance();
     pub_connector_ptr =
         stream_master_ref.registerPublisher<dataT>(topic_name, deregister_func);
   }
-  virtual ~IntraOutputStream() { deregister_func(); }
+  virtual ~IntraPubStream() { deregister_func(); }
 
 private:
   void publishImpl(const dataT& data) const final
@@ -37,22 +37,20 @@ private:
 };
 
 template <class dataT>
-class IntraInputStream : public InputStream<dataT>, public ExecutionProcess
+class IntraSubStream : public SubStream<dataT>, public ExecutionProcess
 {
 public:
-  IntraInputStream(const std::string& topic_name, const std::string& name)
-      : InputStream<dataT>(name)
+  IntraSubStream(const std::string& topic_name, const std::string& name)
+      : SubStream<dataT>(name)
   {
     StreamMaster& stream_master_ref = StreamMaster::getInstance();
     stream_master_ref.registerSubscriber<dataT>(
         topic_name,
         std::bind(
-            &IntraInputStream::bufferDataToProcess,
-            this,
-            std::placeholders::_1),
+            &IntraSubStream::bufferDataToProcess, this, std::placeholders::_1),
         deregister_func);
   }
-  virtual ~IntraInputStream() { deregister_func(); }
+  virtual ~IntraSubStream() { deregister_func(); }
 
 protected:
   void bufferDataToProcess(const dataT& data)
@@ -85,7 +83,7 @@ protected:
     {
       return false;
     }
-    InputStream<dataT>::runCallback(data_to_proccess.front());
+    SubStream<dataT>::runCallback(data_to_proccess.front());
     data_to_proccess.pop();
     return true;
   }
