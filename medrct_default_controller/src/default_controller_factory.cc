@@ -18,8 +18,8 @@ namespace controller
 {
 
 void CreateOutputAndMeasuredStreams(
-    stream::OutputStream<JointState>::Ptr& output_js_stream,
-    stream::InputStream<JointState>::Ptr& measured_js_stream,
+    stream::PubStream<JointState>::Ptr& output_js_stream,
+    stream::SubStream<JointState>::Ptr& measured_js_stream,
     const YAML::Node& controller_config,
     const stream::StreamFactory& stream_factory)
 {
@@ -29,8 +29,7 @@ void CreateOutputAndMeasuredStreams(
         controller_config["name"].as<std::string>() + "_output_js_stream";
     n["type"] = "output";
     n["data_type"] = "JointState";
-    output_js_stream =
-        stream_factory.create<stream::OutputStream<JointState>>(n);
+    output_js_stream = stream_factory.create<stream::PubStream<JointState>>(n);
   }
   else
     throw std::runtime_error("No [output_stream] in controller config");
@@ -41,7 +40,7 @@ void CreateOutputAndMeasuredStreams(
     n["type"] = "input";
     n["data_type"] = "JointState";
     measured_js_stream =
-        stream_factory.create<stream::InputStream<JointState>>(n);
+        stream_factory.create<stream::SubStream<JointState>>(n);
   }
   else
     throw std::runtime_error("No [feedback_stream] in controller config.");
@@ -130,7 +129,7 @@ Controller::Ptr DefaultControllerFactory::create(
       n["type"] = "input";
       n["data_type"] = "JointState";
       jcc.input_js_stream =
-          stream_factory.create<stream::InputStream<JointState>>(n);
+          stream_factory.create<stream::SubStream<JointState>>(n);
     }
     else
       throw std::runtime_error("No [input_stream] in controller config");
@@ -171,7 +170,7 @@ Controller::Ptr DefaultControllerFactory::create(
       n["type"] = "input";
       n["data_type"] = "Twist";
       cic_cfg.input_callback_stream =
-          stream_factory.create<stream::InputStream<Twist>>(n);
+          stream_factory.create<stream::SubStream<Twist>>(n);
     }
     else
       throw std::runtime_error("No [input_stream] in controller config");
@@ -205,7 +204,7 @@ Controller::Ptr DefaultControllerFactory::create(
       n["type"] = "input";
       n["data_type"] = "Transform";
       cfc_cfg.input_callback_stream =
-          stream_factory.create<stream::InputStream<Transform>>(n);
+          stream_factory.create<stream::SubStream<Transform>>(n);
     }
     else
       throw std::runtime_error("No [input_stream] in controller config");

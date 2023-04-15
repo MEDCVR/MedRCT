@@ -44,7 +44,7 @@ bool CartesianTeleopController::getInitialOutputTf()
     return false;
   }
   auto measured_stream_ptr =
-      input_stream_map.get<InputStream<JointState>>(measured_js_stream_name);
+      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
   JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
   forward_kinematics->computeFK(initial_output_tf, current_output_js.positions);
   return true;
@@ -77,7 +77,7 @@ bool CartesianFollowerController::getInitialInputTf()
   if (!input_stream_map.waitForOneBufferedDataInput(input_stream_name, true))
     return false;
   auto input_stream_ptr =
-      input_stream_map.get<InputStream<Transform>>(input_stream_name);
+      input_stream_map.get<SubStream<Transform>>(input_stream_name);
   initial_input_tf = input_stream_ptr->getBuffer().getLatest();
   return true;
 }

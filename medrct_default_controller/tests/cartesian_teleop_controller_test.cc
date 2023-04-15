@@ -49,11 +49,11 @@ public:
 
   CartesianTeleopControllerConfig<T> init(PipelineExecutor& pe)
   {
-    auto shared_input_stream = std::make_shared<IntraInputStream<T>>(
+    auto shared_input_stream = std::make_shared<IntraSubStream<T>>(
         input_modality->command_topic,
         input_modality->command_topic + "_input_stream");
     auto shared_measured_js_stream =
-        std::make_shared<IntraInputStream<JointState>>(
+        std::make_shared<IntraSubStream<JointState>>(
             dummy_output->measured_js_topic,
             dummy_output->measured_js_topic + "_input_stream");
     pe.registerProcess(shared_input_stream);
@@ -63,7 +63,7 @@ public:
     cc_cfg.controller_name = "input-output_controller";
     cc_cfg.input_callback_stream = shared_input_stream;
     cc_cfg.measured_js_stream = shared_measured_js_stream;
-    cc_cfg.output_js_stream = std::make_shared<IntraOutputStream<JointState>>(
+    cc_cfg.output_js_stream = std::make_shared<IntraPubStream<JointState>>(
         dummy_output->command_js_topic,
         dummy_output->command_js_topic + "_output_stream");
 

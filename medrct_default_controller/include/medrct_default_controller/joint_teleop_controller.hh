@@ -14,9 +14,9 @@ namespace controller
 struct JointTeleopControllerConfig
 {
   std::string controller_name;
-  std::shared_ptr<stream::InputStream<JointState>> input_js_stream;
-  std::shared_ptr<stream::InputStream<JointState>> measured_js_stream;
-  std::shared_ptr<stream::OutputStream<JointState>> output_js_stream;
+  std::shared_ptr<stream::SubStream<JointState>> input_js_stream;
+  std::shared_ptr<stream::SubStream<JointState>> measured_js_stream;
+  std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
   // TODO All types is aggragate for now
   // task_type_t task_type = task_type_t::AGGRAGATE;
 };
@@ -31,7 +31,7 @@ public:
 protected:
   std::string input_js_stream_name;
   std::string measured_js_stream_name;
-  std::string output_js_stream_name;
+  std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
 };
 
 class JointMimicController : public JointTeleopController

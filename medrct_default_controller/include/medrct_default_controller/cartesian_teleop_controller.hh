@@ -20,9 +20,9 @@ template <typename inputT>
 struct CartesianTeleopControllerConfig
 {
   std::string controller_name;
-  std::shared_ptr<stream::InputStream<inputT>> input_callback_stream;
-  std::shared_ptr<stream::InputStream<JointState>> measured_js_stream;
-  std::shared_ptr<stream::OutputStream<JointState>> output_js_stream;
+  std::shared_ptr<stream::SubStream<inputT>> input_callback_stream;
+  std::shared_ptr<stream::SubStream<JointState>> measured_js_stream;
+  std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
   double position_scale = 1.0;
@@ -53,7 +53,6 @@ public:
     }
     input_stream_name = init_config.input_callback_stream->name;
     measured_js_stream_name = init_config.measured_js_stream->name;
-    output_js_stream_name = init_config.output_js_stream->name;
     this->forward_kinematics = init_config.forward_kinematics;
     this->inverse_kinematics = init_config.inverse_kinematics;
     position_scale = init_config.position_scale;
@@ -71,13 +70,12 @@ protected:
   virtual bool onUnclutch() override;
   std::string input_stream_name;
   std::string measured_js_stream_name;
-  std::string output_js_stream_name;
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
   double position_scale;
   Transform initial_output_tf;
   JointState command_output_js;
-  std::shared_ptr<stream::OutputStream<JointState>> output_js_stream;
+  std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
 
 private:
   bool getInitialOutputTf();

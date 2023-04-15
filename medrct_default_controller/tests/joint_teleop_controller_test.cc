@@ -44,12 +44,11 @@ public:
 
   JointTeleopControllerConfig init(PipelineExecutor& pe)
   {
-    auto shared_input_js_stream =
-        std::make_shared<IntraInputStream<JointState>>(
-            input_modality->command_topic,
-            input_modality->command_topic + "_input_stream");
+    auto shared_input_js_stream = std::make_shared<IntraSubStream<JointState>>(
+        input_modality->command_topic,
+        input_modality->command_topic + "_input_stream");
     auto shared_measured_js_stream =
-        std::make_shared<IntraInputStream<JointState>>(
+        std::make_shared<IntraSubStream<JointState>>(
             dummy_output->measured_js_topic,
             dummy_output->measured_js_topic + "_input_stream");
     pe.registerProcess(shared_input_js_stream);
@@ -59,7 +58,7 @@ public:
     jc_cfg.controller_name = "input-output_controller";
     jc_cfg.input_js_stream = shared_input_js_stream;
     jc_cfg.measured_js_stream = shared_measured_js_stream;
-    jc_cfg.output_js_stream = std::make_shared<IntraOutputStream<JointState>>(
+    jc_cfg.output_js_stream = std::make_shared<IntraPubStream<JointState>>(
         dummy_output->command_js_topic,
         dummy_output->command_js_topic + "_output_stream");
     return jc_cfg;

@@ -29,10 +29,9 @@ bool JointTeleopController::init(const JointTeleopControllerConfig& init_config)
   }
   input_js_stream_name = init_config.input_js_stream->name;
   measured_js_stream_name = init_config.measured_js_stream->name;
-  output_js_stream_name = init_config.output_js_stream->name;
   input_stream_map.addWithBuffer(init_config.input_js_stream);
   input_stream_map.addWithBuffer(init_config.measured_js_stream);
-  output_stream_map.add(init_config.output_js_stream);
+  this->output_js_stream = init_config.output_js_stream;
   return initAggragate(
       init_config.controller_name, init_config.input_js_stream);
 }
@@ -57,11 +56,11 @@ bool JointMimicController::onEnable()
     return false;
 
   auto measured_stream_ptr =
-      input_stream_map.get<InputStream<JointState>>(measured_js_stream_name);
+      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
   JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
 
   auto input_stream_ptr =
-      input_stream_map.get<InputStream<JointState>>(input_js_stream_name);
+      input_stream_map.get<SubStream<JointState>>(input_js_stream_name);
   JointState current_input_js = input_stream_ptr->getBuffer().getLatest();
 
   // TODO maybe have a joint verify
@@ -106,8 +105,6 @@ inline real_t Sign(real_t val)
 void JointMimicController::matchJoints(
     const JointState& current_output_js, const JointState& current_input_js)
 {
-  auto output_stream =
-      output_stream_map.get<OutputStream<JointState>>(output_js_stream_name);
   JointState current_command_js = current_output_js;
   real_t increment = 0.05; // rad == 2.86 deg
   real_t rate = 10;        // hz
@@ -122,7 +119,7 @@ void JointMimicController::matchJoints(
       current_command_js.positions[index_diff_to_match.first] +=
           Sign(index_diff_to_match.second) * increment;
     }
-    output_stream->publish(current_command_js);
+    output_js_stream->publish(current_command_js);
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
   }
 }
@@ -133,16 +130,12 @@ void JointMimicController::update(const DataStore& input_data)
   JointState input_js = input_data.get<JointState>(input_js_stream_name);
   JointState output_js;
   output_js.positions.reserve(input_js.positions.size());
-
   for (const auto& pos : input_js.positions)
   {
     // TODO Scale here
     output_js.positions.push_back(pos);
   }
-
-  auto output_stream =
-      output_stream_map.get<OutputStream<JointState>>(output_js_stream_name);
-  output_stream->publish(output_js);
+  output_js_stream->publish(output_js);
 }
 
 JointIncrementController::JointIncrementController()
@@ -160,7 +153,6 @@ bool JointIncrementController::init(
 void JointIncrementController::update(const DataStore& input_data)
 {
   JointState input_js = input_data.get<JointState>(input_js_stream_name);
-
   if (input_js.positions.size() != current_command_output_js.positions.size())
   {
     medrctlog::error(
@@ -168,15 +160,12 @@ void JointIncrementController::update(const DataStore& input_data)
         measured_js_stream_name);
     return;
   }
-
   for (unsigned int i = 0; i < input_js.positions.size(); ++i)
   {
     current_command_output_js.positions[i] =
         input_js.positions[i] + current_command_output_js.positions[i];
   }
-  auto output_stream =
-      output_stream_map.get<OutputStream<JointState>>(output_js_stream_name);
-  output_stream->publish(current_command_output_js);
+  output_js_stream->publish(current_command_output_js);
 }
 
 bool JointIncrementController::onEnable()
@@ -185,7 +174,7 @@ bool JointIncrementController::onEnable()
           measured_js_stream_name, true))
     return false;
   auto measured_stream_ptr =
-      input_stream_map.get<InputStream<JointState>>(measured_js_stream_name);
+      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
   current_command_output_js = measured_stream_ptr->getBuffer().getLatest();
   return true;
 }
