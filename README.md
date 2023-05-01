@@ -37,6 +37,13 @@ colcon test --packages-select "package_name"
 colcon test-results --verbose
 ```
 
+## Build with ROS, dVRK kinematics, and default controllers
+
+Build:
+```
+source /opt/ros/noetic/setup.bash
+colcon build --packages-up-to medrct_ros_app medrct_dvrk_env medrct_default_controller
+```
 
 ## Issues with KDL and Eigen
 
