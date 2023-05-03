@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 #include <string>
+#include <vector>
 
 #include <medrct/types/types.hh>
 
@@ -68,6 +69,12 @@ public:
 
 private:
   Vector3 dimension;
+};
+
+struct ObjectGroup
+{
+  std::string name;
+  std::unordered_map<std::string, Object> objects;
 };
 } // namespace env
 } // namespace medrct
