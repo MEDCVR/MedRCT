@@ -1,10 +1,19 @@
-
 # Installation
 
 Install toppra:
 ```
 pip install toppra
 ```
+
+# Usage
+
+Tab 4: Allows user to enter movements commands for the robot into the terminal. The robot can move and rotate along the x, y, and z axes.
+
+Tab 6: Allows user to specify points along a path to save the current tip position as a waypoint by pressing "w" in the terminal. You can keep moving the robot using Tab 4, and saving points using this tab, then finally send the waypoints as goals for the robot to move through
+
+Tab 7: Allows user to select either teleop or motion generator functionality through the terminal
+
+Tab 8: Allows user to modify the current trajectory that the robot is moving in by entering directional input into a pygame window. NOTE: Look for a black input box titled "Click Here and Press Keys to Teleop".
 
 # Running
 

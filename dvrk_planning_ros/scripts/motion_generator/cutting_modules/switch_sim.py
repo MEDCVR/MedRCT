@@ -28,6 +28,8 @@ def command():
         except:
             print ("something went wrong, try again ......")
             command()
+
+            
 if __name__ == '__main__':
     
     rospy.init_node('Switch_sim', anonymous= True)
