@@ -34,17 +34,20 @@ class MotionGenerator:
         self.last_point = 0
         self.last_jaw = 0
 
+        self.follower_obj = trajectory_follower.Follower()
+        self.generator_obj = trajectory_generator.Trajectories()
+
     def generator_function(self, data, mode, name):
         if not self.position_update_flag:
             time.sleep(0.3)
         rospy.wait_for_message("/PSM2/measured_js", JointState, timeout=2)
 
-        generator_obj = trajectory_generator.Trajectories()
+        # generator_obj = trajectory_generator.Trajectories()
         if self.position_update_flag == 1:
             if mode == "arm":
                 if self.last_point == 0:
                     self.last_point = self.current_position
-                trajectory, durations, interpolated_points, waypoints_cartesian = generator_obj.generate_traj (self.last_point, data, name, self.cutting_cartesian_velocity)
+                trajectory, durations, interpolated_points, waypoints_cartesian = self.generator_obj.generate_traj (self.last_point, data, name, self.cutting_cartesian_velocity)
                 if trajectory == []:
                     print("already here, no trajectory to generate")
                 else:
@@ -52,15 +55,15 @@ class MotionGenerator:
                     self.instructions.append(  {'type':'trajectory', 'trajectory': trajectory, 'durations': durations, 'interpolated_points': interpolated_points, 'name':name, 'waypoints_cartesian': waypoints_cartesian } )
             if mode == "jaw":
                 if self.jaw_update_flag ==1:
-                    if last_jaw == 0:
-                        last_jaw = self.jaw_position
-                    jaw_traj, duration, points = generator_obj.generate_traj_jaw(last_jaw, data)
+                    if self.last_jaw == 0:
+                        self.last_jaw = self.jaw_position
+                    jaw_traj, duration, points = self.generator_obj.generate_traj_jaw(self.last_jaw, data)
                     self.instructions.append(  {'type':'jaw', 'trajectory': jaw_traj, 'duration': duration, 'num_points': points } )
                     if len(jaw_traj)>0:
-                        last_jaw = jaw_traj [len(jaw_traj)-1]
+                        self.last_jaw = jaw_traj [len(jaw_traj)-1]
 
     def follower_function(self):
-        follower_obj = trajectory_follower.Follower()
+        # follower_obj = trajectory_follower.Follower()
         display_flag = 0
         while not rospy.is_shutdown():
             if self.follower_interrupt_flag[0]==1:
@@ -71,10 +74,10 @@ class MotionGenerator:
                 else: 
                     display_flag = 0
                     if self.instructions[0]['type'] == 'trajectory':
-                        follower_obj.follow_trajectory(self.instructions[0]['trajectory'],JointStatePublisher, self.instructions[0]['durations'], self.instructions[0]['interpolated_points'], self.instructions[0]['name'], self.instructions[0]['waypoints_cartesian'], StatusPublisher, RvizTrajPublisher, JawStatePublisher, self.jaw_position)
+                        self.follower_obj.follow_trajectory(self.instructions[0]['trajectory'],JointStatePublisher, self.instructions[0]['durations'], self.instructions[0]['interpolated_points'], self.instructions[0]['name'], self.instructions[0]['waypoints_cartesian'], StatusPublisher, RvizTrajPublisher, JawStatePublisher, self.jaw_position)
                         self.instructions.pop(0)
                     elif self.instructions[0]['type'] == 'jaw':
-                        follower_obj.follow_jaw_trajectory(self.instructions[0]['trajectory'],JawStatePublisher, self.instructions[0]['duration'], self.instructions[0]['num_points'])
+                        self.follower_obj.follow_jaw_trajectory(self.instructions[0]['trajectory'],JawStatePublisher, self.instructions[0]['duration'], self.instructions[0]['num_points'])
                         self.instructions.pop(0)
 
     def position_callback(self, msg):
@@ -114,16 +117,16 @@ class MotionGenerator:
 
     def enable(self):
         print ("Motion generator enabled.....")
-        follower_interrupt_flag = [1]
-        follower_obj = trajectory_follower.Follower()
-        follower_obj.set_follower_status(follower_interrupt_flag)
+        self.follower_interrupt_flag = [1]
+        # follower_obj = trajectory_follower.Follower()
+        self.follower_obj.set_follower_status(self.follower_interrupt_flag)
         self.position_update_flag = 0
 
     def disable(self):
         print ("Motion generator disabled.....")
-        follower_interrupt_flag = [0]
-        follower_obj = trajectory_follower.Follower()
-        follower_obj.set_follower_status(follower_interrupt_flag)
+        self.follower_interrupt_flag = [0]
+        # follower_obj = trajectory_follower.Follower()
+        self.follower_obj.set_follower_status(self.follower_interrupt_flag)
         self.position_update_flag = 0
 
     def switching_callback(self, msg):
@@ -136,15 +139,15 @@ class MotionGenerator:
 
     def set_config(self, config):
         self.cutting_cartesian_velocity = config['cutting_parameters']['cutting_cartesian_velocity']
-        trajectory_follower.set_config(config)
-        trajectory_generator.set_config(config)
+        self.follower_obj.set_config(config)
+        self.generator_obj.set_config(config)
         if config['default_follower_status'] == "enabled":
             self.enable()
         else:
             self.disable()
 
     def offset_callback(self, offset):
-        trajectory_follower.set_offset(offset.data)
+        self.follower_obj.set_offset(offset.data)
 
     def msg_rotMatrix(self, waypoints):
         waypoints_output=[]

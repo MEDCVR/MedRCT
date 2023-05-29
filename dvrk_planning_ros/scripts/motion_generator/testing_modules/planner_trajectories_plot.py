@@ -106,8 +106,6 @@ class PlannerTrajectoryPlot:
         self.trajectory = qs_sample
         #follow_trajectory()
 
-
-
     def accept_goal(self):
         self.goal_js = [0.39965444803237915, -0.5209582448005676, 0.13364960253238678, -0.24901601672172546, 1.0345871448516846, -1.196233332157135]
         while not self.updated:
@@ -115,6 +113,49 @@ class PlannerTrajectoryPlot:
         if self.updated==1:
             #generate_trajectory_toppra()
             self.generate_trajectory_rtb()
+
+    def test_joint_pos_sequence(self):
+        np.set_printoptions(precision = 4, suppress = True)
+
+        #t = Timer(timer_repeat_times = 100)
+        p = PsmKinematicsSolver(LND400006())
+
+        joint_change = 0.1
+
+        joint_pos = [0.0, 0.0, joint_change, 0.0, 0.0, 0.0]
+        self.test_fk_ik(p, joint_pos)
+
+        joint_pos[1] = -joint_change
+        self.test_fk_ik(p, joint_pos)
+
+        joint_pos[0] = joint_change
+        self.test_fk_ik(p, joint_pos)
+
+        joint_pos[3] = joint_change
+        joint_pos =  [0.27342814207077026, -0.5036982893943787, 0.11685218662023544, 0.011314896866679192, 0.5170695781707764, -0.27725905179977417]
+
+        self.test_fk_ik(p, joint_pos)
+
+        joint_pos[4] = joint_change
+        joint_pos = [0.0007754408870823681, 0.07288364320993423, 0.10093997418880463, -1.1464053386589512e-05, -0.05122923105955124, -2.1644532353093382e-05]
+        self.test_fk_ik(p, joint_pos)
+
+        joint_pos[5] = joint_change
+
+        joint_pos = [0.0007719629211351275, -0.5215796828269958, 0.11377278715372086, 5.5424960009986535e-05, 0.5348151326179504, -6.279001536313444e-05]
+        self.test_fk_ik(p, joint_pos, test_time= True)
+
+    def test_fk_ik(self, p, joint_pos, test_time = False):
+        output_fk = p.compute_fk(joint_pos)
+        output_jp = p.compute_ik(output_fk)  
+        
+        # Print results
+        print("Input joint pos: \n", joint_pos)
+        print("FK: \n", output_fk)
+        print("IK: \n", np.array(output_jp))
+
+        print("-------------------------------------")
+
 
 if __name__ == '__main__':
     ptp = PlannerTrajectoryPlot()
@@ -127,47 +168,3 @@ if __name__ == '__main__':
         rospy.spin()
     except KeyboardInterrupt:
         print("shutting down")
-
-
-np.set_printoptions(precision = 4, suppress = True)
-
-#t = Timer(timer_repeat_times = 100)
-p = PsmKinematicsSolver(LND400006())
-
-def test_fk_ik(joint_pos, test_time = False):
-
-    output_fk = p.compute_fk(joint_pos)
-    output_jp = p.compute_ik(output_fk)  
-      
-    # Print results
-    print("Input joint pos: \n", joint_pos)
-    print("FK: \n", output_fk)
-    print("IK: \n", np.array(output_jp))
-
-    print("-------------------------------------")
-
-joint_change = 0.1
-
-joint_pos = [0.0, 0.0, joint_change, 0.0, 0.0, 0.0]
-test_fk_ik(joint_pos)
-
-joint_pos[1] = -joint_change
-test_fk_ik(joint_pos)
-
-joint_pos[0] = joint_change
-test_fk_ik(joint_pos)
-
-joint_pos[3] = joint_change
-joint_pos =  [0.27342814207077026, -0.5036982893943787, 0.11685218662023544, 0.011314896866679192, 0.5170695781707764, -0.27725905179977417]
-
-test_fk_ik(joint_pos)
-
-joint_pos[4] = joint_change
-joint_pos = [0.0007754408870823681, 0.07288364320993423, 0.10093997418880463, -1.1464053386589512e-05, -0.05122923105955124, -2.1644532353093382e-05]
-test_fk_ik(joint_pos)
-
-joint_pos[5] = joint_change
-
-joint_pos = [0.0007719629211351275, -0.5215796828269958, 0.11377278715372086, 5.5424960009986535e-05, 0.5348151326179504, -6.279001536313444e-05]
-
-test_fk_ik(joint_pos, test_time= True)
