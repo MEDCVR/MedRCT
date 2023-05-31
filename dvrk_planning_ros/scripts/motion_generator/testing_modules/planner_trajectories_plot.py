@@ -65,7 +65,6 @@ class PlannerTrajectoryPlot:
 
         #follow_trajectory()
 
-
     def generate_trajectory_toppra(self):
 
         # Parameters

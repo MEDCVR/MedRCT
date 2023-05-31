@@ -4,6 +4,7 @@
 import rospy
 import pygame
 from std_msgs.msg import Float32MultiArray
+from sensor_msgs.msg import Joy
 
 msg = """
 Reading from the keyboard  and Publishing to Twist!
@@ -16,19 +17,24 @@ e : up (+z)
 q : down (-z)
 n : reduce offset_distance by 10%
 m : increase offset_distance by 10%
+t : switch to teleop
+g : switch to motion generator
 
 CTRL-C to quit
 """
 
 if __name__=="__main__":
     rospy.init_node('teleop_twist_keyboard_shared_autonomy')
+
     print(msg)
 
     increment = rospy.get_param("~increment", 0.00005) #m
     rot_increment = rospy.get_param("~rot_increment", 0.05)
     rate = rospy.get_param("~rate", 20) # Hz
     repeat = rospy.get_param("~repeat_rate", 0.0)
-
+    mode = -1
+    
+    ToggleStatePublisher = rospy.Publisher('/toggle/mode', Joy, queue_size = 1)
     Publisher = rospy.Publisher("/trajectory/offset", Float32MultiArray, queue_size = 1)
 
     #print("increment: ", increment, "m")
@@ -120,6 +126,22 @@ if __name__=="__main__":
             offset_distance = 1.1 * offset_distance
             #is_key_pressed = True    .
             print("offset_distance if you hold down keys: ", offset_distance, " m")
+
+        if keys[pygame.K_t] and mode != 0:
+            dat = Joy()
+            dat.buttons = [0]
+            ToggleStatePublisher.publish(dat)
+            is_key_pressed = True
+            mode = 0
+            print("disabling motion generator and switching to teleop.......")
+        
+        if keys[pygame.K_g] and mode != 1:
+            dat = Joy()
+            dat.buttons = [1]
+            ToggleStatePublisher.publish(dat)
+            is_key_pressed = True
+            mode = 1
+            print("disabling teleop and switching to motion generator.......")
 
         if(is_key_pressed):
             # print("x: {}, y: {}, z: {}".format(x, y, z))
