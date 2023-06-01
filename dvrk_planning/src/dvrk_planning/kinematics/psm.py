@@ -37,6 +37,7 @@ class SphericalWristToolParams():
         # self.L_tool2rcm_offset = 0.0229
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
         self.scale = scale
+        self.negate_joint_list = [1, 1, 1, 1, 1, 1]
 
 class LND400006(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
@@ -62,12 +63,24 @@ class RTS470007(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
         super().__init__(
             L_rcc = 0.4318,  # From dVRK documentation
-            # L_tool = 0.4677,  # From dVRK documentation
-            L_tool = 0.47,  # From dVRK documentation
+            L_tool = 0.4162,  # From dVRK documentation
             L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
             L_yaw2ctrlpnt = 0.01041,  # From CAD measurement
             scale = scale
         )
+
+class RTS420007(SphericalWristToolParams):
+    def __init__(self, scale = 1.0):
+        super().__init__(
+            L_rcc = 0.4318,  # From dVRK documentation
+            # L_tool = 0.4677,  # From dVRK documentation
+            L_tool = 0.47,  # From dVRK documentation
+            L_pitch2yaw = 0.0091,  # Fixed length from the palm joint to the pinch joint
+            L_yaw2ctrlpnt = 0.01041,  # From CAD measurement
+            scale = scale,
+            negate_joint_list = [1, 1, 1, -1, 1, 1]
+        )
+
 
 class CustomSphericalWristFromYaml(SphericalWristToolParams):
     def __init__(self, yaml):
@@ -142,6 +155,7 @@ class Chain():
 class PsmKinematicsSolver(KinematicsSolver):
     def __init__(self, spherical_wrist_tool_params: SphericalWristToolParams):
         self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
+        self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
 
     # 7 comes from default_chain_link_num
     def compute_fk(self, joint_positions, up_to_link_num = 7):
@@ -153,13 +167,9 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         T_N_0 = np.identity(4)
 
-
         for i in range(up_to_link_num):
             link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
-            if(i==3):
-                T_N_0 = T_N_0 * link_dh.get_trans(-j[i])
-            else:
-                T_N_0 = T_N_0 * link_dh.get_trans(j[i])
+            T_N_0 = T_N_0 * link_dh.get_trans(self.negate_joint_list[i] * j[i])
 
         return T_N_0
 
@@ -268,8 +278,12 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         j6 = get_angle(T_7_0.M.UnitZ(), T_5_0.M.UnitX(),
                     up_vector=-T_5_0.M.UnitY())
+        
+        joint_list = [j1, j2, j3, j4, j5, j6]
+        for i in range(len(joint_list)):
+            joint_list[i] *= self.negate_joint_list[i]
 
-        return [j1, j2, j3, -j4, j5, j6]
+        return joint_list
 
     def get_active_joint_names(self):
         return self.kinematics_data.joint_names
