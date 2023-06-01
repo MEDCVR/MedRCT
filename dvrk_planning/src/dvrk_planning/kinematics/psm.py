@@ -81,7 +81,6 @@ class RTS420007(SphericalWristToolParams):
             negate_joint_list = [1, 1, 1, -1, 1, 1]
         )
 
-
 class CustomSphericalWristFromYaml(SphericalWristToolParams):
     def __init__(self, yaml):
         scale = 1.0
