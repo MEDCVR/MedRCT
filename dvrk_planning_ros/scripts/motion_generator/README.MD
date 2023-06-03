@@ -13,6 +13,8 @@ Tab 6: Allows user to specify points along a path to save the current tip positi
 
 Tab 7: Allows user to select either teleop or motion generator functionality through the terminal
 
+UPDATED: Tab 7 is no longer necessary - select teleop/motion generator through pygame window from Tab 8
+
 Tab 8: Allows user to modify the current trajectory that the robot is moving in by entering directional input into a pygame window. NOTE: Look for a black input box titled "Click Here and Press Keys to Teleop".
 
 # Running
@@ -51,6 +53,8 @@ Tab 7:
 cd dvrk_ws
 source devel/setup.bash
 rosrun dvrk_planning_ros switch_sim.py 
+
+UPDATED: Tab 7 is no longer necessary
 
 Tab 8:
 cd dvrk_ws
