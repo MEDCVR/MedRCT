@@ -23,7 +23,7 @@ from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Float64MultiArray
 
 class MotionGenerator:
-    def __init__(self):
+    def __init__(self, config_yaml):
         self.cutting_cartesian_velocity = 0.00125
         self.current_position = [0.0,0.0,0.0,0.0,0.0,0.0]
         self.position_update_flag = 0
@@ -34,8 +34,14 @@ class MotionGenerator:
         self.last_point = 0
         self.last_jaw = 0
 
+        self.JointStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['joint_control_topic'], JointState, queue_size = 10)
+        self.JawStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['jaw_control_topic'], JointState, queue_size = 10)
+        self.StatusPublisher = rospy.Publisher("/motion_generator" + config_yaml['ros_communication'][0]['output']['trajectory_status_topic'], TrajectoryStatus, queue_size = 10)
+        self.RvizTrajPublisher = rospy.Publisher("/motion_generator" + config_yaml['ros_communication'][0]['output']['rviz_trajectory_topic'], Float64MultiArray, queue_size = 10)
+
         self.follower_obj = trajectory_follower.Follower()
         self.generator_obj = trajectory_generator.Trajectories()
+        self.set_config(config_yaml)
 
     def generator_function(self, data, mode, name):
         if not self.position_update_flag:
@@ -74,10 +80,10 @@ class MotionGenerator:
                 else: 
                     display_flag = 0
                     if self.instructions[0]['type'] == 'trajectory':
-                        self.follower_obj.follow_trajectory(self.instructions[0]['trajectory'],JointStatePublisher, self.instructions[0]['durations'], self.instructions[0]['interpolated_points'], self.instructions[0]['name'], self.instructions[0]['waypoints_cartesian'], StatusPublisher, RvizTrajPublisher, JawStatePublisher, self.jaw_position)
+                        self.follower_obj.follow_trajectory(self.instructions[0]['trajectory'],self.JointStatePublisher, self.instructions[0]['durations'], self.instructions[0]['interpolated_points'], self.instructions[0]['name'], self.instructions[0]['waypoints_cartesian'], self.StatusPublisher, self.RvizTrajPublisher, self.JawStatePublisher, self.jaw_position)
                         self.instructions.pop(0)
                     elif self.instructions[0]['type'] == 'jaw':
-                        self.follower_obj.follow_jaw_trajectory(self.instructions[0]['trajectory'],JawStatePublisher, self.instructions[0]['duration'], self.instructions[0]['num_points'])
+                        self.follower_obj.follow_jaw_trajectory(self.instructions[0]['trajectory'],self.JawStatePublisher, self.instructions[0]['duration'], self.instructions[0]['num_points'])
                         self.instructions.pop(0)
 
     def position_callback(self, msg):
@@ -179,7 +185,6 @@ class MotionGenerator:
 
 if __name__ == '__main__':
 
-    mg = MotionGenerator()
 
     argv = rospy.myargv(argv=sys.argv)
 
@@ -202,8 +207,7 @@ if __name__ == '__main__':
     # Parse yamlposition
     yaml_file = open(full_config_path)
     config_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
-    #print(config_yaml)
-    mg.set_config(config_yaml)
+    mg = MotionGenerator(config_yaml)
 
     rospy.init_node('MotionGenerator', anonymous= True)
     rospy.Subscriber("/motion_generator" + config_yaml['ros_communication'][0]['input']['waypoint_input'],Waypoints, mg.waypoint_callback)
@@ -211,10 +215,7 @@ if __name__ == '__main__':
     rospy.Subscriber(config_yaml['ros_communication'][0]['input']['joint_positions_topic'],JointState, mg.position_callback)
     rospy.Subscriber(config_yaml['ros_communication'][0]['input']['jaw_position_topic'],JointState, mg.jaw_callback)
     rospy.Subscriber("/motion_generator" + config_yaml['toggle_topic'], Joy, mg.switching_callback)
-    JointStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['joint_control_topic'], JointState, queue_size = 10)
-    JawStatePublisher = rospy.Publisher(config_yaml['ros_communication'][0]['output']['jaw_control_topic'], JointState, queue_size = 10)
-    StatusPublisher = rospy.Publisher("/motion_generator" + config_yaml['ros_communication'][0]['output']['trajectory_status_topic'], TrajectoryStatus, queue_size = 10)
-    RvizTrajPublisher = rospy.Publisher("/motion_generator" + config_yaml['ros_communication'][0]['output']['rviz_trajectory_topic'], Float64MultiArray, queue_size = 10)
+ 
     #Thread(target = mg.generator_function).start()
     Thread(target = mg.follower_function).start()
     try:

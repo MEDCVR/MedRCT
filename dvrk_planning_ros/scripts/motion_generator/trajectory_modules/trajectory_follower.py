@@ -77,7 +77,7 @@ class Follower:
         points = inc_points
         points = points +1
         p = PsmKinematicsSolver(self.kinematics)
-        self.mode = 0
+        mode = 0
         curr = jaw_position
         l=0
         
@@ -98,14 +98,14 @@ class Follower:
             self.max_close = 0
             for i in range (0,points+5):
                 if curr > self.max_open:
-                    self.mode = 1
+                    mode = 1
                 elif curr < self.max_close:
-                    self.mode = 0
+                    mode = 0
 
-                if self.mode == 0:
+                if mode == 0:
                     self.jaw_trajectory.append(curr + increment)
                     curr = curr + increment
-                elif self.mode ==1 :
+                elif mode ==1 :
                     self.jaw_trajectory.append(curr - increment)
                     curr = curr - increment
 
