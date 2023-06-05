@@ -34,8 +34,8 @@ if __name__=="__main__":
     repeat = rospy.get_param("~repeat_rate", 0.0)
     mode = -1
     
-    ToggleStatePublisher = rospy.Publisher('/toggle/mode', Joy, queue_size = 1)
-    Publisher = rospy.Publisher("/trajectory/offset", Float32MultiArray, queue_size = 1)
+    ToggleStatePublisher = rospy.Publisher('/motion_generator/toggle/mode', Joy, queue_size = 1)
+    Publisher = rospy.Publisher("/motion_generator/trajectory/offset", Float32MultiArray, queue_size = 1)
 
     #print("increment: ", increment, "m")
     #print("rate: ", rate, "Hz")

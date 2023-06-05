@@ -28,7 +28,7 @@ from PyKDL import Vector, Rotation, Frame
 # i.e. the robot has 6 joints, but only provide 3 joints. The FK till the 3+1 link will be provided
 
 class SphericalWristToolParams():
-    def __init__(self, L_rcc, L_tool, L_pitch2yaw, L_yaw2ctrlpnt, scale = 1.0):
+    def __init__(self, L_rcc, L_tool, L_pitch2yaw, L_yaw2ctrlpnt, scale = 1.0, negate_joint_list = [1, 1, 1, 1, 1, 1]):
         self.L_rcc = L_rcc * scale
         self.L_tool = L_tool * scale
         self.L_pitch2yaw = L_pitch2yaw * scale
@@ -37,7 +37,7 @@ class SphericalWristToolParams():
         # self.L_tool2rcm_offset = 0.0229
         self.L_tool2rcm_offset = self.L_rcc - self.L_tool
         self.scale = scale
-        self.negate_joint_list = [1, 1, 1, 1, 1, 1]
+        self.negate_joint_list = negate_joint_list
 
 class LND400006(SphericalWristToolParams):
     def __init__(self, scale = 1.0):
@@ -165,11 +165,10 @@ class PsmKinematicsSolver(KinematicsSolver):
             j[i] = joint_positions[i]
 
         T_N_0 = np.identity(4)
-
+        negate_joint_list = self.negate_joint_list + [1.0]
         for i in range(up_to_link_num):
             link_dh = self.kinematics_data.get_dh(self.kinematics_data.default_chain[i])
-            T_N_0 = T_N_0 * link_dh.get_trans(self.negate_joint_list[i] * j[i])
-
+            T_N_0 = T_N_0 * link_dh.get_trans(negate_joint_list[i] * j[i])
         return T_N_0
 
     def get_chain(self, reference_link, target_link):

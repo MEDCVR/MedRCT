@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
     rospy.init_node('Teleop_Goal_interface', anonymous= True)
     rospy.Subscriber("/PSM2/measured_js", JointState, tgi.position_callback)
-    GoalStatePublisher = rospy.Publisher("/input/waypoints", Waypoints, queue_size = 10)
+    GoalStatePublisher = rospy.Publisher("/motion_generator/input/waypoints", Waypoints, queue_size = 10)
     tgi.get_goals()
 
     try:

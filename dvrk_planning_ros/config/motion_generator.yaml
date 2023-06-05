@@ -3,9 +3,9 @@ ros_communication:
   - name: "communication_topics"
     input:
       waypoint_input: "/input/waypoints"
+      trajectory_offset_topic: "/trajectory/offset"
       joint_positions_topic: "/PSM2/measured_js"
       jaw_position_topic: "/PSM2/jaw/measured_js"
-      trajectory_offset_topic: "/trajectory/offset"
     output:
       joint_control_topic: "/PSM2/servo_jp"
       jaw_control_topic: "/PSM2/jaw/servo_jp"
@@ -25,7 +25,7 @@ motion_generation_parameters:
       vlims: [0.3,0.3,0.3,0.3,0.3,0.3]        # Default velocity limits for each joint
       alims: [0.15,0.15,0.15,0.15,0.15,0.15]  # Default acceleration limits for each joint
     kinematics:
-      tool: "RTS470007"
+      tool: "RTS420007"
 cutting_parameters:                           # These come into play only if you are using a scissor
     cutting_cartesian_velocity: 0.002
     max_open: 40                              # Maximum jaw open angle during cutting (in degrees)

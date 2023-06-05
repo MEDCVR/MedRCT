@@ -5,7 +5,7 @@ import time
 import numpy as np
 import rospy
 import math
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007, RTS420007
 from dvrk_planning_msgs.msg import TrajectoryStatus
 from threading import Thread
 from std_msgs.msg import Float64MultiArray

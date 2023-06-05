@@ -9,7 +9,7 @@ import toppra.algorithm as algo
 import math
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
-from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007
+from dvrk_planning.kinematics.psm import PsmKinematicsSolver, LND400006, RTS470007, RTS420007
 
 class Trajectories:
 
