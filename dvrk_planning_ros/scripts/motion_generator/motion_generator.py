@@ -11,7 +11,6 @@ import rospy
 
 from trajectory_modules import trajectory_follower
 from trajectory_modules import trajectory_generator
-from cutting_modules import teleop_goal_interface
 from sensor_msgs.msg import JointState
 from sensor_msgs.msg import Joy
 from threading import Thread
@@ -93,29 +92,6 @@ class MotionGenerator:
     def get_current_position(self):
         print (self.current_position)
         return self.current_position
-
-    def teleop_goals(self):
-        mode = 2
-        status = 0
-        goal_obj = teleop_goal_interface.CuttingInput()
-        temp = goal_obj.sequential_goals()
-        data = temp[0]
-        name = temp[1]
-        
-        if data == []:
-            status = 1
-        while status: 
-            status = goal_obj.get_goals()
-
-            if (status == 0):
-                temp = goal_obj.sequential_goals()
-                data = temp[0]
-                name = temp[1]
-                if data == []:
-                    status = 1
-        if data == []:
-            print ("some mess here")
-        return [data], mode, name
 
     def jaw_callback(self, msg):
         self.jaw_position = msg.position[0]
