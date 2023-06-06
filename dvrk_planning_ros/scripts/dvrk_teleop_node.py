@@ -45,7 +45,8 @@ class DvrkTeleopNode:
             clutch_topic = config_yaml["clutch_topic"]
             self.clutch_sub = rospy.Subscriber(clutch_topic, Joy, self.clutch_callback)
 
-        switch_topic = "/console/camera"
+        #switch_topic = "/console/camera"
+        # switch_topic = "/toggle/mode"
         if ("switcher" in config_yaml):
             switcher_yaml = config_yaml["switcher"]
             switch_topic = switcher_yaml["switch_topic"]

@@ -18,6 +18,12 @@ add_service_files(
   ComputeIK.srv
 )
 
+add_message_files(
+  FILES
+  Waypoints.msg 
+  TrajectoryStatus.msg
+)
+
 generate_messages(
   DEPENDENCIES
   geometry_msgs
