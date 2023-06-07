@@ -61,8 +61,7 @@ void CreateKinematicsSolvers(
       controller_config["kinematics_tree"].as<std::string>());
   if (!kin_tree)
   {
-    medrctlog::warn(
-        "Kinematics tree not found, will try creating kinematics however.");
+    medrctlog::warn("Kinematics tree not found from URDF");
   }
 
   if (!controller_config["forward_kinematics"])

@@ -16,8 +16,8 @@ int main(int argc, char** argv)
 {
   if (argc != 2)
   {
-    medrctlog::error(
-        "Argument must be exactly one: Relative path to config yaml");
+    medrctlog::error("Argument must be exactly one: Relative path to config "
+                     "yaml from the <your_ws>/install directory");
     return -1;
   }
   std::string relative_path_to_yaml = argv[1];

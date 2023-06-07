@@ -18,6 +18,7 @@ public:
       const std::string& group_name,
       const std::unordered_map<std::string, Transform> object_transforms);
   virtual void publish() = 0;
+
 private:
   std::unordered_map<std::string, ObjectGroup> object_groups;
 };
