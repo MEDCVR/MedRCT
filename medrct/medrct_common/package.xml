@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>medrct_common</name>
+  <version>0.0.1</version>
+  <description>Common data types for medrct</description>
+  <maintainer email="radian.gondokaryono@mail.utoronto.ca">radian</maintainer>
+  <license>TODO</license>
+</package>

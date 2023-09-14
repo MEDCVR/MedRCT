@@ -1,0 +1,35 @@
+<robot name="test_robot">
+  <link name= "world"/>
+  <joint name="world_l1_joint" type="fixed">
+    <parent link="world"/>
+    <child link="l1"/>
+  </joint>
+  <joint name="l1_l2_joint" type="fixed">
+    <parent link="l1"/>
+    <child link="l2"/>
+  </joint>
+  <link name="l1">
+    <visual>
+      <geometry>
+        <sphere radius="1.349"/>
+      </geometry>
+      <material name="">
+        <color rgba="1.0 0.65 0.0 0.01" />
+      </material>
+    </visual>
+    <inertial>
+      <mass value="8.4396"/>
+      <inertia ixx="0.087" ixy="0.14" ixz="0.912" iyy="0.763" iyz="0.0012" izz="0.908"/>
+    </inertial>
+  </link>
+  <link name="l2">
+    <visual>
+      <geometry>
+        <cylinder radius="3.349" length="7.5490"/>
+      </geometry>
+      <material name="red ish">
+        <color rgba="1 0.0001 0.0 1" />
+      </material>
+    </visual>
+  </link>
+</robot>
