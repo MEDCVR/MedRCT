@@ -1,8 +1,33 @@
 # Installation
 
+Install ROS: http://wiki.ros.org/noetic/Installation/Ubuntu
+
+Install catkin tools https://catkin-tools.readthedocs.io/en/latest/installing.html
+
 Install toppra:
 ```
 pip install toppra
+```
+
+# Build
+Make workspace so folder structure is <your_workspace>/src/dvrk_planning
+
+source ros:
+
+```
+source /opt/ros/noetic/setup.bash
+
+or
+
+source /opt/ros/<your_distro>/setup.bash
+```
+
+build:
+
+```
+cd <your_workspace>
+catkin build cutting_app
+source devel/setup.bash
 ```
 
 # Usage

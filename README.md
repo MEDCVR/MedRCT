@@ -1,15 +1,6 @@
-# dvrk_planning
-
-This repo is a metapackage for dvrk planning algorithms.
-
-List of Packages: 
-
-- dvrk_planning: Python package for dvrk kinematics computation (right now).
-- dvrk_planning_msgs: Ros messages and services definitions for the dvrk_planning_ros node.
-- dvrk_planning_ros: The ros node which exposes the dvrk_planning api as ros services/msgs.
-
-
 # MEDRCT
+
+## Dependencies
 
 Install colcon:
 
@@ -18,21 +9,13 @@ curl -s https://packagecloud.io/install/repositories/dirk-thomas/colcon/script.d
 sudo apt install python3-colcon-common-extensions
 ```
 
-Install clang and spdlog:
-
-```
-sudo apt install clang-format-7
-sudo apt install libspdlog-dev
-```
-
-
 ## Build and run the example
 
-Install ROS (TODO link)
+Install ROS: http://wiki.ros.org/noetic/Installation/Ubuntu
 
 ```
 mkdir ~/medrct_ws
-git clone TODO_MEDRCT_LINK
+git clone https://mcsgitlab.utm.utoronto.ca/medcvr/dvrk_planning
 ```
 
 ### Build
@@ -92,3 +75,16 @@ python3 psm_teleop_keyboard.py
 ```
 sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 ```
+
+## For Developers
+
+Install clang and spdlog:
+
+```
+sudo apt install clang-format-7
+sudo apt install libspdlog-dev
+```
+
+# dvrk_planning Instructions
+
+Old and depcrecated dvrk_planning [instructions.](dvrk_python_v1/README.md)
