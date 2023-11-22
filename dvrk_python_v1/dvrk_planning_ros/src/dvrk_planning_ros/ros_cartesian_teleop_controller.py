@@ -4,9 +4,9 @@ import yaml
 import numpy as np
 
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import TransformStamped, TwistStamped, WrenchStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped, TwistStamped, WrenchStamped
 
-from PyKDL import Rotation, Vector, Wrench
+from PyKDL import Rotation, Vector
 
 from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController, JointIncrementTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
@@ -75,6 +75,9 @@ class RosCartesiansTeleopController(RosTeleopController):
         output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("output_2_output_reference_rot" in output_yaml):
             output_2_output_reference_rot = rotation_from_yaml(output_yaml["output_2_output_reference_rot"])
+        rotate_about_base_frame_vs_tip_frame = False
+        if("rotate_about_base_frame_vs_tip_frame" in output_yaml):
+            rotate_about_base_frame_vs_tip_frame = output_yaml["rotate_about_base_frame_vs_tip_frame"]
 
         input_yaml = controller_yaml["input"]
         self.hz_divisor = None
@@ -124,6 +127,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
                 input_tf_appended_rotation = input_tf_appended_rotation,
+                rotate_about_base_frame_vs_tip_frame = rotate_about_base_frame_vs_tip_frame,
                 has_ee_metadata = has_ee_metadata,
                 position_scale = position_scale)
         elif input_yaml["type"] == "increment":
@@ -142,9 +146,20 @@ class RosCartesiansTeleopController(RosTeleopController):
                 kinematics_solver,
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
+                otate_about_base_frame_vs_tip_frame = rotate_about_base_frame_vs_tip_frame,
                 has_ee_metadata = has_ee_metadata)
-            input_topic_type = TwistStamped
-            self._input_callback_impl = self._input_callback_twist
+            if "topic_type" in input_yaml:
+                if input_yaml["topic_type"] == "PoseStamped":
+                    input_topic_type = PoseStamped
+                    self._input_callback_impl = self._input_callback_pose
+                elif input_yaml["topic_type"] == "TwistStamped":
+                    input_topic_type = TwistStamped
+                    self._input_callback_impl = self._input_callback_twist
+                else:
+                    raise KeyError ("controller: topic_type: must be PoseStamped or TwistStamped")
+            else:
+                input_topic_type = TwistStamped
+                self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
         super().__init__(controller_yaml, input_topic_type,
@@ -240,6 +255,15 @@ class RosCartesiansTeleopController(RosTeleopController):
         # print(self.desired_output_jaw_angle)
         self._debug_output_tf() # after the update
 
+    def _input_callback_pose(self, data):
+        pose = data.pose
+        self._teleop_controller.update(
+            Vector(pose.linear.x, pose.linear.y, pose.linear.z),
+            Rotation.Quaternion(
+                pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+                (self.desired_output_jaw_angle,))
+        self._debug_output_tf() # after the update
+
     def _input_jaw_increment(self, data):
         self.input_jaw_js = data.position
         self._jaw_inc_controller.update(self.input_jaw_js)
@@ -259,3 +283,4 @@ class RosCartesiansTeleopController(RosTeleopController):
             print(self._get_str_name(), ": waiting for message from topic [" + self.jaw_input_topic +"]" )
             rospy.wait_for_message(self.jaw_input_topic, JointState)
             print(self._get_str_name(), ": finished waiting for message from topic [" + self.jaw_input_topic +"]" )
+

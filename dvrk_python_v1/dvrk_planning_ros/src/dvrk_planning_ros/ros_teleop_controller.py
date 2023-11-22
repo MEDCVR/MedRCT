@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import rospy
 import numpy as np
 import threading
@@ -73,6 +74,10 @@ class JointStateControlInterface:
     def publish(self, joint_state_positions):
         self.js_msg.position = joint_state_positions[self.start_idx: self.start_idx + self.size]
         self.control_topic_name_pub.publish(self.js_msg)
+@dataclass
+class JointLimits:
+    lower: np.ndarray = None
+    upper: np.ndarray = None
 
 class RosTeleopController:
     def __init__(self, controller_yaml, ros_input_type,
@@ -110,6 +115,24 @@ class RosTeleopController:
             raise "__is_currrent_output_jps_initialized is False, enable the RosTeleopController() one time first"
         return self.__current_output_jps
 
+        self.joint_limits = None
+        if "joint_limits" in output_yaml:
+            joint_limits_yaml = output_yaml["joint_limits"]
+            joint_limits = self._get_joint_limits(joint_limits_yaml) # Raise error if fail
+            self.joint_limits = joint_limits
+
+    def _get_joint_limits(self, joint_limits_yaml):
+        # TODO If this was in the correct place like teleop controller, we can check joint size
+        # and teleop controller has knowledge of output robot kinematics
+        joint_limits = JointLimits()
+        upper_limits = np.array(joint_limits_yaml["upper"])
+        lower_limits = np.array(joint_limits_yaml["lower"])
+        if(len(upper_limits) != len(lower_limits)):
+            raise KeyError("upper joint limits and lower joint limits need to to be same size")
+        joint_limits.upper = upper_limits
+        joint_limits.lower = lower_limits
+        return joint_limits
+
     def _get_str_name(self):
         return "Teleop controller [" + self.name + "]"
 
@@ -139,13 +162,21 @@ class RosTeleopController:
             js_ci.wait_for_output_feedback_sub_msg(
                 always_print= always_print, prepend_str=self._get_str_name())
 
+    def _clamp_to_joint_limits(self, joint_positions):
+        return np.clip(joint_positions, self.joint_limits.lower, self.joint_limits.upper)
+
     def _output_callback(self, joint_positions):
         harmonized_jp = get_harmonized_joint_positions(joint_positions, np.array(self.__current_output_jps))
+        # TODO: These should be in dvrk_planning teleop controllers, but not easy as
+        # of now due to its implementations
+        if self.joint_limits is not None:
+            harmonized_jp = self._clamp_to_joint_limits(harmonized_jp)
         for js_ci in self.js_control_interfaces:
             js_ci.publish(harmonized_jp)
             rospy.sleep(0.01) # Delay needed for downstream to synchronize properly
         # print("self.get_current_output_jps()\n", self.get_current_output_jps())
         # print("harmonized_jp send: \n", harmonized_jp)
+
 
     def wait_for_input_sub_msg(self, always_print=False):
         try:
