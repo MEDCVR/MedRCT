@@ -6,6 +6,7 @@ import rospy
 import rospkg
 import sys
 import yaml
+import numpy as np
 
 from sensor_msgs.msg import  Joy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, CustomSphericalWristFromYaml
@@ -29,11 +30,14 @@ class DvrkTeleopNode:
                         class_ = getattr(module, tool_yaml["type"])
                         scale = 1.0
                         if "scale" in tool_yaml:
-                            scale = tool_yaml["scale"] 
+                            scale = tool_yaml["scale"]
                             print("Choosing scale {}".format(scale))
                         kin_solver = PsmKinematicsSolver(class_(scale))
+                elif kin_yaml["robot"] == "custom":
+                    module = importlib.import_module(kin_yaml["module_name"])
+                    kin_solver = getattr(module, kin_yaml["class_name"])()
                 else:
-                    raise KeyError ("Only [psm] available now")
+                    raise KeyError ("key [robot]: Only [psm, custom] available now")
                 self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
 
         if "joint_controllers" in config_yaml:
@@ -83,6 +87,8 @@ class DvrkTeleopNode:
 
 if __name__ == '__main__':
     argv = rospy.myargv(argv=sys.argv)
+
+    np.set_printoptions(precision=8, suppress=True)
 
     # Parse arguments
     parser = argparse.ArgumentParser()
