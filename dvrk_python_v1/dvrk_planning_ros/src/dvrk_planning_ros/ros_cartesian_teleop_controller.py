@@ -85,7 +85,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
         self.jaw_sub = None
         self.desired_output_jaw_angle = None
-        desired_jaw_in_kinematics = False
+        has_ee_metadata = False
         self._jaw_controller = None
         self.kinematics_solver = kinematics_solver
         if input_yaml["type"] == "follow":
@@ -97,7 +97,7 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._jaw_mimic_controller = None
             if("jaw" in input_yaml):
                 self.desired_output_jaw_angle = 0.5
-                desired_jaw_in_kinematics = True
+                has_ee_metadata = True
                 jaw_yaml = input_yaml["jaw"]
                 scale = 1.0
                 if "scale" in jaw_yaml:
@@ -105,6 +105,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 self._jaw_mimic_controller = JointFollowTeleopController(scale)
                 self._jaw_mimic_controller.register(self._output_jaw_callback_mimic)
                 self.jaw_input_topic = jaw_yaml["input_topic"]
+                self.jaw_idx = jaw_yaml["idx"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self._jaw_controller = self._jaw_mimic_controller
             if("input_tf_appended_rotation" in input_yaml):
@@ -114,24 +115,25 @@ class RosCartesiansTeleopController(RosTeleopController):
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
                 input_tf_appended_rotation = input_tf_appended_rotation,
-                desired_jaw_in_kinematics = desired_jaw_in_kinematics,
+                has_ee_metadata = has_ee_metadata,
                 position_scale = position_scale)
         elif input_yaml["type"] == "increment":
             self._jaw_inc_controller = None
             if("jaw" in input_yaml):
                 self.desired_output_jaw_angle = 0.5
-                desired_jaw_in_kinematics = True
+                has_ee_metadata = True
                 jaw_yaml = input_yaml["jaw"]
                 self._jaw_inc_controller = JointIncrementTeleopController()
                 self._jaw_inc_controller.register(self._output_jaw_callback_inc)
                 self.jaw_input_topic = jaw_yaml["input_topic"]
+                self.jaw_idx = jaw_yaml["idx"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_increment)
                 self._jaw_controller = self._jaw_inc_controller
             self._teleop_controller = CartesianIncrementTeleopController(
                 kinematics_solver,
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
-                desired_jaw_in_kinematics = desired_jaw_in_kinematics)
+                has_ee_metadata = has_ee_metadata)
             input_topic_type = TwistStamped
             self._input_callback_impl = self._input_callback_twist
         else:
@@ -150,14 +152,14 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.get_current_output_jps())
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
-                self._jaw_inc_controller.enable(np.array([current_output_jaw]))
+                jaw_position = self.kinematics_solver.actuator_to_joint(self.get_current_output_jps())[self.jaw_idx]
+                self._jaw_inc_controller.enable(np.array([jaw_position]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
-                self._jaw_mimic_controller.enable(self.input_jaw_js, np.array([current_output_jaw]))
+                jaw_position = self.kinematics_solver.actuator_to_joint(self.get_current_output_jps())[self.jaw_idx]
+                self._jaw_mimic_controller.enable(self.input_jaw_js, np.array([jaw_position]))
         if self.input_device: # FOLLOW only
             self.input_device.enable()
 
@@ -179,14 +181,14 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
-                self.__jaw_inc_controller.unclutch(np.array([current_output_jaw]))
+                jaw_position = self.kinematics_solver.actuator_to_joint(self.get_current_output_jps())[self.jaw_idx]
+                self._jaw_inc_controller.unclutch(np.array([jaw_position]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
-                self._jaw_mimic_controller.unclutch(self.input_jaw_js, np.array([current_output_jaw]))
+                jaw_position = self.kinematics_solver.actuator_to_joint(self.get_current_output_jps())[self.jaw_idx]
+                self._jaw_mimic_controller.unclutch(self.input_jaw_js, np.array([jaw_position]))
 
     def _debug_output_tf(self):
         if self.is_debug_output_tf:
@@ -204,7 +206,7 @@ class RosCartesiansTeleopController(RosTeleopController):
             if self._hz_index_follow != 0:
                 return
 
-        self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
+        self._teleop_controller.update(self.current_input_tf, (self.desired_output_jaw_angle))
         if self.input_device: # How to take away notion of MTM in this case
             self.input_device.update()
         self._debug_output_tf()
@@ -225,7 +227,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(
             Vector(twist.linear.x, twist.linear.y, twist.linear.z),
             Rotation.RPY(twist.angular.x, twist.angular.y, twist.angular.z),
-            self.desired_output_jaw_angle)
+            (self.desired_output_jaw_angle))
         # print(self.desired_output_jaw_angle)
         self._debug_output_tf() # after the update
 
@@ -238,7 +240,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(
             Vector(0, 0, 0),
             Rotation.RPY(0, 0 ,0),
-            self.desired_output_jaw_angle)
+            (self.desired_output_jaw_angle))
         # print(self.desired_output_jaw_angle)
         self._debug_output_tf() # after the update
 
