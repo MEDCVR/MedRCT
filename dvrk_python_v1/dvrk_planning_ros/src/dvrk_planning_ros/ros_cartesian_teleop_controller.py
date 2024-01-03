@@ -4,7 +4,7 @@ import yaml
 import numpy as np
 
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import TransformStamped, TwistStamped
+from geometry_msgs.msg import TransformStamped, TwistStamped, WrenchStamped
 
 from PyKDL import Rotation, Vector, Wrench
 
@@ -37,22 +37,30 @@ def rotation_from_yaml(reference_rot):
     else:
         raise KeyError ("output_to_camera in yaml looking for quaternion or lookup_tf")
 
-from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
-class InputDevice:
-    def __init__(self, name):
-        self.mtm_device = MTM(name)
+class InputDeviceControl:
+    def __init__(self, servo_cp_topic, servo_cf_topic):
         self.is_enabled = False
-        self.empty_wrench = Wrench()
+        self.empty_wrench_msg = WrenchStamped()
+        self._servo_cp_pub = rospy.Publisher(
+            pose_pub_topic_name, TransformStamped, queue_size=1)
+        self._wrench_pub = rospy.Publisher(
+            wrench_pub_topic_name, WrenchStamped, queue_size=1)
     def enable(self):
         self.is_enabled = True
 
     def disable(self, current_tf):
         self.is_enabled = False
-        self.mtm_device.servo_cp(numpy_mat_to_gm_tf(current_tf))
+        self._servo_cp_pub(numpy_mat_to_gm_tf(current_tf))
 
     def update(self):
         if self.is_enabled:
-            self.mtm_device.servo_cf(self.empty_wrench)
+            self._servo_cf(self.empty_wrench_msg)
+
+    def _servo_cp(self, tf_stamped_msg):
+        self._servo_cp_pub.publish(tf_stamped_msg)
+
+    def _servo_cf(self, wrench_msg):
+        self._wrench_pub.publish(wrench_msg)
 
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
@@ -77,7 +85,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
         self.input_device = None
         if("is_input_device_hold_home_off" in input_yaml and input_yaml["is_input_device_hold_home_off"]): # TODO, remove notion of MTM
-            self.input_device = InputDevice(input_yaml["input_device_name"])
+            self.input_device = InputDeviceControl(input_yaml["servo_cp_topic"], input_yaml["servo_cf_topic"])
 
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):
