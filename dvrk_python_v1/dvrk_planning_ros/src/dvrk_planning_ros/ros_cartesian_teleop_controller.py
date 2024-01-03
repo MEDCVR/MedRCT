@@ -42,15 +42,15 @@ class InputDeviceControl:
         self.is_enabled = False
         self.empty_wrench_msg = WrenchStamped()
         self._servo_cp_pub = rospy.Publisher(
-            pose_pub_topic_name, TransformStamped, queue_size=1)
+            servo_cp_topic, TransformStamped, queue_size=1)
         self._wrench_pub = rospy.Publisher(
-            wrench_pub_topic_name, WrenchStamped, queue_size=1)
+            servo_cf_topic, WrenchStamped, queue_size=1)
     def enable(self):
         self.is_enabled = True
 
     def disable(self, current_tf):
         self.is_enabled = False
-        self._servo_cp_pub(numpy_mat_to_gm_tf(current_tf))
+        self._servo_cp_pub.publish(numpy_mat_to_gm_tf(current_tf))
 
     def update(self):
         if self.is_enabled:
@@ -214,7 +214,7 @@ class RosCartesiansTeleopController(RosTeleopController):
             if self._hz_index_follow != 0:
                 return
 
-        self._teleop_controller.update(self.current_input_tf, (self.desired_output_jaw_angle))
+        self._teleop_controller.update(self.current_input_tf, (self.desired_output_jaw_angle,))
         if self.input_device: # How to take away notion of MTM in this case
             self.input_device.update()
         self._debug_output_tf()
@@ -235,7 +235,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(
             Vector(twist.linear.x, twist.linear.y, twist.linear.z),
             Rotation.RPY(twist.angular.x, twist.angular.y, twist.angular.z),
-            (self.desired_output_jaw_angle))
+            (self.desired_output_jaw_angle,))
         # print(self.desired_output_jaw_angle)
         self._debug_output_tf() # after the update
 
@@ -248,7 +248,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(
             Vector(0, 0, 0),
             Rotation.RPY(0, 0 ,0),
-            (self.desired_output_jaw_angle))
+            (self.desired_output_jaw_angle,))
         # print(self.desired_output_jaw_angle)
         self._debug_output_tf() # after the update
 

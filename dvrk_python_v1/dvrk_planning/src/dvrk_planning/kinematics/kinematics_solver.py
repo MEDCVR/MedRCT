@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class KinematicsSolver(ABC):
     @abstractmethod
-    def compute_fk(self, joint_positions: np.ndarray) -> np.ndarray(float):
+    def compute_fk(self, joint_positions: np.ndarray) -> np.ndarray:
         """_summary_
         Args:
             joint_positions (np.ndarray(float)): 1D ndarray of joint positions
@@ -13,7 +13,7 @@ class KinematicsSolver(ABC):
         """
         pass
     @abstractmethod
-    def compute_ik(self, T_tip_0_mat: np.ndarray, current_joint_positions: np.ndarray, ee_metadata: tuple = ()) -> np.ndarray(float):
+    def compute_ik(self, T_tip_0_mat: np.ndarray, current_joint_positions: np.ndarray, ee_metadata: tuple = ()) -> np.ndarray:
         """_summary_
         Args:
             T_tip_0_mat (np.ndarray(float)): 2D ndarray which represents a 4x4 transform matrix
@@ -37,7 +37,7 @@ class KinematicsSolver(ABC):
     #     """
     #     return joint_positions
 
-    def actuator_to_joint(self, actuator_positions: np.ndarray) -> np.ndarray(float):
+    def actuator_to_joint(self, actuator_positions: np.ndarray) -> np.ndarray:
         """(Optional) If your output to the robot interface is something other than joint positions.
         For example actuator positions or dial positions.
 
@@ -51,8 +51,8 @@ class KinematicsSolver(ABC):
 
     # These two below belong in the robot description class later
     @abstractmethod
-    def get_active_joint_names(self) -> list(str):
+    def get_active_joint_names(self) -> list:
         pass
     @abstractmethod
-    def get_link_names(self) -> list(str):
+    def get_link_names(self) -> list:
         pass
