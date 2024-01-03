@@ -33,7 +33,7 @@ class RosJointTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.get_current_output_jps())
         elif self._teleop_controller.input_type == InputType.FOLLOW:
-            self._wait_for_input_sub_msg(True)
+            self.wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_jps, self.get_current_output_jps())
 
     def disable(self):
@@ -50,7 +50,7 @@ class RosJointTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
         elif self._teleop_controller.input_type == InputType.FOLLOW:
-            self._wait_for_input_sub_msg()
+            self.wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_jps, self.get_current_output_jps())
 

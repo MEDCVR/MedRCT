@@ -4,8 +4,9 @@ cartesian_controllers:
       type: "increment"
       topic: "/keyboard/twist"
     output:
-      control_topic: "/PSM2/servo_jp"
-      feedback_topic: "/PSM2/measured_js"
+      control_interfaces:
+        - control_topic: "/PSM2/servo_jp"
+          feedback_topic: "/PSM2/measured_js"
     kinematics:
       robot: "psm"
       tool:
@@ -16,6 +17,7 @@ joint_controllers:
       type: "increment"
       topic: "/keyboard/joint_state"
     output:
-      control_topic: "/PSM2/jaw/servo_jp"
-      feedback_topic: "/PSM2/jaw/measured_js"
+      control_interfaces:
+        - control_topic: "/PSM2/jaw/servo_jp"
+          feedback_topic: "/PSM2/jaw/measured_js"
 clutch_topic: "/console/clutch"

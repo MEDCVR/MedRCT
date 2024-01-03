@@ -116,6 +116,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 self.jaw_idx = jaw_yaml["idx"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self._jaw_controller = self._jaw_mimic_controller
+            input_tf_appended_rotation = Rotation.Quaternion(0, 0, 0, 1)
             if("input_tf_appended_rotation" in input_yaml):
                 input_tf_appended_rotation = rotation_from_yaml(input_yaml["input_tf_appended_rotation"])
             self._teleop_controller = CartesianFollowTeleopController(

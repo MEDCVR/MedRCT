@@ -67,6 +67,7 @@ class CartesianTeleopController(TeleopController):
         if(not self._update()):
             return False
 
+        ee_metadata = ()
         if(self.has_ee_metadata):
             ee_metadata = args[-1]
         absolute_output_tf = self._update_impl(args)
