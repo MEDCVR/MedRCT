@@ -1,0 +1,45 @@
+controllers:
+  - name: "MTMR-PSM2"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "CartesianFollowerController"
+    input:
+      topic: "/MTMR/measured_cp"
+      position_scale: 0.5
+      hold_home_off:
+        enable: True
+        servo_cp_topic: /MTMR/servo_cp
+        servo_cf_topic: /MTMR/body/servo_cf
+    output:
+      control_topic: "/PSM2/servo_jp"
+      feedback_topic: "/PSM2/measured_js"
+    kinematics:
+      tree: ""
+      forward:
+        lib_name: "medrct_dvrk_env"
+        class_name: "PsmForwardKinematicsFactory"
+        config:
+          tool_name: "LND400006"
+      inverse:
+        lib_name: "medrct_dvrk_env"
+        class_name: "PsmInverseKinematicsFactory"
+        config:
+          tool_name: "LND400006"
+  - name: "MTMR-PSM2-Jaw"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "JointFollowerController"
+    input:
+      topic: "/MTMR/gripper/measured_js"
+      scale: 1
+    output:
+      control_topic: "/PSM2/jaw/servo_jp"
+      feedback_topic: "/PSM2/jaw/measured_js"
+basic_communicator:
+  clutch_topic: "/console/clutch"
+  enable_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTMR-PSM2", MTMR-PSM2-JAW]
+  auto_enable: False
