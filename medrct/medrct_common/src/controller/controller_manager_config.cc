@@ -49,7 +49,8 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
   const YAML::Node controllers_config = config["controllers"];
   if (!controllers_config)
   {
-    throw std::runtime_error("ControllerManagerConfig: No [controllers] key in config");
+    throw std::invalid_argument(
+        "ControllerManagerConfig: No [controllers] key in config");
   }
   ControllerManagerConfig cmc;
   for (YAML::const_iterator it = controllers_config.begin();
@@ -68,7 +69,9 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
     }
     catch (const std::exception& e)
     {
-      throw std::runtime_error("ControllerManagerConfig: Controller factory failed to load: " + std::string(e.what()));
+      throw std::invalid_argument(
+          "ControllerManagerConfig: Controller factory failed to load: " +
+          std::string(e.what()));
     }
   }
 
@@ -98,24 +101,22 @@ FromYAMLBasicControllerCommunicatorConfig(
   {
     bcmcc.active_control_group_name = n.as<std::string>();
   }
-  if (YAML::Node n = config["clutch_input_stream"])
+  if (YAML::Node n = config["clutch_topic"])
   {
-    n["name"] = "clutch_input_stream";
+    n["name"] = "clutch_topic_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
     bcmcc.clutch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
-  else
-    throw std::runtime_error("No [clutch_input_stream] in controller config");
-  if (YAML::Node n = config["switch_input_stream"])
+
+  if (YAML::Node n = config["enable_topic"])
   {
-    n["name"] = "switch_input_stream";
+    n["name"] = "enable_topic_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
     bcmcc.switch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
-  else
-    throw std::runtime_error("No [switch_input_stream] in controller config");
+
   if (YAML::Node n = config["switched_control_group_name"])
   {
     bcmcc.switched_control_group_name = n.as<std::string>();

@@ -20,7 +20,7 @@ private:
 public:
   static World& getInstance();
   void parseURDFFile(const std::string& urdf_file_path);
-  KinematicsTree::ConstPtr getKinematicsTree(const std::string& name);
+  KinematicsTree::Ptr getKinematicsTree(const std::string& name);
 
 private:
   std::unordered_map<std::string, KinematicsTree::Ptr> name_to_kinematic_trees;

@@ -26,7 +26,7 @@ parsePsmKinematicsData(const YAML::Node& config)
 }
 
 std::shared_ptr<ForwardKinematics> PsmForwardKinematicsFactory::create(
-    const KinematicsTree&, const YAML::Node& config)
+    const KinematicsTree::Ptr, const YAML::Node& config)
 {
   std::shared_ptr<PsmKinematicsData> psm_kin_data;
   try
@@ -43,7 +43,7 @@ std::shared_ptr<ForwardKinematics> PsmForwardKinematicsFactory::create(
   return std::make_shared<PsmForwardKinematics>(*psm_kin_data);
 }
 std::shared_ptr<InverseKinematics> PsmInverseKinematicsFactory::create(
-    const KinematicsTree&, const YAML::Node& config)
+    const KinematicsTree::Ptr, const YAML::Node& config)
 {
   std::shared_ptr<PsmKinematicsData> psm_kin_data;
   try

@@ -364,17 +364,7 @@ bool BasicControllerManagerCommunicator::init(
     medrctlog::error("controller manager is not initialized");
     return false;
   }
-  if (!config.clutch_subscriber)
-  {
-    medrctlog::error("clutch_subscriber is a null ptr");
-    return false;
-  }
   clutch_subscriber = config.clutch_subscriber;
-  if (!config.switch_subscriber)
-  {
-    medrctlog::error("switch_subscriber is a null ptr");
-    return false;
-  }
   switch_subscriber = config.switch_subscriber;
 
   if (config.active_control_group_name != "")
@@ -419,18 +409,20 @@ bool BasicControllerManagerCommunicator::init(
     }
   }
   controller_manager = std::move(cm);
-  clutch_subscriber->addCallback(
-      "clutch_callback",
-      std::bind(
-          &BasicControllerManagerCommunicator::clutchCallback,
-          this,
-          std::placeholders::_1));
-  switch_subscriber->addCallback(
-      "switch_callback",
-      std::bind(
-          &BasicControllerManagerCommunicator::switchCallback,
-          this,
-          std::placeholders::_1));
+  if (clutch_subscriber)
+    clutch_subscriber->addCallback(
+        "clutch_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::clutchCallback,
+            this,
+            std::placeholders::_1));
+  if (switch_subscriber)
+    switch_subscriber->addCallback(
+        "switch_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::switchCallback,
+            this,
+            std::placeholders::_1));
   return true;
 }
 

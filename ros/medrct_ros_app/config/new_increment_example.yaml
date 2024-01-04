@@ -10,7 +10,6 @@ controllers:
       control_topic: "/PSM2/servo_jp"
       feedback_topic: "/PSM2/measured_js"
     kinematics:
-      tree: ""
       forward:
         lib_name: "medrct_dvrk_env"
         class_name: "PsmForwardKinematicsFactory"

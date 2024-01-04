@@ -23,27 +23,27 @@ void CreateOutputAndMeasuredStreams(
     const YAML::Node& controller_config,
     const stream::StreamFactory& stream_factory)
 {
-  if (YAML::Node n = controller_config["output_stream"])
-  {
-    n["name"] =
-        controller_config["name"].as<std::string>() + "_output_js_stream";
-    n["type"] = "output";
-    n["data_type"] = "JointState";
-    output_js_stream = stream_factory.create<stream::PubStream<JointState>>(n);
-  }
-  else
-    throw std::runtime_error("No [output_stream] in controller config");
-  if (YAML::Node n = controller_config["feedback_stream"])
-  {
-    n["name"] =
-        controller_config["name"].as<std::string>() + "_feedback_js_stream";
-    n["type"] = "input";
-    n["data_type"] = "JointState";
-    measured_js_stream =
-        stream_factory.create<stream::SubStream<JointState>>(n);
-  }
-  else
-    throw std::runtime_error("No [feedback_stream] in controller config.");
+  YAML::Node output_config = controller_config["output"];
+  if (!output_config)
+    throw std::invalid_argument("No [output] in controller config");
+  if (!output_config["control_topic"])
+    throw std::invalid_argument("No [control_topic] in output config");
+  if (!output_config["feedback_topic"])
+    throw std::invalid_argument("No [feedback_topic] in output config");
+
+  YAML::Node n;
+  n["name"] = controller_config["name"].as<std::string>() + "_output_js_stream";
+  n["type"] = "output";
+  n["data_type"] = "JointState";
+  n["topic_name"] = output_config["control_topic"].as<std::string>();
+  output_js_stream = stream_factory.create<stream::PubStream<JointState>>(n);
+
+  n["name"] =
+      controller_config["name"].as<std::string>() + "_feedback_js_stream";
+  n["type"] = "input";
+  n["data_type"] = "JointState";
+  n["topic_name"] = output_config["feedback_topic"].as<std::string>();
+  measured_js_stream = stream_factory.create<stream::SubStream<JointState>>(n);
   return;
 }
 
@@ -52,57 +52,59 @@ void CreateKinematicsSolvers(
     std::shared_ptr<env::InverseKinematics>& inverse_kinematics,
     const YAML::Node& controller_config)
 {
-  if (!controller_config["kinematics_tree"])
+  if (!controller_config["kinematics"])
+    throw std::invalid_argument("No [kinematics] key in controller config.");
+  auto kinematics_config = controller_config["kinematics"];
+
+  medrct::env::KinematicsTree::Ptr kin_tree = nullptr;
+  if (kinematics_config["tree"])
   {
-    throw std::runtime_error("No [kinematics_tree] key in controller config.");
+    kin_tree = env::World::getInstance().getKinematicsTree(
+        kinematics_config["tree"].as<std::string>());
+    if (!kin_tree)
+      medrctlog::warn("Kinematics tree not found from URDF");
   }
 
-  auto kin_tree = env::World::getInstance().getKinematicsTree(
-      controller_config["kinematics_tree"].as<std::string>());
-  if (!kin_tree)
-  {
-    medrctlog::warn("Kinematics tree not found from URDF");
-  }
-
-  if (!controller_config["forward_kinematics"])
-  {
-    throw std::runtime_error(
-        "No [forward_kinematics] key in controller config.");
-  }
+  if (!kinematics_config["forward"])
+    throw std::invalid_argument(
+        "No [kinematics][forward] key in controller config.");
   env::ForwardKinematicsFactory::Ptr forward_kinematics_factory;
   try
   {
     forward_kinematics_factory =
         medrct_loader::createSharedInstance<env::ForwardKinematicsFactory>(
-            controller_config["forward_kinematics"]);
+            kinematics_config["forward"]);
     // This function throws if not created
+    if (!kinematics_config["forward"]["config"])
+      throw std::invalid_argument(
+          "No [kinematics][forward][config] in controller config");
     forward_kinematics = forward_kinematics_factory->create(
-        *kin_tree, controller_config["forward_kinematics"]);
+        kin_tree, kinematics_config["forward"]["config"]);
   }
   catch (const std::exception& e)
   {
-    throw std::runtime_error(
+    throw std::invalid_argument(
         "Error in instantiating forward kinematics: " + std::string(e.what()));
   }
 
-  if (!controller_config["inverse_kinematics"])
-  {
-    throw std::runtime_error(
-        "No [inverse_kinematics] key in controller config.");
-  }
+  if (!kinematics_config["inverse"])
+    throw std::invalid_argument("No [inverse] key in controller config.");
   env::InverseKinematicsFactory::Ptr inverse_kinematics_factory;
   try
   {
     inverse_kinematics_factory =
         medrct_loader::createSharedInstance<env::InverseKinematicsFactory>(
-            controller_config["inverse_kinematics"]);
+            kinematics_config["inverse"]);
     // This function throws if not created
+    if (!kinematics_config["inverse"]["config"])
+      throw std::invalid_argument(
+          "No [kinematics][inverse][config] in controller config");
     inverse_kinematics = inverse_kinematics_factory->create(
-        *kin_tree, controller_config["inverse_kinematics"]);
+        kin_tree, kinematics_config["inverse"]["config"]);
   }
   catch (const std::exception& e)
   {
-    throw std::runtime_error(
+    throw std::invalid_argument(
         "Error in inverse_kinematics config: " + *e.what());
   }
 }
@@ -112,26 +114,28 @@ Controller::Ptr DefaultControllerFactory::create(
     YAML::Node controller_config) const
 {
   std::string class_name;
-  if (YAML::Node n = controller_config["class_name"])
+  if (YAML::Node n = controller_config["loader"]["create_class_name"])
     class_name = n.as<std::string>();
   else
-    throw std::runtime_error("No [class_name] key in controller config.");
+    throw std::invalid_argument(
+        "No [loader][create_class_name] key in controller config.");
+
+  if (!controller_config["input"]["topic"])
+    std::invalid_argument("No [input][topic] in controller config");
+  YAML::Node n;
+  n["topic_name"] = controller_config["input"]["topic"];
+  n["type"] = "input";
 
   if (class_name == "JointMimicController" ||
       class_name == "JointIncrementController")
   {
     JointTeleopControllerConfig jcc;
     getControllerName(jcc.controller_name, controller_config);
-    if (YAML::Node n = controller_config["input_stream"])
-    {
-      n["name"] = jcc.controller_name + "_input_stream";
-      n["type"] = "input";
-      n["data_type"] = "JointState";
-      jcc.input_js_stream =
-          stream_factory.create<stream::SubStream<JointState>>(n);
-    }
-    else
-      throw std::runtime_error("No [input_stream] in controller config");
+
+    n["name"] = jcc.controller_name + "_input_stream";
+    n["data_type"] = "JointState";
+    jcc.input_js_stream =
+        stream_factory.create<stream::SubStream<JointState>>(n);
     CreateOutputAndMeasuredStreams(
         jcc.output_js_stream,
         jcc.measured_js_stream,
@@ -142,20 +146,18 @@ Controller::Ptr DefaultControllerFactory::create(
     {
       auto jmc = std::make_shared<JointMimicController>();
       if (!jmc->init(jcc))
-      {
-        throw std::runtime_error(
-            "Failed to init JointMimicController with name: ");
-      }
+        throw std::invalid_argument(
+            "Failed to init JointMimicController with name: " +
+            jcc.controller_name);
       return jmc;
     }
     else // Must be JointIncrementController
     {
       auto jic = std::make_shared<JointIncrementController>();
       if (!jic->init(jcc))
-      {
-        throw std::runtime_error(
-            "Failed to init JointIncrementController with name: ");
-      }
+        throw std::invalid_argument(
+            "Failed to init JointIncrementController with name: " +
+            jcc.controller_name);
       return jic;
     }
   }
@@ -163,16 +165,10 @@ Controller::Ptr DefaultControllerFactory::create(
   {
     CartesianIncrementControllerConfig cic_cfg;
     getControllerName(cic_cfg.controller_name, controller_config);
-    if (YAML::Node n = controller_config["input_stream"])
-    {
-      n["name"] = cic_cfg.controller_name + "_input_stream";
-      n["type"] = "input";
-      n["data_type"] = "Twist";
-      cic_cfg.input_callback_stream =
-          stream_factory.create<stream::SubStream<Twist>>(n);
-    }
-    else
-      throw std::runtime_error("No [input_stream] in controller config");
+    n["name"] = cic_cfg.controller_name + "_input_stream";
+    n["data_type"] = "Twist";
+    cic_cfg.input_callback_stream =
+        stream_factory.create<stream::SubStream<Twist>>(n);
     CreateOutputAndMeasuredStreams(
         cic_cfg.output_js_stream,
         cic_cfg.measured_js_stream,
@@ -186,27 +182,19 @@ Controller::Ptr DefaultControllerFactory::create(
     cic_cfg.forward_kinematics->computeFK(tf, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
     auto cic = std::make_shared<CartesianIncrementController>();
     if (!cic->init(cic_cfg))
-    {
-      throw std::runtime_error(
+      throw std::invalid_argument(
           "Failed to init CartesianIncrementController with name: " +
           cic_cfg.controller_name);
-    }
     return cic;
   }
   else if (class_name == "CartesianFollowerController")
   {
     CartesianFollowerControllerConfig cfc_cfg;
     getControllerName(cfc_cfg.controller_name, controller_config);
-    if (YAML::Node n = controller_config["input_stream"])
-    {
-      n["name"] = cfc_cfg.controller_name + "_input_stream";
-      n["type"] = "input";
-      n["data_type"] = "Transform";
-      cfc_cfg.input_callback_stream =
-          stream_factory.create<stream::SubStream<Transform>>(n);
-    }
-    else
-      throw std::runtime_error("No [input_stream] in controller config");
+    n["name"] = cfc_cfg.controller_name + "_input_stream";
+    n["data_type"] = "Transform";
+    cfc_cfg.input_callback_stream =
+        stream_factory.create<stream::SubStream<Transform>>(n);
     CreateOutputAndMeasuredStreams(
         cfc_cfg.output_js_stream,
         cfc_cfg.measured_js_stream,
@@ -218,14 +206,13 @@ Controller::Ptr DefaultControllerFactory::create(
         controller_config);
     auto cfc = std::make_shared<CartesianFollowerController>();
     if (!cfc->init(cfc_cfg))
-    {
-      throw std::runtime_error(
-          "Failed to init CartesianFollowerController with name: ");
-    }
+      throw std::invalid_argument(
+          "Failed to init CartesianFollowerController with name: " +
+          cfc_cfg.controller_name);
     return cfc;
   }
-  throw std::runtime_error(
-      "No valid controller specified with class_name: " + class_name);
+  throw std::invalid_argument(
+      "No valid controller specified with [create_class_name]: " + class_name);
   return nullptr;
 }
 
