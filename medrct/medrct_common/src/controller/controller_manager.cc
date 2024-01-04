@@ -428,55 +428,41 @@ bool BasicControllerManagerCommunicator::init(
 
 void BasicControllerManagerCommunicator::clutchCallback(const medrct::Joy& joy)
 {
-  if (joy.buttons.size() > 0)
-  {
-    if (joy.buttons[0] == 1)
-    {
-      controller_manager.clutch();
-    }
-    else if (joy.buttons[0] == 0)
-    {
-      controller_manager.unclutch();
-    }
-    else
-    {
-      medrctlog::warn("clutchCallback: button[0] value should be 1 or 0. Not "
-                      "doing anything");
-    }
-  }
-  else
+  if (joy.buttons.size() == 0)
   {
     medrctlog::warn(
         "clutchCallback: button vector should be size of 1 or more. Not "
         "doing anything");
+    return;
   }
+
+  if (joy.buttons[0] == 1)
+    controller_manager.clutch();
+  else if (joy.buttons[0] == 0)
+    controller_manager.unclutch();
+  else
+    medrctlog::warn("clutchCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
   return;
 }
 
 void BasicControllerManagerCommunicator::switchCallback(const medrct::Joy& joy)
 {
-  if (joy.buttons.size() > 0)
-  {
-    if (joy.buttons[0] == 1)
-    {
-      switch_function();
-    }
-    else if (joy.buttons[0] == 0)
-    {
-      unswitch_function();
-    }
-    else
-    {
-      medrctlog::warn("switchCallback: button[0] value should be 1 or 0. Not "
-                      "doing anything");
-    }
-  }
-  else
+  if (joy.buttons.size() == 0)
   {
     medrctlog::warn(
         "switchCallback: button vector should be size of 1 or more. Not "
         "doing anything");
+    return;
   }
+
+  if (joy.buttons[0] == 1)
+    switch_function();
+  else if (joy.buttons[0] == 0)
+    unswitch_function();
+  else
+    medrctlog::warn("switchCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
   return;
 }
 } // namespace controller
