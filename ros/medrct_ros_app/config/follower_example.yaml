@@ -40,6 +40,5 @@ controllers:
 basic_communicator:
   clutch_topic: "/console/clutch"
   enable_topic: "/console/operator_present"
-  disable_list: []
   enable_list: ["MTMR-PSM2", MTMR-PSM2-JAW]
   auto_enable: False
