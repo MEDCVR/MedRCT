@@ -49,7 +49,7 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
   const YAML::Node controllers_config = config["controllers"];
   if (!controllers_config)
   {
-    throw std::runtime_error("No [controllers] key in config");
+    throw std::runtime_error("ControllerManagerConfig: No [controllers] key in config");
   }
   ControllerManagerConfig cmc;
   for (YAML::const_iterator it = controllers_config.begin();
@@ -63,13 +63,13 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
       controller_factory =
           medrct_loader::createSharedInstance<controller::ControllerFactory>(
               controller_cfg["loader"]);
+      cmc.controllers.emplace_back(
+          controller_factory->create(sf, controller_cfg));
     }
     catch (const std::exception& e)
     {
-      throw std::runtime_error("controller factory failed to load");
+      throw std::runtime_error("ControllerManagerConfig: Controller factory failed to load: " + std::string(e.what()));
     }
-    cmc.controllers.emplace_back(
-        controller_factory->create(sf, controller_cfg));
   }
 
   if (const YAML::Node control_groups_cfg = config["control_groups"])
