@@ -367,18 +367,7 @@ bool BasicControllerManagerCommunicator::init(
   clutch_subscriber = config.clutch_subscriber;
   switch_subscriber = config.switch_subscriber;
 
-  if (config.active_control_group_name != "")
-  {
-    if (!cm.setActiveControlGroup(active_control_group_name))
-    {
-      return false;
-    }
-    active_control_group_name = config.active_control_group_name;
-  }
-  else
-  {
-    active_control_group_name = cm.getActiveControlGroupName();
-  }
+  active_control_group_name = cm.getActiveControlGroupName();
 
   if (config.switched_control_group_name != "")
   {
@@ -409,6 +398,13 @@ bool BasicControllerManagerCommunicator::init(
     }
   }
   controller_manager = std::move(cm);
+  if (enable_subscriber)
+    enable_subscriber->addCallback(
+        "enable_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::enableCallback,
+            this,
+            std::placeholders::_1));
   if (clutch_subscriber)
     clutch_subscriber->addCallback(
         "clutch_callback",
@@ -424,6 +420,31 @@ bool BasicControllerManagerCommunicator::init(
             this,
             std::placeholders::_1));
   return true;
+}
+
+void BasicControllerManagerCommunicator::enableCallback(const medrct::Joy& joy)
+{
+  if (joy.buttons.size() == 0)
+  {
+    medrctlog::warn(
+        "enableCallback: button vector should be size of 1 or more. Not "
+        "doing anything");
+    return;
+  }
+
+  if (joy.buttons[0] == 1)
+  {
+    if (!controller_manager.enable())
+    {
+      medrctlog::error("controller manager failed to enable");
+    }
+  }
+  else if (joy.buttons[0] == 0)
+    controller_manager.disable();
+  else
+    medrctlog::warn("enableCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
+  return;
 }
 
 void BasicControllerManagerCommunicator::clutchCallback(const medrct::Joy& joy)
