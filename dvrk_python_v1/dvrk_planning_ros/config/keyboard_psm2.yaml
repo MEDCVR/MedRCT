@@ -3,7 +3,7 @@ cartesian_controllers:
     input:
       type: "increment"
       topic: "/keyboard/twist"
-      topic_type: "PoseStamped"
+      topic_type: "TwistStamped"
     output:
       control_interfaces:
         - control_topic: "/PSM2/servo_jp"
