@@ -8,10 +8,28 @@ cartesian_controllers:
       is_input_device_hold_home_off: True
       servo_cp_topic: "/MTMR/servo_cp"
       servo_cf_topic: "/MTMR/body/servo_cf"
+      input_2_input_reference_rot:
+          quaternion:
+              x: 0.9659258
+              y: 0
+              z: 0
+              w: -0.258819
+      input_tf_appended_rotation:
+          quaternion:
+              x: 0
+              y: 0
+              z: 0.7071068
+              w: 0.7071068
     output:
       control_interfaces:
         - control_topic: "/PSM2/servo_jp"
           feedback_topic: "/PSM2/measured_js"
+      output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
+          quaternion:
+              x:  1
+              y:  0
+              z:  0
+              w:  0
     kinematics:
       robot: "psm"
       tool:

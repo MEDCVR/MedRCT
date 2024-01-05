@@ -214,8 +214,8 @@ class PsmKinematicsSolver(KinematicsSolver):
 
         return [j_limited[0], j_limited[1], j_limited[2], j_limited[3], j_limited[4], j_limited[5]]
 
-    def compute_ik(self, T_7_0_mat):
-        T_7_0 = convert_mat_to_frame(T_7_0_mat)
+    def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata = ()):
+        T_7_0 = convert_mat_to_frame(T_tip_0_mat)
 
         swt_params = self.kinematics_data.swt_params
         # Pinch Joint
