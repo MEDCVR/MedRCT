@@ -87,7 +87,6 @@ class RosTeleopController:
         self.ros_input_type = ros_input_type
         self.is_print_wait_msg = is_print_wait_msg
         self.joint_state_names = joint_state_names
-
         if "is_timed" in controller_yaml and controller_yaml["is_timed"]:
             self._average_timer = AverageTimer()
             self.input_sub = rospy.Subscriber(self.input_topic, self.ros_input_type, self._input_callback_timed)

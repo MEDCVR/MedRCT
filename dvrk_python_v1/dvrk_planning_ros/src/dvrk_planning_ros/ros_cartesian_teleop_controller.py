@@ -258,7 +258,7 @@ class RosCartesiansTeleopController(RosTeleopController):
     def _input_callback_pose(self, data):
         pose = data.pose
         self._teleop_controller.update(
-            Vector(pose.linear.x, pose.linear.y, pose.linear.z),
+            Vector(pose.position.x, pose.position.y, pose.position.z),
             Rotation.Quaternion(
                 pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
                 (self.desired_output_jaw_angle,))
