@@ -16,6 +16,7 @@ class CartesianTeleopController(TeleopController):
             kinematics_solver,
             input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
             output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+            rotate_about_base_frame_vs_tip_frame = False,
             has_ee_metadata = False):
         super().__init__(input_type, ControllerType.CARTESIAN)
         # m: input base frame (master)
@@ -33,9 +34,9 @@ class CartesianTeleopController(TeleopController):
         self.kinematics_solver = kinematics_solver
         self.current_output_js = np.array([])
         self.has_ee_metadata = has_ee_metadata
+        self.rotate_about_tip_frame_vs_base_frame = not rotate_about_base_frame_vs_tip_frame
 
     def _update_output_tf(self, input_diff_tf, current_output_tf):
-
         input_diff_rot, input_diff_p_wrt_m = get_rot_and_p(input_diff_tf)
         cur_output_rot, cur_output_p_wrt_s = get_rot_and_p(current_output_tf)
 
@@ -51,11 +52,13 @@ class CartesianTeleopController(TeleopController):
         # print("input_diff_p_wrt_h: ", input_diff_p_wrt_h)
         # print("output_diff_p_wrt_e: ", output_diff_p_wrt_e)
         # print("output_diff_p_wrt_s: ", output_diff_p_wrt_s)
-
         # print("output_p_wrt_s: ", output_p_wrt_s)
 
-        # Post multiply output to rotate about itself
-        output_rot = np.matmul(cur_output_rot, input_diff_rot)
+        if self.rotate_about_tip_frame_vs_base_frame:
+            # Post multiply output to rotate about itself
+            output_rot = np.matmul(cur_output_rot, input_diff_rot)
+        else:
+            output_rot = np.matmul(input_diff_rot, cur_output_rot)
 
         output_tf = np.copy(current_output_tf)
         output_tf[0:3, 0:3] = output_rot
@@ -87,12 +90,12 @@ class CartesianFollowTeleopController(CartesianTeleopController):
                  input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
                  output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
                  input_tf_appended_rotation = Rotation.Quaternion(0, 0, 0, 1),
+                 rotate_about_base_frame_vs_tip_frame = False,
                  has_ee_metadata = False,
                  position_scale = 1.0):
         super().__init__(InputType.FOLLOW, kinematics_solver,
-                         input_2_input_reference_rot, output_2_output_reference_rot, has_ee_metadata)
+                         input_2_input_reference_rot, output_2_output_reference_rot, rotate_about_base_frame_vs_tip_frame, has_ee_metadata)
         self.input_tf_appended_rotation = convert_frame_to_mat(Frame(input_tf_appended_rotation, Vector(0.0, 0.0, 0.0)))
-
         self.start_input_tf = np.identity(4)
         self.start_output_tf = np.identity(4)
         self.position_scale = position_scale
@@ -134,9 +137,10 @@ class CartesianIncrementTeleopController(CartesianTeleopController):
     def __init__(self, kinematics_solver,
                  input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
                  output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+                 rotate_about_base_frame_vs_tip_frame = False,
                  has_ee_metadata = False):
         super().__init__(InputType.INCREMENT, kinematics_solver,
-                         input_2_input_reference_rot, output_2_output_reference_rot, has_ee_metadata)
+                         input_2_input_reference_rot, output_2_output_reference_rot, rotate_about_base_frame_vs_tip_frame, has_ee_metadata)
 
     def enable(self, current_output_js):
         self.current_output_js = np.copy(current_output_js)

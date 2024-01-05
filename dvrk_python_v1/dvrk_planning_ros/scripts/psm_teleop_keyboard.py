@@ -8,7 +8,7 @@ import threading
 # import roslib; roslib.load_manifest('teleop_twist_keyboard')
 import rospy
 
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from sensor_msgs.msg import JointState
 
 import sys, select, termios, tty
@@ -68,9 +68,13 @@ jawBindings = {
 }
 
 class PublishTransformThread(threading.Thread):
-    def __init__(self, rate):
+    def __init__(self, rate, is_pose_stamped):
         super(PublishTransformThread, self).__init__()
-        self.publisher = rospy.Publisher('/keyboard/twist', TwistStamped, queue_size = 1)
+        if is_pose_stamped:
+            self.publisher = rospy.Publisher('/keyboard/twist', PoseStamped, queue_size = 1)
+        else:
+            self.publisher = rospy.Publisher('/keyboard/twist', TwistStamped, queue_size = 1)
+
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
@@ -113,21 +117,32 @@ class PublishTransformThread(threading.Thread):
         self.join()
 
     def run(self):
-        msg = TwistStamped()
+        if is_pose_stamped:
+            msg = PoseStamped()
+        else:
+            msg = TwistStamped()
         while not self.done:
             self.condition.acquire()
             # Wait for a new message or timeout.
             self.condition.wait(self.timeout)
 
             # Copy state into twist message.
-            msg.twist.linear.x = self.x * self.speed
-            msg.twist.linear.y = self.y * self.speed
-            msg.twist.linear.z = self.z * self.speed
-            msg.twist.angular.x = self.rot_x * self.rot_speed
-            msg.twist.angular.y = self.rot_y * self.rot_speed
-            msg.twist.angular.z = self.rot_z * self.rot_speed
             msg.header.stamp = rospy.Time.now()
-
+            if is_pose_stamped:
+                msg.pose.position.x = self.x * self.speed
+                msg.pose.position.y = self.y * self.speed
+                msg.pose.position.z = self.z * self.speed
+                msg.pose.orientation.w = 1
+                # msg.pose.quater.x = self.rot_x * self.rot_speed
+                # msg.pose.angular.y = self.rot_y * self.rot_speed
+                # msg.pose.angular.z = self.rot_z * self.rot_speed
+            else:
+                msg.twist.linear.x = self.x * self.speed
+                msg.twist.linear.y = self.y * self.speed
+                msg.twist.linear.z = self.z * self.speed
+                msg.twist.angular.x = self.rot_x * self.rot_speed
+                msg.twist.angular.y = self.rot_y * self.rot_speed
+                msg.twist.angular.z = self.rot_z * self.rot_speed
             self.condition.release()
 
             # Publish.
@@ -226,10 +241,12 @@ if __name__=="__main__":
     rot_speed = rospy.get_param("~rot_speed", 0.01)
     repeat = rospy.get_param("~repeat_rate", 0.0)
     key_timeout = rospy.get_param("~key_timeout", 0.0)
+
+    is_pose_stamped = False
     if key_timeout == 0.0:
         key_timeout = None
 
-    pub_tf_thread = PublishTransformThread(repeat)
+    pub_tf_thread = PublishTransformThread(repeat, is_pose_stamped)
     pub_js_thread = PublishJointStateThread(repeat)
 
     x = 0
