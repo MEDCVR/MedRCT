@@ -7,6 +7,9 @@ cartesian_controllers:
       control_interfaces:
         - control_topic: "/PSM2/servo_jp"
           feedback_topic: "/PSM2/measured_js"
+      joint_limits:
+        lower: [-1.54, -0.90, 0.00, -3.04, -3.04, -3.04]
+        upper: [ 1.54,  0.94, 0.24,  3.04,  3.04,  3.04]
     kinematics:
       robot: "psm"
       tool:

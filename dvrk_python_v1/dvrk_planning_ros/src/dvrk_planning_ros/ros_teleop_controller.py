@@ -110,16 +110,17 @@ class RosTeleopController:
         self.__current_output_jps = np.array([])
         self.__is_currrent_output_jps_initialized = False
 
-    def get_current_output_jps(self):
-        if not self.__is_currrent_output_jps_initialized:
-            raise "__is_currrent_output_jps_initialized is False, enable the RosTeleopController() one time first"
-        return self.__current_output_jps
-
         self.joint_limits = None
         if "joint_limits" in output_yaml:
             joint_limits_yaml = output_yaml["joint_limits"]
             joint_limits = self._get_joint_limits(joint_limits_yaml) # Raise error if fail
             self.joint_limits = joint_limits
+
+    def get_current_output_jps(self):
+        if not self.__is_currrent_output_jps_initialized:
+            raise "__is_currrent_output_jps_initialized is False, enable the RosTeleopController() one time first"
+        return self.__current_output_jps
+
 
     def _get_joint_limits(self, joint_limits_yaml):
         # TODO If this was in the correct place like teleop controller, we can check joint size
@@ -176,7 +177,6 @@ class RosTeleopController:
             rospy.sleep(0.01) # Delay needed for downstream to synchronize properly
         # print("self.get_current_output_jps()\n", self.get_current_output_jps())
         # print("harmonized_jp send: \n", harmonized_jp)
-
 
     def wait_for_input_sub_msg(self, always_print=False):
         try:

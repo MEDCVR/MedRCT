@@ -146,7 +146,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 kinematics_solver,
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
-                otate_about_base_frame_vs_tip_frame = rotate_about_base_frame_vs_tip_frame,
+                rotate_about_base_frame_vs_tip_frame = rotate_about_base_frame_vs_tip_frame,
                 has_ee_metadata = has_ee_metadata)
             if "topic_type" in input_yaml:
                 if input_yaml["topic_type"] == "PoseStamped":
