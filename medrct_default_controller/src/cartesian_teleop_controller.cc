@@ -1,6 +1,7 @@
-#include <medrct_default_controller/cartesian_teleop_controller.hh>
-
 #include <medrct/log.hh>
+
+#include <medrct_default_controller/cartesian_teleop_controller.hh>
+#include <medrct_default_controller/config.hh>
 
 namespace medrct
 {
@@ -8,6 +9,57 @@ namespace controller
 {
 
 using namespace medrct::stream;
+
+void CartesianTeleopControllerConfig::FromYaml(CartesianTeleopControllerConfig& ctcc,
+  const YAML::Node controller_config, const stream::StreamFactory& stream_factory)
+{
+  ctcc.controller_name = GetValue<std::string>(controller_config, "name");
+  CreateOutputAndMeasuredStreams(
+      ctcc.output_js_stream,
+      ctcc.measured_js_stream,
+      controller_config,
+      stream_factory);
+  CreateKinematicsSolvers(
+      ctcc.forward_kinematics,
+      ctcc.inverse_kinematics,
+      controller_config);
+
+  auto output_config = GetYamlNode(controller_config, "output");
+  auto input_config = GetYamlNode(controller_config, "input");
+  ctcc.rotate_about_base_frame_vs_tip_frame = GetValueDefault<bool>(output_config,
+    "rotate_about_base_frame_vs_tip_frame", ctcc.rotate_about_base_frame_vs_tip_frame);
+  ctcc.output_2_output_ref_quat = GetYamlQuaternionDefault(output_config, "to_reference_rotation", ctcc.output_2_output_ref_quat);
+  ctcc.input_2_input_ref_quat = GetYamlQuaternionDefault(input_config, "to_reference_rotation", ctcc.input_2_input_ref_quat);
+}
+
+void CartesianFollowerControllerConfig::FromYaml(CartesianFollowerControllerConfig& cfcc,
+  const YAML::Node controller_config, const stream::StreamFactory& stream_factory)
+{
+  CartesianTeleopControllerConfig::FromYaml(cfcc, controller_config, stream_factory);
+  YAML::Node n;
+  n["topic_name"] = GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
+  n["type"] = "input";
+  n["name"] = cfcc.controller_name + "_input_stream";
+  n["data_type"] = "Transform";
+  cfcc.input_callback_stream =
+      stream_factory.create<stream::SubStream<Transform>>(n);
+  cfcc.position_scale = GetValueDefault(GetYamlNode(controller_config, "input"),
+    "position_scale", cfcc.position_scale);
+  return;
+}
+
+void CartesianIncrementControllerConfig::FromYaml(CartesianIncrementControllerConfig& cicc,
+  const YAML::Node controller_config, const stream::StreamFactory& stream_factory)
+{
+  CartesianTeleopControllerConfig::FromYaml(cicc, controller_config, stream_factory);
+  YAML::Node n;
+  n["topic_name"] = GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
+  n["type"] = "input";
+  n["name"] = cicc.controller_name + "_input_stream";
+  n["data_type"] = "Twist";
+  cicc.input_callback_stream = stream_factory.create<stream::SubStream<Twist>>(n);
+  return;
+}
 
 CartesianTeleopController::CartesianTeleopController()
 {

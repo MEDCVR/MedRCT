@@ -1,9 +1,11 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
 #include <memory>
 #include <string>
 
 #include <medrct/stream/stream.hh>
+#include <medrct/stream/stream_factory.hh>
 #include <medrct/types/joint_state.hh>
 #include <medrct/types/types.hh>
 #include <medrct/types/twist.hh>
@@ -28,6 +30,8 @@ struct CartesianTeleopControllerConfig
   Quaternion input_2_input_ref_quat = Quaternion(1, 0, 0, 0);
   // TODO All types is aggragate for now
   // task_type_t task_type = task_type_t::AGGRAGATE;
+  static void FromYaml(CartesianTeleopControllerConfig& ctcc,
+    const YAML::Node controller_config, const stream::StreamFactory& stream_factory);
 };
 
 class CartesianTeleopController : public Controller
@@ -85,6 +89,8 @@ struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
 {
   std::shared_ptr<stream::SubStream<Transform>> input_callback_stream;
   double position_scale = 1.0;
+  static void FromYaml(CartesianFollowerControllerConfig& cfcc,
+  const YAML::Node controller_config, const stream::StreamFactory& stream_factory);
 };
 
 class CartesianFollowerController : public CartesianTeleopController
@@ -107,6 +113,8 @@ protected:
 struct CartesianIncrementControllerConfig : CartesianTeleopControllerConfig
 {
   std::shared_ptr<stream::SubStream<Twist>> input_callback_stream;
+  static void FromYaml(CartesianIncrementControllerConfig& cicc,
+  const YAML::Node controller_config, const stream::StreamFactory& stream_factory);
 };
 
 class CartesianIncrementController : public CartesianTeleopController

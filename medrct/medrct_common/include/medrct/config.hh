@@ -1,3 +1,5 @@
+#pragma once
+
 #include <yaml-cpp/yaml.h>
 
 namespace medrct
@@ -5,7 +7,7 @@ namespace medrct
 namespace controller
 {
 
-YAML::Node GetYamlNode(const YAML::Node& yaml_node, const std::string& key)
+inline YAML::Node GetYamlNode(const YAML::Node& yaml_node, const std::string& key)
 {
   if (!yaml_node[key])
     throw std::invalid_argument("No [" + key + "] in config.");
