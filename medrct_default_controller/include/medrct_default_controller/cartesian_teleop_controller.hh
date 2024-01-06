@@ -37,8 +37,7 @@ public:
   virtual ~CartesianTeleopController() = 0;
   bool init(const CartesianTeleopControllerConfig& config)
   {
-    if (!config.measured_js_stream ||
-        !config.output_js_stream)
+    if (!config.measured_js_stream || !config.output_js_stream)
     {
       return false;
     }
@@ -94,6 +93,7 @@ public:
   CartesianFollowerController();
   virtual ~CartesianFollowerController();
   bool init(const CartesianFollowerControllerConfig& config);
+
 protected:
   double position_scale;
   std::string input_stream_name;

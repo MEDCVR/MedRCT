@@ -3,6 +3,8 @@
 #include <medrct/loader/class_loader.hh>
 #include <medrct/types/joint_state.hh>
 #include <medrct/log.hh>
+#include <medrct/config.hh>
+
 #include <medrct_env/description/world.hh>
 #include <medrct_env/kinematics/kinematics_factory.hh>
 #include <medrct_env/kinematics/forward_kinematics.hh>
@@ -23,26 +25,20 @@ void CreateOutputAndMeasuredStreams(
     const YAML::Node& controller_config,
     const stream::StreamFactory& stream_factory)
 {
-  YAML::Node output_config = controller_config["output"];
-  if (!output_config)
-    throw std::invalid_argument("No [output] in controller config");
-  if (!output_config["control_topic"])
-    throw std::invalid_argument("No [control_topic] in output config");
-  if (!output_config["feedback_topic"])
-    throw std::invalid_argument("No [feedback_topic] in output config");
+  YAML::Node output_config = GetYamlNode(controller_config, "output");
+  std::string name = GetValue<std::string>(controller_config, "name");
 
   YAML::Node n;
-  n["name"] = controller_config["name"].as<std::string>() + "_output_js_stream";
+  n["name"] = name + "_output_js_stream";
   n["type"] = "output";
   n["data_type"] = "JointState";
-  n["topic_name"] = output_config["control_topic"].as<std::string>();
+  n["topic_name"] = GetValue<std::string>(output_config, "control_topic");
   output_js_stream = stream_factory.create<stream::PubStream<JointState>>(n);
 
-  n["name"] =
-      controller_config["name"].as<std::string>() + "_feedback_js_stream";
+  n["name"] = name + "_feedback_js_stream";
   n["type"] = "input";
   n["data_type"] = "JointState";
-  n["topic_name"] = output_config["feedback_topic"].as<std::string>();
+  n["topic_name"] = GetValue<std::string>(output_config, "feedback_topic");
   measured_js_stream = stream_factory.create<stream::SubStream<JointState>>(n);
   return;
 }
@@ -52,34 +48,25 @@ void CreateKinematicsSolvers(
     std::shared_ptr<env::InverseKinematics>& inverse_kinematics,
     const YAML::Node& controller_config)
 {
-  if (!controller_config["kinematics"])
-    throw std::invalid_argument("No [kinematics] key in controller config.");
-  auto kinematics_config = controller_config["kinematics"];
-
+  YAML::Node kinematics_config = GetYamlNode(controller_config, "kinematics");
   medrct::env::KinematicsTree::Ptr kin_tree = nullptr;
-  if (kinematics_config["tree"])
+  std::string kin_tree_name = GetValueDefault<std::string>(kinematics_config, "tree", "");
+  if (kin_tree_name != "")
   {
-    kin_tree = env::World::getInstance().getKinematicsTree(
-        kinematics_config["tree"].as<std::string>());
+    kin_tree = env::World::getInstance().getKinematicsTree(kin_tree_name);
     if (!kin_tree)
-      medrctlog::warn("Kinematics tree not found from URDF");
+      throw std::runtime_error("Kinematics tree not found from URDF");
   }
 
-  if (!kinematics_config["forward"])
-    throw std::invalid_argument(
-        "No [kinematics][forward] key in controller config.");
+  YAML::Node forward_kin_config = GetYamlNode(kinematics_config, "forward");
   env::ForwardKinematicsFactory::Ptr forward_kinematics_factory;
   try
   {
     forward_kinematics_factory =
         medrct_loader::createSharedInstance<env::ForwardKinematicsFactory>(
-            kinematics_config["forward"]);
-    // This function throws if not created
-    if (!kinematics_config["forward"]["config"])
-      throw std::invalid_argument(
-          "No [kinematics][forward][config] in controller config");
+            forward_kin_config);
     forward_kinematics = forward_kinematics_factory->create(
-        kin_tree, kinematics_config["forward"]["config"]);
+        kin_tree, GetYamlNode(forward_kin_config, "config"));
   }
   catch (const std::exception& e)
   {
@@ -87,25 +74,20 @@ void CreateKinematicsSolvers(
         "Error in instantiating forward kinematics: " + std::string(e.what()));
   }
 
-  if (!kinematics_config["inverse"])
-    throw std::invalid_argument("No [inverse] key in controller config.");
+  YAML::Node inverse_kin_config = GetYamlNode(kinematics_config, "inverse");
   env::InverseKinematicsFactory::Ptr inverse_kinematics_factory;
   try
   {
     inverse_kinematics_factory =
         medrct_loader::createSharedInstance<env::InverseKinematicsFactory>(
-            kinematics_config["inverse"]);
-    // This function throws if not created
-    if (!kinematics_config["inverse"]["config"])
-      throw std::invalid_argument(
-          "No [kinematics][inverse][config] in controller config");
+            inverse_kin_config);
     inverse_kinematics = inverse_kinematics_factory->create(
-        kin_tree, kinematics_config["inverse"]["config"]);
+        kin_tree, GetYamlNode(inverse_kin_config, "config"));
   }
   catch (const std::exception& e)
   {
     throw std::invalid_argument(
-        "Error in inverse_kinematics config: " + *e.what());
+        "Error in inverse_kinematics config: " + std::string(e.what()));
   }
 }
 
@@ -113,25 +95,17 @@ Controller::Ptr DefaultControllerFactory::create(
     const medrct::stream::StreamFactory& stream_factory,
     YAML::Node controller_config) const
 {
-  std::string class_name;
-  if (YAML::Node n = controller_config["loader"]["create_class_name"])
-    class_name = n.as<std::string>();
-  else
-    throw std::invalid_argument(
-        "No [loader][create_class_name] key in controller config.");
-
-  if (!controller_config["input"]["topic"])
-    std::invalid_argument("No [input][topic] in controller config");
+  std::string class_name = GetValue<std::string>(GetYamlNode(controller_config, "loader"), "create_class_name");
+  std::string controller_name = GetValue<std::string>(controller_config, "name");
   YAML::Node n;
-  n["topic_name"] = controller_config["input"]["topic"];
+  n["topic_name"] = GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
   n["type"] = "input";
 
   if (class_name == "JointMimicController" ||
       class_name == "JointIncrementController")
   {
     JointTeleopControllerConfig jcc;
-    getControllerName(jcc.controller_name, controller_config);
-
+    jcc.controller_name = controller_name;
     n["name"] = jcc.controller_name + "_input_stream";
     n["data_type"] = "JointState";
     jcc.input_js_stream =
@@ -149,7 +123,6 @@ Controller::Ptr DefaultControllerFactory::create(
         throw std::invalid_argument(
             "Failed to init JointMimicController with name: " +
             jcc.controller_name);
-      return jmc;
     }
     else // Must be JointIncrementController
     {
@@ -158,13 +131,12 @@ Controller::Ptr DefaultControllerFactory::create(
         throw std::invalid_argument(
             "Failed to init JointIncrementController with name: " +
             jcc.controller_name);
-      return jic;
     }
   }
   else if (class_name == "CartesianIncrementController")
   {
     CartesianIncrementControllerConfig cic_cfg;
-    getControllerName(cic_cfg.controller_name, controller_config);
+    cic_cfg.controller_name = controller_name;
     n["name"] = cic_cfg.controller_name + "_input_stream";
     n["data_type"] = "Twist";
     cic_cfg.input_callback_stream =
@@ -190,7 +162,7 @@ Controller::Ptr DefaultControllerFactory::create(
   else if (class_name == "CartesianFollowerController")
   {
     CartesianFollowerControllerConfig cfc_cfg;
-    getControllerName(cfc_cfg.controller_name, controller_config);
+    cfc_cfg.controller_name = controller_name;
     n["name"] = cfc_cfg.controller_name + "_input_stream";
     n["data_type"] = "Transform";
     cfc_cfg.input_callback_stream =
