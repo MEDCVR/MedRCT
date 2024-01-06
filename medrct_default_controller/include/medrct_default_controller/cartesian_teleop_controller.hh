@@ -16,17 +16,14 @@ namespace medrct
 {
 namespace controller
 {
-template <typename inputT>
 struct CartesianTeleopControllerConfig
 {
   std::string controller_name;
-  std::shared_ptr<stream::SubStream<inputT>> input_callback_stream;
   std::shared_ptr<stream::SubStream<JointState>> measured_js_stream;
   std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
-  double position_scale = 1.0;
-  bool rotate_about_tip_frame_vs_base_frame = false;
+  bool rotate_about_base_frame_vs_tip_frame = false;
   Quaternion output_2_output_ref_quat = Quaternion(1, 0, 0, 0);
   Quaternion input_2_input_ref_quat = Quaternion(1, 0, 0, 0);
   // TODO All types is aggragate for now
@@ -38,10 +35,9 @@ class CartesianTeleopController : public Controller
 public:
   CartesianTeleopController();
   virtual ~CartesianTeleopController() = 0;
-  template <class inputT>
-  bool init(const CartesianTeleopControllerConfig<inputT>& config)
+  bool init(const CartesianTeleopControllerConfig& config)
   {
-    if (!config.input_callback_stream || !config.measured_js_stream ||
+    if (!config.measured_js_stream ||
         !config.output_js_stream)
     {
       return false;
@@ -54,21 +50,17 @@ public:
     {
       return false;
     }
-    input_stream_name = config.input_callback_stream->name;
     measured_js_stream_name = config.measured_js_stream->name;
     this->forward_kinematics = config.forward_kinematics;
     this->inverse_kinematics = config.inverse_kinematics;
-    position_scale = config.position_scale;
-    input_stream_map.addWithBuffer(config.input_callback_stream);
     input_stream_map.addWithBuffer(config.measured_js_stream);
     this->output_js_stream = config.output_js_stream;
     this->rotate_about_tip_frame_vs_base_frame =
-        config.rotate_about_tip_frame_vs_base_frame;
+        !config.rotate_about_base_frame_vs_tip_frame;
 
     h2m_rot = config.input_2_input_ref_quat.inverse().toRotationMatrix();
     s2e_rot = config.output_2_output_ref_quat.toRotationMatrix();
-    return initAggragate<inputT>(
-        config.controller_name, config.input_callback_stream);
+    return true;
   }
 
 protected:
@@ -76,7 +68,6 @@ protected:
       const Transform& input_diff_tf, const Transform& output_tf);
   virtual bool onEnable() override;
   virtual bool onUnclutch() override;
-  std::string input_stream_name;
   std::string measured_js_stream_name;
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
@@ -87,41 +78,49 @@ protected:
 private:
   bool getInitialOutputTf();
   bool rotate_about_tip_frame_vs_base_frame;
-  double position_scale;
   Rotation h2m_rot;
   Rotation s2e_rot;
 };
 
-typedef CartesianTeleopControllerConfig<Transform>
-    CartesianFollowerControllerConfig;
+struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
+{
+  std::shared_ptr<stream::SubStream<Transform>> input_callback_stream;
+  double position_scale = 1.0;
+};
+
 class CartesianFollowerController : public CartesianTeleopController
 {
 public:
   CartesianFollowerController();
   virtual ~CartesianFollowerController();
-  bool init(const CartesianFollowerControllerConfig& init_config);
-
-private:
+  bool init(const CartesianFollowerControllerConfig& config);
+protected:
+  double position_scale;
+  std::string input_stream_name;
   Transform initial_input_tf;
   bool getInitialInputTf();
-  virtual bool onEnable() final;
-  virtual bool onUnclutch() final;
-  void update(const DataStore& input_data) final;
+  virtual bool onEnable() override;
+  virtual bool onUnclutch() override;
+  void update(const DataStore& input_data) override;
 };
 
-typedef CartesianTeleopControllerConfig<Twist>
-    CartesianIncrementControllerConfig;
+struct CartesianIncrementControllerConfig : CartesianTeleopControllerConfig
+{
+  std::shared_ptr<stream::SubStream<Twist>> input_callback_stream;
+};
+
 class CartesianIncrementController : public CartesianTeleopController
 {
 public:
   CartesianIncrementController();
   virtual ~CartesianIncrementController();
-  bool init(const CartesianIncrementControllerConfig& init_config);
+  bool init(const CartesianIncrementControllerConfig& config);
 
-private:
+protected:
+  std::string input_stream_name;
   Transform current_command_output_tf;
-  virtual bool onEnable() final;
-  void update(const DataStore& input_data) final;
+  virtual bool onEnable() override;
+  void update(const DataStore& input_data) override;
 };
 } // namespace controller
 } // namespace medrct

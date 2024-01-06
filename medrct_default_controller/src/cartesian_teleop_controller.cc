@@ -19,7 +19,7 @@ CartesianTeleopController::~CartesianTeleopController()
 Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
     const Transform& input_diff_tf, const Transform& output_tf)
 {
-  Vector3 input_diff_p_wrt_m = input_diff_tf.translation() * position_scale;
+  Vector3 input_diff_p_wrt_m = input_diff_tf.translation();
   Vector3 input_diff_p_wrt_h = h2m_rot * input_diff_p_wrt_m;
   Vector3 output_diff_p_wrt_e = input_diff_p_wrt_h;
   Vector3 output_diff_p_wrt_s = s2e_rot * output_diff_p_wrt_e;
@@ -72,9 +72,13 @@ CartesianFollowerController::~CartesianFollowerController()
 {
 }
 bool CartesianFollowerController::init(
-    const CartesianFollowerControllerConfig& init_config)
+    const CartesianFollowerControllerConfig& config)
 {
-  return CartesianTeleopController::init<Transform>(init_config);
+  input_stream_name = config.input_callback_stream->name;
+  input_stream_map.addWithBuffer(config.input_callback_stream);
+  if(!CartesianTeleopController::init(config)) return false;
+  return initAggragate<Transform>(
+    config.controller_name, config.input_callback_stream);
 }
 
 bool CartesianFollowerController::getInitialInputTf()
@@ -108,9 +112,10 @@ void CartesianFollowerController::update(const DataStore& input_data)
   absolute_input_diff.linear() =
       initial_input_tf.linear().inverse() * absolute_input_tf.linear();
   absolute_input_diff.translation() =
-      absolute_input_tf.translation() - initial_input_tf.translation();
+      (absolute_input_tf.translation() - initial_input_tf.translation()) * position_scale;
 
   this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
+  return;
 }
 
 CartesianIncrementController::CartesianIncrementController()
@@ -120,9 +125,13 @@ CartesianIncrementController::~CartesianIncrementController()
 {
 }
 bool CartesianIncrementController::init(
-    const CartesianIncrementControllerConfig& init_config)
+    const CartesianIncrementControllerConfig& config)
 {
-  return CartesianTeleopController::init<Twist>(init_config);
+  input_stream_name = config.input_callback_stream->name;
+  input_stream_map.addWithBuffer(config.input_callback_stream);
+  if(!CartesianTeleopController::init(config)) return false;
+  return initAggragate<Twist>(
+    config.controller_name, config.input_callback_stream);
 }
 
 bool CartesianIncrementController::onEnable()
@@ -144,6 +153,7 @@ void CartesianIncrementController::update(const DataStore& input_data)
   // calculate input diff tf;
   current_command_output_tf = this->calculateOutputTfAndPublishJs(
       input_diff_tf, current_command_output_tf);
+  return;
 }
 
 } // namespace controller
