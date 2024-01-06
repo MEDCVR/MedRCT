@@ -26,6 +26,9 @@ struct CartesianTeleopControllerConfig
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
   double position_scale = 1.0;
+  bool rotate_about_tip_frame_vs_base_frame = false;
+  Quaternion output_2_output_ref_quat = Quaternion(1, 0, 0, 0);
+  Quaternion input_2_input_ref_quat = Quaternion(1, 0, 0, 0);
   // TODO All types is aggragate for now
   // task_type_t task_type = task_type_t::AGGRAGATE;
 };
@@ -36,31 +39,36 @@ public:
   CartesianTeleopController();
   virtual ~CartesianTeleopController() = 0;
   template <class inputT>
-  bool init(const CartesianTeleopControllerConfig<inputT>& init_config)
+  bool init(const CartesianTeleopControllerConfig<inputT>& config)
   {
-    if (!init_config.input_callback_stream || !init_config.measured_js_stream ||
-        !init_config.output_js_stream)
+    if (!config.input_callback_stream || !config.measured_js_stream ||
+        !config.output_js_stream)
     {
       return false;
     }
-    if (!init_config.forward_kinematics)
+    if (!config.forward_kinematics)
     {
       return false;
     }
-    if (!init_config.inverse_kinematics)
+    if (!config.inverse_kinematics)
     {
       return false;
     }
-    input_stream_name = init_config.input_callback_stream->name;
-    measured_js_stream_name = init_config.measured_js_stream->name;
-    this->forward_kinematics = init_config.forward_kinematics;
-    this->inverse_kinematics = init_config.inverse_kinematics;
-    position_scale = init_config.position_scale;
-    input_stream_map.addWithBuffer(init_config.input_callback_stream);
-    input_stream_map.addWithBuffer(init_config.measured_js_stream);
-    this->output_js_stream = init_config.output_js_stream;
+    input_stream_name = config.input_callback_stream->name;
+    measured_js_stream_name = config.measured_js_stream->name;
+    this->forward_kinematics = config.forward_kinematics;
+    this->inverse_kinematics = config.inverse_kinematics;
+    position_scale = config.position_scale;
+    input_stream_map.addWithBuffer(config.input_callback_stream);
+    input_stream_map.addWithBuffer(config.measured_js_stream);
+    this->output_js_stream = config.output_js_stream;
+    this->rotate_about_tip_frame_vs_base_frame =
+        config.rotate_about_tip_frame_vs_base_frame;
+
+    h2m_rot = config.input_2_input_ref_quat.inverse().toRotationMatrix();
+    s2e_rot = config.output_2_output_ref_quat.toRotationMatrix();
     return initAggragate<inputT>(
-        init_config.controller_name, init_config.input_callback_stream);
+        config.controller_name, config.input_callback_stream);
   }
 
 protected:
@@ -72,13 +80,16 @@ protected:
   std::string measured_js_stream_name;
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
-  double position_scale;
   Transform initial_output_tf;
   JointState command_output_js;
   std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
 
 private:
   bool getInitialOutputTf();
+  bool rotate_about_tip_frame_vs_base_frame;
+  double position_scale;
+  Rotation h2m_rot;
+  Rotation s2e_rot;
 };
 
 typedef CartesianTeleopControllerConfig<Transform>

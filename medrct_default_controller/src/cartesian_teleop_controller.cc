@@ -19,13 +19,18 @@ CartesianTeleopController::~CartesianTeleopController()
 Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
     const Transform& input_diff_tf, const Transform& output_tf)
 {
-  // TODO: do a rotation adjustment that makes sense
-  Transform input_diff_rotated = input_diff_tf;
+  Vector3 input_diff_p_wrt_m = input_diff_tf.translation() * position_scale;
+  Vector3 input_diff_p_wrt_h = h2m_rot * input_diff_p_wrt_m;
+  Vector3 output_diff_p_wrt_e = input_diff_p_wrt_h;
+  Vector3 output_diff_p_wrt_s = s2e_rot * output_diff_p_wrt_e;
+  Vector3 output_p_wrt_s = output_tf.translation() + output_diff_p_wrt_s;
 
   Transform new_output_tf;
-  new_output_tf.linear() = output_tf.linear() * input_diff_rotated.linear();
-  new_output_tf.translation() =
-      output_tf.translation() + input_diff_rotated.translation();
+  new_output_tf.translation() = output_p_wrt_s;
+  if (rotate_about_tip_frame_vs_base_frame)
+    new_output_tf.linear() = output_tf.linear() * input_diff_tf.linear();
+  else
+    new_output_tf.linear() = input_diff_tf.linear() * output_tf.linear();
 
   std::vector<env::IKSolution> ik_solutions =
       inverse_kinematics->computeIK(new_output_tf);
@@ -99,11 +104,11 @@ bool CartesianFollowerController::onUnclutch()
 void CartesianFollowerController::update(const DataStore& input_data)
 {
   Transform absolute_input_tf = input_data.get<Transform>(input_stream_name);
-  Transform absolute_input_diff =
-      initial_input_tf.inverse() * absolute_input_tf;
+  Transform absolute_input_diff;
+  absolute_input_diff.linear() =
+      initial_input_tf.linear().inverse() * absolute_input_tf.linear();
   absolute_input_diff.translation() =
-      absolute_input_tf.translation() -
-      initial_input_tf.translation() * position_scale;
+      absolute_input_tf.translation() - initial_input_tf.translation();
 
   this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
 }
