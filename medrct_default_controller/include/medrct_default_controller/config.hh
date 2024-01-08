@@ -26,7 +26,7 @@ namespace controller
     quat.w() = GetValue<real_t>(quaternion_yaml, "w");
     quat.x() = GetValue<real_t>(quaternion_yaml, "x");
     quat.y() = GetValue<real_t>(quaternion_yaml, "y");
-    quat.z() = GetValue<real_t>(quaternion_yaml, "x");
+    quat.z() = GetValue<real_t>(quaternion_yaml, "z");
     return quat;
   }
 
