@@ -35,7 +35,10 @@ class DvrkTeleopNode:
                         kin_solver = PsmKinematicsSolver(class_(scale))
                 elif kin_yaml["robot"] == "custom":
                     module = importlib.import_module(kin_yaml["module_name"])
-                    kin_solver = getattr(module, kin_yaml["class_name"])()
+                    kin_config_yaml = None
+                    if(kin_yaml["config"]):
+                        kin_config_yaml = kin_yaml["config"]
+                    kin_solver = getattr(module, kin_yaml["class_name"])(kin_config_yaml)
                 else:
                     raise KeyError ("key [robot]: Only [psm, custom] available now")
                 self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
