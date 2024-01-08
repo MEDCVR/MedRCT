@@ -15,23 +15,24 @@ namespace controller
 
 using namespace medrct::stream;
 
-
-void JointTeleopControllerConfig::FromYaml(JointTeleopControllerConfig& jcc,
-  const YAML::Node controller_config, const stream::StreamFactory& stream_factory)
+void JointTeleopControllerConfig::FromYaml(
+    JointTeleopControllerConfig& jcc,
+    const YAML::Node controller_config,
+    const stream::StreamFactory& stream_factory)
 {
   jcc.controller_name = GetValue<std::string>(controller_config, "name");
   YAML::Node n;
-  n["topic_name"] = GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
+  n["topic_name"] =
+      GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
   n["type"] = "input";
   n["name"] = jcc.controller_name + "_input_stream";
   n["data_type"] = "JointState";
-  jcc.input_js_stream =
-        stream_factory.create<stream::SubStream<JointState>>(n);
-    CreateOutputAndMeasuredStreams(
-        jcc.output_js_stream,
-        jcc.measured_js_stream,
-        controller_config,
-        stream_factory);
+  jcc.input_js_stream = stream_factory.create<stream::SubStream<JointState>>(n);
+  CreateOutputAndMeasuredStreams(
+      jcc.output_js_stream,
+      jcc.measured_js_stream,
+      controller_config,
+      stream_factory);
 }
 
 JointTeleopController::JointTeleopController()

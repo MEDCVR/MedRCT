@@ -22,10 +22,11 @@ struct JointTeleopControllerConfig
   std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
   // TODO All types is aggragate for now
   // task_type_t task_type = task_type_t::AGGRAGATE;
-  static void FromYaml(JointTeleopControllerConfig& jcc,
-  const YAML::Node controller_config, const stream::StreamFactory& stream_factory);
+  static void FromYaml(
+      JointTeleopControllerConfig& jcc,
+      const YAML::Node controller_config,
+      const stream::StreamFactory& stream_factory);
 };
-
 
 class JointTeleopController : public Controller
 {

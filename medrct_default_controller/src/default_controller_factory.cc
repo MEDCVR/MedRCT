@@ -18,15 +18,18 @@ Controller::Ptr DefaultControllerFactory::create(
     const medrct::stream::StreamFactory& stream_factory,
     YAML::Node controller_config) const
 {
-  std::string class_name = GetValue<std::string>(GetYamlNode(controller_config, "loader"), "create_class_name");
-  std::string controller_name = GetValue<std::string>(controller_config, "name");
+  std::string class_name = GetValue<std::string>(
+      GetYamlNode(controller_config, "loader"), "create_class_name");
+  std::string controller_name =
+      GetValue<std::string>(controller_config, "name");
 
   YAML::Node input_config = GetYamlNode(controller_config, "input");
   if (class_name == "JointMimicController" ||
       class_name == "JointIncrementController")
   {
     JointTeleopControllerConfig jtcc;
-    JointTeleopControllerConfig::FromYaml(jtcc, controller_config, stream_factory);
+    JointTeleopControllerConfig::FromYaml(
+        jtcc, controller_config, stream_factory);
     if (class_name == "JointMimicController")
     {
       auto jmc = std::make_shared<JointMimicController>();
@@ -48,7 +51,8 @@ Controller::Ptr DefaultControllerFactory::create(
   if (class_name == "CartesianIncrementController")
   {
     CartesianIncrementControllerConfig cic_cfg;
-    CartesianIncrementControllerConfig::FromYaml(cic_cfg, controller_config, stream_factory);
+    CartesianIncrementControllerConfig::FromYaml(
+        cic_cfg, controller_config, stream_factory);
     Transform tf;
     cic_cfg.forward_kinematics->computeFK(tf, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
     auto cic = std::make_shared<CartesianIncrementController>();
@@ -61,7 +65,8 @@ Controller::Ptr DefaultControllerFactory::create(
   else if (class_name == "CartesianFollowerController")
   {
     CartesianFollowerControllerConfig cfcc;
-    CartesianFollowerControllerConfig::FromYaml(cfcc, controller_config, stream_factory);
+    CartesianFollowerControllerConfig::FromYaml(
+        cfcc, controller_config, stream_factory);
     auto cfc = std::make_shared<CartesianFollowerController>();
     if (!cfc->init(cfcc))
       throw std::invalid_argument(
