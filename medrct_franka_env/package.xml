@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>medrct_franka_env</name>
+  <version>0.0.1</version>
+  <description>franka specific information</description>
+  <maintainer email="radian.gondokaryono@mail.utoronto.ca">radian</maintainer>
+  <license>TODO</license>
+
+  <depend>medrct_common</depend>
+  <depend>medrct_env</depend>
+  <depend>medrct_franka_control</depend>
+</package>
