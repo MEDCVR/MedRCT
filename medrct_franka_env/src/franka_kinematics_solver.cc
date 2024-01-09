@@ -15,95 +15,76 @@ namespace env
 Chain CreateFrankaChain()
 {
   KinematicsTree kin_tree("franka_kinematics_tree");
-  kin_tree.addLink(Link("base_link"));
+  kin_tree.addLink(Link("panda_link0"));
 
-  // 1st
   {
-    kin_tree.addLink(Link("yaw_link"));
-    Joint joint = Joint::FromModifiedDH(PI_2, 0, 0, PI_2, JointType::REVOLUTE);
-    joint.setName("yaw_joint");
-    joint.parent_link_name = "base_link";
-    joint.child_link_name = "yaw_link";
+    kin_tree.addLink(Link("panda_link1"));
+    Joint joint = Joint::FromModifiedDH(0, 0, 0.333, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint1");
+    joint.parent_link_name = "panda_link0";
+    joint.child_link_name = "panda_link1";
     kin_tree.addJoint(joint);
   }
-  // 2nd
   {
-    kin_tree.addLink(Link("pitch_link"));
+    kin_tree.addLink(Link("panda_link2"));
+    Joint joint = Joint::FromModifiedDH(-PI_2, 0, 0, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint2");
+    joint.parent_link_name = "panda_link1";
+    joint.child_link_name = "panda_link2";
+    kin_tree.addJoint(joint);
+  }
+  {
+    kin_tree.addLink(Link("panda_link3"));
+    Joint joint = Joint::FromModifiedDH(PI_2, 0, 0.316, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint3");
+    joint.parent_link_name = "panda_link2";
+    joint.child_link_name = "panda_link3";
+    kin_tree.addJoint(joint);
+  }
+  {
+    kin_tree.addLink(Link("panda_link4"));
     Joint joint =
-        Joint::FromModifiedDH(-PI_2, 0, 0, -PI_2, JointType::REVOLUTE);
-    joint.setName("pitch_joint");
-    joint.parent_link_name = "yaw_link";
-    joint.child_link_name = "pitch_link";
+        Joint::FromModifiedDH(PI_2, 0.0825, 0, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint4");
+    joint.parent_link_name = "panda_link3";
+    joint.child_link_name = "panda_link4";
     kin_tree.addJoint(joint);
   }
-  // 3rd
   {
-    kin_tree.addLink(Link("main_insertion_link"));
+    kin_tree.addLink(Link("panda_link5"));
     Joint joint =
-        Joint::FromModifiedDH(PI_2, 0, 0, -PI_2, JointType::PRISMATIC);
-    joint.setName("main_insertion_joint");
-    joint.parent_link_name = "pitch_link";
-    joint.child_link_name = "main_insertion_link";
-    kin_tree.addJoint(joint);
-  }
-  // 4th
-  {
-    kin_tree.addLink(Link("tool_roll_link"));
-    Joint joint = Joint::FromModifiedDH(0, 0, 0, -PI_2, JointType::REVOLUTE);
-    joint.setName("tool_roll_joint");
-    joint.parent_link_name = "main_insertion_link";
-    joint.child_link_name = "tool_roll_link";
-    kin_tree.addJoint(joint);
-  }
-  // 5th
-  {
-    kin_tree.addLink(Link("tool_pitch_link"));
-    Joint joint = Joint::FromModifiedDH(PI_2, 0, 0, PI_2, JointType::REVOLUTE);
+        Joint::FromModifiedDH(-PI_2, -0.0825, 0.384, 0, JointType::REVOLUTE);
     joint.setName("tool_pitch_joint");
     joint.parent_link_name = "tool_roll_link";
-    joint.child_link_name = "tool_pitch_link";
+    joint.child_link_name = "panda_link5";
     kin_tree.addJoint(joint);
   }
-  // 6th
   {
-    kin_tree.addLink(Link("tool_yaw_link"));
-    Joint joint = Joint::FromModifiedDH(-PI_2, 0, 0, PI_2, JointType::REVOLUTE);
-    joint.setName("tool_yaw_joint");
-    joint.parent_link_name = "tool_pitch_link";
-    joint.child_link_name = "tool_yaw_link";
+    kin_tree.addLink(Link("panda_link6"));
+    Joint joint = Joint::FromModifiedDH(PI_2, 0, 0, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint6");
+    joint.parent_link_name = "panda_link5";
+    joint.child_link_name = "panda_link6";
     kin_tree.addJoint(joint);
   }
-  // 6th->tool_tip
   {
-    kin_tree.addLink(Link("tool_tip_link"));
-    Joint joint = Joint::FromModifiedDH(PI_2, 0, 0, -PI_2, JointType::FIXED);
-    joint.setName("tool_tip_joint");
-    joint.parent_link_name = "tool_yaw_link";
-    joint.child_link_name = "tool_tip_link";
+    kin_tree.addLink(Link("panda_link7"));
+    Joint joint = Joint::FromModifiedDH(PI_2, 0.088, 0, 0, JointType::FIXED);
+    joint.setName("panda_joint7");
+    joint.parent_link_name = "panda_link6";
+    joint.child_link_name = "panda_link7";
     kin_tree.addJoint(joint);
   }
-  // 6th->tool_gripper1_link
   {
-    kin_tree.addLink(Link("tool_gripper1_link"));
-    bool revert_axis = true;
-    Joint joint = Joint::FromModifiedDH(
-        PI_2, 0, 0, -PI_2, JointType::REVOLUTE, revert_axis);
-    joint.setName("tool_gripper1_joint");
-    joint.parent_link_name = "tool_yaw_link";
-    joint.child_link_name = "tool_gripper1_link";
-    kin_tree.addJoint(joint);
-  }
-  // 6th->tool_gripper2_link
-  {
-    kin_tree.addLink(Link("tool_gripper2_link"));
-    Joint joint = Joint::FromModifiedDH(0, 0, 0, 0, JointType::REVOLUTE);
-    joint.setName("tool_gripper2_joint");
-    joint.parent_link_name = "tool_yaw_link";
-    joint.child_link_name = "tool_gripper2_link";
+    kin_tree.addLink(Link("panda_link8"));
+    Joint joint = Joint::FromModifiedDH(0, 0, 0.107, 0, JointType::REVOLUTE);
+    joint.setName("panda_joint8");
+    joint.parent_link_name = "panda_link7";
+    joint.child_link_name = "panda_link8";
     kin_tree.addJoint(joint);
   }
   Chain kin_chain;
-  kin_chain.init(kin_tree, "base_link", "tool_tip_link");
+  kin_chain.init(kin_tree, "panda_link0", "panda_link8");
   return kin_chain;
 }
 
