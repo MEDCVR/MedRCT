@@ -104,68 +104,54 @@ Chain CreateFrankaChain()
   }
   Chain kin_chain;
   kin_chain.init(kin_tree, "base_link", "tool_tip_link");
+  return kin_chain;
 }
 
 FrankaForwardKinematics::FrankaForwardKinematics()
-    : SimpleForwardKinematics(createFrankaChain())
+    : SimpleForwardKinematics(CreateFrankaChain())
 {
 }
 
 FrankaInverseKinematics ::FrankaInverseKinematics()
+    : franka_kin_solver(FrankaKinematicsSolver()),
+      franka_chain(CreateFrankaChain())
 {
-}
-
-inline real_t Sign(real_t val)
-{
-  return (0 < val) - (val < 0);
-}
-inline real_t GetAngleImpl(Vector3& vec_a, Vector3& vec_b)
-{
-  vec_a.normalize();
-  vec_b.normalize();
-  real_t vdot = vec_a.dot(vec_b);
-  real_t angle;
-  if ((1.0 - vdot) < 0.000001)
-    angle = 0.0;
-  else if ((1.0 + vdot) < 0.000001)
-    angle = PI;
-  else
-    angle = std::acos(vdot);
-  return angle;
-}
-
-inline real_t GetAngle(Vector3 vec_a, Vector3 vec_b)
-{
-  return GetAngleImpl(vec_a, vec_b);
-}
-
-inline real_t GetAngle(Vector3 vec_a, Vector3 vec_b, const Vector3& up_vector)
-{
-  real_t angle = GetAngleImpl(vec_a, vec_b);
-  Vector3 cross_ab = vec_a.cross(vec_b);
-  real_t same_dir = Sign(cross_ab.dot(up_vector));
-  if (same_dir < 0.0)
-    angle = -angle;
-  return angle;
 }
 
 std::vector<IKSolution> FrankaInverseKinematics::computeIK(
     const Transform& tip_transform,
-    const std::vector<real_t>& joint_positions_seed) const
+    const std::vector<real_t>& joint_positions_seed)
 {
-  return {};
+  std::array<double, 7> solution = {joint_positions_seed[0],
+                                    joint_positions_seed[1],
+                                    joint_positions_seed[2],
+                                    joint_positions_seed[3],
+                                    joint_positions_seed[4],
+                                    joint_positions_seed[5],
+                                    joint_positions_seed[6]};
+  if (!franka_kin_solver.computeIk(
+          tip_transform.translation(),
+          Eigen::Quaterniond(tip_transform.linear()),
+          solution))
+  {
+    return {joint_positions_seed};
+  }
+  std::vector<real_t> ik_solution(solution.begin(), solution.end());
+  return {ik_solution};
 }
+
 std::string FrankaInverseKinematics::getBaseLinkName() const
 {
-  return {"franka"};
+  return franka_chain.getRootToTipJoints().front()->parent_link_name;
 }
 std::string FrankaInverseKinematics::getTipLinkName() const
 {
-  return {"ee"};
+  return franka_chain.getRootToTipJoints().back()->child_link_name;
 }
 std::vector<std::string> FrankaInverseKinematics::getActiveJointNames() const
 {
-  return {"links"};
+  return franka_chain.getActiveJointNames();
 }
+
 } // namespace env
 } // namespace medrct

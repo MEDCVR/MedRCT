@@ -14,7 +14,7 @@ class FrankaForwardKinematicsFactory : public ForwardKinematicsFactory
 public:
   FrankaForwardKinematicsFactory() = default;
   std::shared_ptr<ForwardKinematics>
-  create(const KinematicsTree::Ptr, const YAML::Node& config) final;
+  create(const KinematicsTree::Ptr, const YAML::Node&) final;
 };
 
 class FrankaInverseKinematicsFactory : public InverseKinematicsFactory
@@ -22,7 +22,7 @@ class FrankaInverseKinematicsFactory : public InverseKinematicsFactory
 public:
   FrankaInverseKinematicsFactory() = default;
   std::shared_ptr<InverseKinematics>
-  create(const KinematicsTree::Ptr, const YAML::Node& config) final;
+  create(const KinematicsTree::Ptr, const YAML::Node&) final;
 };
 } // namespace env
 } // namespace medrct

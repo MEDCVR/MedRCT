@@ -31,7 +31,7 @@ public:
   virtual std::vector<IKSolution> computeIK(
       const Transform& tip_transform,
       const std::vector<real_t>& joint_positions_seed =
-          std::vector<real_t>()) const = 0;
+          std::vector<real_t>()) = 0;
 
   /** @brief Get the robot base link name */
   virtual std::string getBaseLinkName() const = 0;

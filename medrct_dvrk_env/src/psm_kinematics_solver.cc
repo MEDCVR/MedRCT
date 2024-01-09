@@ -195,7 +195,7 @@ inline real_t GetAngle(Vector3 vec_a, Vector3 vec_b, const Vector3& up_vector)
 }
 
 std::vector<IKSolution> PsmInverseKinematics::computeIK(
-    const Transform& tip_transform, const std::vector<real_t>&) const
+    const Transform& tip_transform, const std::vector<real_t>&)
 {
   Transform T_pinchjoint_7 = Transform::Identity();
   T_pinchjoint_7.translation() =

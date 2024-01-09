@@ -8,20 +8,18 @@
 #include <medrct_env/kinematics/inverse_kinematics.hh>
 #include <medrct_env/kinematics/simple_forward_kinematics.hh>
 
+#include <medrct_franka_control/franka_kinematics.hpp>
+
 namespace medrct
 {
 namespace env
 {
-
-static Chain createFrankaChain();
 
 class FrankaForwardKinematics : public SimpleForwardKinematics
 {
 public:
   FrankaForwardKinematics();
   virtual ~FrankaForwardKinematics() {}
-
-private:
 };
 
 class FrankaInverseKinematics : public InverseKinematics
@@ -32,10 +30,14 @@ public:
   std::vector<IKSolution> computeIK(
       const Transform& tip_transform,
       const std::vector<real_t>& joint_positions_seed =
-          std::vector<real_t>()) const final;
+          std::vector<real_t>()) final;
   std::string getBaseLinkName() const final;
   std::string getTipLinkName() const final;
   std::vector<std::string> getActiveJointNames() const final;
+
+private:
+  FrankaKinematicsSolver franka_kin_solver;
+  Chain franka_chain;
 };
 } // namespace env
 } // namespace medrct

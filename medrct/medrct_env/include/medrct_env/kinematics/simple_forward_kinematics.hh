@@ -16,7 +16,7 @@ public:
   virtual int computeFK(
       Transform& transform_out,
       const std::vector<real_t>& active_joint_positions,
-      const unsigned int up_to_link_num = 1000) const override;
+      const unsigned int up_to_link_num = 1000) override;
   virtual std::string getBaseLinkName() const override;
   virtual std::string getTipLinkName() const override;
   virtual std::vector<std::string> getLinkNames() const override;

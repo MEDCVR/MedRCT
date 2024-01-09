@@ -17,7 +17,7 @@ SimpleForwardKinematics::~SimpleForwardKinematics()
 int SimpleForwardKinematics::computeFK(
     Transform& transform_out,
     const std::vector<real_t>& active_joint_positions,
-    const unsigned int up_to_link_num) const
+    const unsigned int up_to_link_num)
 {
   transform_out = Transform::Identity();
   unsigned int active_jp_idx = 0;

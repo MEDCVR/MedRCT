@@ -15,21 +15,31 @@ add_library(${PROJECT_NAME} SHARED
   src/franka_kinematics_solver.cc
 )
 
+find_package(yaml-cpp REQUIRED)
+find_package(medrct_common REQUIRED)
+find_package(medrct_env REQUIRED)
+find_package(catkin REQUIRED COMPONENTS medrct_franka_control)
+
 target_include_directories(${PROJECT_NAME}
 PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+${catkin_INCLUDE_DIRS}
 PRIVATE
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 )
-find_package(yaml-cpp REQUIRED)
+
+# include_directories(
+# include
+
+# )
+
 target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
-
-find_package(medrct_common REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
-
-find_package(medrct_env REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC medrct_env::medrct_env)
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  medrct_common::medrct_common
+  medrct_env::medrct_env
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Testing ##
@@ -41,23 +51,23 @@ if(BUILD_TESTING)
   include(GoogleTest)
   include(Dart)
 
-  add_executable(tests
+  add_executable(franka_tests # name tests cannot be used with catkin dependency
     tests/main.cc
     tests/franka_kinematics_test.cc
     tests/franka_loader_kinematics_test.cc
   )
 
-  target_compile_options(tests
+  target_compile_options(franka_tests
     PRIVATE
     -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
     -Wno-unused-but-set-variable
   )
-  target_link_libraries(tests
+  target_link_libraries(franka_tests
     PRIVATE gtest ${PROJECT_NAME}
     Threads::Threads)
-  target_include_directories(tests PRIVATE include)
+  target_include_directories(franka_tests PRIVATE include)
 
-  gtest_discover_tests(tests DISCOVERY_TIMEOUT 60)
+  gtest_discover_tests(franka_tests DISCOVERY_TIMEOUT 60)
 endif()
 
 # Install

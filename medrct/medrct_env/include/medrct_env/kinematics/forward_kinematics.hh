@@ -34,7 +34,7 @@ public:
   virtual int computeFK(
       Transform& transform_out,
       const std::vector<real_t>& active_joint_positions,
-      const unsigned int up_to_link_num = 1000) const = 0;
+      const unsigned int up_to_link_num = 1000) = 0;
 
   /** @brief Get the chain base link name */
   virtual std::string getBaseLinkName() const = 0;

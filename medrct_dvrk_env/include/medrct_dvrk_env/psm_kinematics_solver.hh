@@ -47,14 +47,14 @@ public:
   std::vector<IKSolution> computeIK(
       const Transform& tip_transform,
       const std::vector<real_t>& joint_positions_seed =
-          std::vector<real_t>()) const final;
+          std::vector<real_t>()) final;
   std::string getBaseLinkName() const final;
   std::string getTipLinkName() const final;
   std::vector<std::string> getActiveJointNames() const final;
 
 private:
   const PsmKinematicsData psm_kin_data;
-  const PsmForwardKinematics psm_fwd_kin;
+  PsmForwardKinematics psm_fwd_kin;
 };
 } // namespace env
 } // namespace medrct
