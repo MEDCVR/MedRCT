@@ -99,8 +99,9 @@ public:
       stream::SubStream<dataT>* stream_ptr =
           static_cast<stream::SubStream<dataT>*>(
               name_to_streams.at(name).get());
-      if (!data_store.contains(name))
-        data_store.update<dataT>(name, stream_ptr->getBuffer().getLatest());
+      // if (!data_store.contains(name))
+      //   return; // TODO: should throw here
+      data_store.update<dataT>(name, stream_ptr->getBuffer().getLatest());
     };
     bfs.wait_data_once_func = [this, name]() {
       stream::SubStream<dataT>* stream_ptr =
