@@ -135,7 +135,6 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
   auto measured_stream_ptr =
       input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
   JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
-  medrctlog::info("-----------", command_output_js);
   // medrctlog::info("command_output_js before: {}", command_output_js);
   // GetHarmonizedJointPositions(command_output_js, current_output_js);
   // medrctlog::info("command_output_js: {}", command_output_js);
@@ -180,6 +179,7 @@ bool CartesianFollowerController::init(
 {
   input_stream_name = config.input_callback_stream->name;
   input_stream_map.addWithBuffer(config.input_callback_stream);
+  position_scale = config.position_scale;
   if (!CartesianTeleopController::init(config))
     return false;
   return initAggragate<Transform>(
@@ -222,7 +222,6 @@ void CartesianFollowerController::update(const DataStore& input_data)
 
   // TODO; why this doesn't work?
   // auto js = input_data.get<JointState>(measured_js_stream_name);
-  // medrctlog::info(js);
 
   this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
   return;

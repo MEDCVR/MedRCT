@@ -65,6 +65,7 @@ public:
 
     h2m_rot = config.input_2_input_ref_quat.inverse().toRotationMatrix();
     s2e_rot = config.output_2_output_ref_quat.toRotationMatrix();
+
     return true;
   }
 
@@ -90,7 +91,7 @@ private:
 struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
 {
   std::shared_ptr<stream::SubStream<Transform>> input_callback_stream;
-  double position_scale = 1.0;
+  real_t position_scale = 1.0;
   static void FromYaml(
       CartesianFollowerControllerConfig& cfcc,
       const YAML::Node controller_config,
@@ -105,7 +106,7 @@ public:
   bool init(const CartesianFollowerControllerConfig& config);
 
 protected:
-  double position_scale;
+  real_t position_scale;
   std::string input_stream_name;
   Transform initial_input_tf;
   bool getInitialInputTf();
