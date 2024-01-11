@@ -127,7 +127,7 @@ bool ControllerManager::init(const ControllerManagerConfig& config)
 
   if (config.active_control_group_name != "")
   {
-    active_control_group_name = active_control_group_name;
+    active_control_group_name = config.active_control_group_name;
   }
   else
   {
@@ -366,6 +366,7 @@ bool BasicControllerManagerCommunicator::init(
   }
   clutch_subscriber = config.clutch_subscriber;
   switch_subscriber = config.switch_subscriber;
+  enable_subscriber = config.enable_subscriber;
 
   active_control_group_name = cm.getActiveControlGroupName();
 

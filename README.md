@@ -47,6 +47,7 @@ make
 Each step is a new terminal
 1. Start `roscore`
 
+## Start a simulator
 2. Start AMBF PSM output modality:
 ```bash
 cd ~/medrct_ws/ambf/build
@@ -61,6 +62,18 @@ source ~/medrct_ws/ambf/build/devel/setup.bash
 cd ~/medrct_ws/dvrk_planning/dvrk_python_v1/ambf_ros_crtk/scripts
 python3 ambf_crtk_translator.py
 ```
+## Start a dvrk robot instead
+
+
+3. 
+```bash
+roscd dvrk_config
+rosrun dvrk_robot dvrk_console_json -j <specific_group>/console-MTMR-PSM2.json
+```
+
+## Teleoperation
+
+
 4. Start the teleoperation node:
 ```bash
 source ~/medrct_ws/install/setup.bash

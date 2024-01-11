@@ -85,12 +85,19 @@ bool JointMimicController::onEnable()
   JointState current_input_js = input_stream_ptr->getBuffer().getLatest();
 
   // TODO maybe have a joint verify
-  if (current_output_js.names.size() != current_input_js.names.size() ||
-      current_output_js.positions.size() != current_input_js.positions.size())
+  // if (current_output_js.names.size() != current_input_js.names.size())
+  // {
+  //   // Maybe need a false transition error here.
+  //   medrctlog::error("names size not same");
+  //   return false;
+  // }
+  if (current_output_js.positions.size() != current_input_js.positions.size())
   {
     // Maybe need a false transition error here.
+    medrctlog::error("positions size not same");
     return false;
   }
+
   matchJoints(current_output_js, current_input_js);
   // Check if far from current mimiced position
   return true;

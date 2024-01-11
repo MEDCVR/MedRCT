@@ -1,3 +1,5 @@
+#include <climits>
+#include <cstdlib>
 #include <medrct/log.hh>
 
 #include <medrct_default_controller/cartesian_teleop_controller.hh>
@@ -83,6 +85,31 @@ CartesianTeleopController::~CartesianTeleopController()
 {
 }
 
+real_t sgn(real_t val)
+{
+  return (real_t(0) < val) - (val < real_t(0));
+}
+
+void GetHarmonizedJointPositions(
+    JointState& to_harmonize, const JointState& from)
+{
+  for (size_t i = 0; i < to_harmonize.positions.size(); ++i)
+  {
+    real_t& to_pos = to_harmonize.positions[i];
+    const real_t& from_pos = from.positions[i];
+    real_t diff = std::abs(from_pos - to_pos);
+    if (diff < 0.3)
+      continue;
+    real_t sign = sgn(from_pos - to_pos);
+    real_t new_to_pos = to_pos + 2 * M_PI * sign;
+    if (std::abs(from_pos - new_to_pos) < diff)
+    {
+      to_pos = new_to_pos;
+    }
+  }
+  return;
+}
+
 Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
     const Transform& input_diff_tf, const Transform& output_tf)
 {
@@ -104,6 +131,16 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
 
   // TODO, put joint names here;
   command_output_js.positions = ik_solutions[0];
+
+  auto measured_stream_ptr =
+      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
+  JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
+  medrctlog::info("-----------", command_output_js);
+  // medrctlog::info("command_output_js before: {}", command_output_js);
+  // GetHarmonizedJointPositions(command_output_js, current_output_js);
+  // medrctlog::info("command_output_js: {}", command_output_js);
+  // medrctlog::info("current_output_js: {}", current_output_js);
+
   output_js_stream->publish(command_output_js);
   return new_output_tf;
 }
@@ -182,6 +219,10 @@ void CartesianFollowerController::update(const DataStore& input_data)
   absolute_input_diff.translation() =
       (absolute_input_tf.translation() - initial_input_tf.translation()) *
       position_scale;
+
+  // TODO; why this doesn't work?
+  // auto js = input_data.get<JointState>(measured_js_stream_name);
+  // medrctlog::info(js);
 
   this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
   return;

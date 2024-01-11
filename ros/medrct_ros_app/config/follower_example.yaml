@@ -6,7 +6,7 @@ controllers:
       create_class_name: "CartesianFollowerController"
     input:
       topic: "/MTMR/measured_cp"
-      position_scale: 0.5
+      position_scale: 1.0
       hold_home_off:
         enable: True
         servo_cp_topic: /MTMR/servo_cp
