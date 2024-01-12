@@ -76,13 +76,10 @@ bool JointMimicController::onEnable()
   if (!input_stream_map.waitForOneBufferedDataInput(input_js_stream_name, true))
     return false;
 
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
-
-  auto input_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(input_js_stream_name);
-  JointState current_input_js = input_stream_ptr->getBuffer().getLatest();
+  JointState current_output_js =
+      getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
+  JointState current_input_js =
+      getLatestFromBufferedInputStream<JointState>(input_js_stream_name);
 
   // TODO maybe have a joint verify
   // if (current_output_js.names.size() != current_input_js.names.size())
@@ -201,9 +198,8 @@ bool JointIncrementController::onEnable()
   if (!input_stream_map.waitForOneBufferedDataInput(
           measured_js_stream_name, true))
     return false;
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  current_command_output_js = measured_stream_ptr->getBuffer().getLatest();
+  current_command_output_js =
+      getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
   return true;
 }
 } // namespace controller

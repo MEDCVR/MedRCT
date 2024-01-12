@@ -151,7 +151,9 @@ void GetHarmonizedJointPositions(
 }
 
 Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
-    const Transform& input_diff_tf, const Transform& output_tf)
+    const Transform& input_diff_tf,
+    const Transform& output_tf,
+    const JointState& current_output_js)
 {
   Vector3 input_diff_p_wrt_m = input_diff_tf.translation();
   Vector3 input_diff_p_wrt_h = h2m_rot * input_diff_p_wrt_m;
@@ -171,10 +173,6 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
 
   // TODO, put joint names here;
   command_output_js.positions = ik_solutions[0];
-
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
   // medrctlog::info("command_output_js before: {}", command_output_js);
   // GetHarmonizedJointPositions(command_output_js, current_output_js);
   // medrctlog::info("command_output_js: {}", command_output_js);
@@ -191,9 +189,8 @@ bool CartesianTeleopController::getInitialOutputTf()
   {
     return false;
   }
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
+  JointState current_output_js =
+      getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
   forward_kinematics->computeFK(initial_output_tf, current_output_js.positions);
   return true;
 }
@@ -231,30 +228,21 @@ bool CartesianFollowerController::init(
       config.controller_name, config.input_callback_stream);
 }
 
-bool CartesianFollowerController::getInitialInputTf()
-{
-  if (!input_stream_map.waitForOneBufferedDataInput(input_stream_name, true))
-    return false;
-
-  return true;
-}
-
 bool CartesianFollowerController::onEnable()
 {
   if (!CartesianTeleopController::onEnable())
     return false;
   if (input_device_control)
     input_device_control->enable();
-  return getInitialInputTf();
+  return input_stream_map.waitForOneBufferedDataInput(input_stream_name, true);
 }
 
 bool CartesianFollowerController::onDisable()
 {
   if (input_device_control)
   {
-    auto input_stream_ptr =
-        input_stream_map.get<SubStream<Transform>>(input_stream_name);
-    auto current_tf = input_stream_ptr->getBuffer().getLatest();
+    auto current_tf =
+        getLatestFromBufferedInputStream<Transform>(input_stream_name);
     input_device_control->disable(current_tf);
   }
   return true;
@@ -264,7 +252,7 @@ bool CartesianFollowerController::onUnclutch()
 {
   if (!CartesianTeleopController::onUnclutch())
     return false;
-  return getInitialInputTf();
+  return input_stream_map.waitForOneBufferedDataInput(input_stream_name, true);
 }
 
 void CartesianFollowerController::update(const DataStore& input_data)
@@ -278,7 +266,10 @@ void CartesianFollowerController::update(const DataStore& input_data)
       position_scale;
   // TODO; why this doesn't work?
   // auto js = input_data.get<JointState>(measured_js_stream_name);
-  this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
+  JointState current_output_js =
+      input_data.get<JointState>(measured_js_stream_name);
+  this->calculateOutputTfAndPublishJs(
+      absolute_input_diff, initial_output_tf, current_output_js);
   if (input_device_control)
     input_device_control->update();
   return;
@@ -318,8 +309,10 @@ void CartesianIncrementController::update(const DataStore& input_data)
   input_diff_tf.linear() = FromRPY(input_twist.angular).toRotationMatrix();
 
   // calculate input diff tf;
+  JointState current_output_js =
+      input_data.get<JointState>(measured_js_stream_name);
   current_command_output_tf = this->calculateOutputTfAndPublishJs(
-      input_diff_tf, current_command_output_tf);
+      input_diff_tf, current_command_output_tf, current_output_js);
   return;
 }
 

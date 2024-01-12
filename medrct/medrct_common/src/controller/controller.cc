@@ -130,7 +130,6 @@ bool Controller::onUnclutch()
 }
 void Controller::updateProcess(DataStore& input_data)
 {
-  input_stream_map.getDataFromAllBufferedStreams(input_data);
   update(input_data);
 }
 } // namespace controller

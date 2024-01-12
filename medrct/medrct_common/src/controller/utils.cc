@@ -18,10 +18,12 @@ DataStore::~DataStore()
 }
 bool DataStore::contains(const std::string& name) const
 {
+  std::lock_guard<std::mutex> lock(data_lock);
   return data_map.find(name) != data_map.end();
 }
 void DataStore::resetAllWithDefaultValues()
 {
+  std::lock_guard<std::mutex> lock(reset_lock);
   for (auto& reset_func : reset_default_functions)
     reset_func();
 }
