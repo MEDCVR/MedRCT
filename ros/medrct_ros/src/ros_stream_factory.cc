@@ -12,6 +12,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 
@@ -79,6 +80,12 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
       stream = std::make_shared<RosSubStream<medrct::Joy, sensor_msgs::Joy>>(
           name, &medrct_ros::RosToMedrctJoy, *nh, topic_name, queue_size);
     }
+    else if (data_type == "Wrench")
+    {
+      stream = std::make_shared<
+          RosSubStream<medrct::Wrench, geometry_msgs::WrenchStamped>>(
+          name, &medrct_ros::RosToMedrctWrench, *nh, topic_name, queue_size);
+    }
     else
     {
       throw std::runtime_error(
@@ -89,26 +96,32 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
   {
     if (data_type == "JointState")
     {
-      stream =
-          std::make_shared<RosPubStream<JointState, sensor_msgs::JointState>>(
-              name, &medrct_ros::MedrctToRosJs, *nh, topic_name, queue_size);
+      stream = std::make_shared<
+          RosPubStream<medrct::JointState, sensor_msgs::JointState>>(
+          name, &medrct_ros::MedrctToRosJs, *nh, topic_name, queue_size);
     }
     else if (data_type == "Transform")
     {
       stream = std::make_shared<
-          RosPubStream<Transform, geometry_msgs::TransformStamped>>(
+          RosPubStream<medrct::Transform, geometry_msgs::TransformStamped>>(
           name, &medrct_ros::MedrctToRosTf, *nh, topic_name, queue_size);
     }
     else if (data_type == "Twist")
     {
-      stream =
-          std::make_shared<RosPubStream<Twist, geometry_msgs::TwistStamped>>(
-              name, &medrct_ros::MedrctToRosTwist, *nh, topic_name, queue_size);
+      stream = std::make_shared<
+          RosPubStream<medrct::Twist, geometry_msgs::TwistStamped>>(
+          name, &medrct_ros::MedrctToRosTwist, *nh, topic_name, queue_size);
     }
     else if (data_type == "Joy")
     {
       stream = std::make_shared<RosPubStream<medrct::Joy, sensor_msgs::Joy>>(
           name, &medrct_ros::MedrctToRosJoy, *nh, topic_name, queue_size);
+    }
+    else if (data_type == "Wrench")
+    {
+      stream = std::make_shared<
+          RosPubStream<medrct::Wrench, geometry_msgs::WrenchStamped>>(
+          name, &medrct_ros::MedrctToRosWrench, *nh, topic_name, queue_size);
     }
     else
     {
