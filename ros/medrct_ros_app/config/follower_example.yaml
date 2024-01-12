@@ -21,11 +21,13 @@ controllers:
         class_name: "PsmForwardKinematicsFactory"
         config:
           tool_name: "LND400006"
+          set_yaw2ctrlpnt_zero: True
       inverse:
         lib_name: "medrct_dvrk_env"
         class_name: "PsmInverseKinematicsFactory"
         config:
           tool_name: "LND400006"
+          set_yaw2ctrlpnt_zero: True
   - name: "MTMR-PSM2-Jaw"
     loader:
       lib_name: medrct_default_controller

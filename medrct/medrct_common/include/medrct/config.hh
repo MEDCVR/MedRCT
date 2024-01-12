@@ -4,8 +4,6 @@
 
 namespace medrct
 {
-namespace controller
-{
 
 inline YAML::Node
 GetYamlNode(const YAML::Node& yaml_node, const std::string& key)
@@ -32,5 +30,4 @@ T GetValueDefault(
   return yaml_node[key].as<T>();
 }
 
-} // namespace controller
 } // namespace medrct

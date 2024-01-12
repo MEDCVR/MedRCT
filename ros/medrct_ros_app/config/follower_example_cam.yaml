@@ -1,6 +1,16 @@
-parent: ".follower_example.yaml"
 controllers:
-  - input:
+  - name: "MTMR-PSM2"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "CartesianFollowerController"
+    input:
+      topic: "/MTMR/measured_cp"
+      position_scale: 1.0
+      hold_home_off:
+        enable: True
+        servo_cp_topic: /MTMR/servo_cp
+        servo_cf_topic: /MTMR/body/servo_cf
       to_reference_rotation:
         quaternion:
           x: 0.9659258
@@ -14,11 +24,44 @@ controllers:
           z: 0.7071068
           w: 0.7071068
     output:
+      control_topic: "/PSM2/servo_jp"
+      feedback_topic: "/PSM2/measured_js"
       to_reference_rotation:
         quaternion:
           x: 1
           y: 0
           z: 0
           w: 0
-      rotate_about_base_frame_vs_tip_frame: True
-  -
+    kinematics:
+      tree: ""
+      forward:
+        lib_name: "medrct_dvrk_env"
+        class_name: "PsmForwardKinematicsFactory"
+        config:
+          tool_name: "LND400006"
+          set_yaw2ctrlpnt_zero: True
+      inverse:
+        lib_name: "medrct_dvrk_env"
+        class_name: "PsmInverseKinematicsFactory"
+        config:
+          tool_name: "LND400006"
+          set_yaw2ctrlpnt_zero: True
+  - name: "MTMR-PSM2-Jaw"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "JointMimicController"
+    input:
+      topic: "/MTMR/gripper/measured_js"
+      scale: 1
+    output:
+      control_topic: "/PSM2/jaw/servo_jp"
+      feedback_topic: "/PSM2/jaw/measured_js"
+control_groups:
+  - name: default
+    controller_names: ["MTMR-PSM2", "MTMR-PSM2-Jaw"]
+active_control_group: "default"
+basic_communicator:
+  auto_enable: False
+  enable_topic: "/console/operator_present"
+  clutch_topic: "/console/clutch"
