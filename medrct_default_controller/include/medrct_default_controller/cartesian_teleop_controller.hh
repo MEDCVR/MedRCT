@@ -18,6 +18,24 @@ namespace medrct
 {
 namespace controller
 {
+
+class InputDeviceControl
+{
+public:
+  InputDeviceControl(
+      std::shared_ptr<stream::PubStream<Transform>> servo_cp_stream,
+      std::shared_ptr<stream::PubStream<Wrench>> servo_cf_stream);
+  void enable();
+  void disable(const Transform& current_tf);
+  void update();
+
+private:
+  Wrench empty_wrench;
+  std::atomic<bool> is_enabled{false};
+  std::shared_ptr<stream::PubStream<Transform>> servo_cp_stream;
+  std::shared_ptr<stream::PubStream<Wrench>> servo_cf_stream;
+};
+
 struct CartesianTeleopControllerConfig
 {
   std::string controller_name;
@@ -92,6 +110,9 @@ struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
 {
   std::shared_ptr<stream::SubStream<Transform>> input_callback_stream;
   real_t position_scale = 1.0;
+  // Need both below for input device control
+  std::shared_ptr<stream::PubStream<Transform>> servo_cp_stream;
+  std::shared_ptr<stream::PubStream<Wrench>> servo_cf_stream;
   static void FromYaml(
       CartesianFollowerControllerConfig& cfcc,
       const YAML::Node controller_config,
@@ -109,8 +130,10 @@ protected:
   real_t position_scale;
   std::string input_stream_name;
   Transform initial_input_tf;
+  std::unique_ptr<InputDeviceControl> input_device_control;
   bool getInitialInputTf();
   virtual bool onEnable() override;
+  virtual bool onDisable() override;
   virtual bool onUnclutch() override;
   void update(const DataStore& input_data) override;
 };

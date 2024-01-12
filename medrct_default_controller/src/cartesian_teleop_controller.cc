@@ -45,18 +45,35 @@ void CartesianFollowerControllerConfig::FromYaml(
 {
   CartesianTeleopControllerConfig::FromYaml(
       cfcc, controller_config, stream_factory);
-  YAML::Node n;
-  n["topic_name"] =
-      GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
-  n["type"] = "input";
-  n["name"] = cfcc.controller_name + "_input_stream";
-  n["data_type"] = "Transform";
-  cfcc.input_callback_stream =
-      stream_factory.create<stream::SubStream<Transform>>(n);
-  cfcc.position_scale = GetValueDefault(
-      GetYamlNode(controller_config, "input"),
-      "position_scale",
-      cfcc.position_scale);
+
+  auto input_config = GetYamlNode(controller_config, "input");
+  {
+    YAML::Node n;
+    n["topic_name"] = GetValue<std::string>(input_config, "topic");
+    n["type"] = "input";
+    n["name"] = cfcc.controller_name + "_input_stream";
+    n["data_type"] = "Transform";
+    cfcc.input_callback_stream =
+        stream_factory.create<stream::SubStream<Transform>>(n);
+  }
+  cfcc.position_scale =
+      GetValueDefault(input_config, "position_scale", cfcc.position_scale);
+
+  if (input_config["servo_cp_topic"] && input_config["servo_cf_topic"])
+  {
+    YAML::Node n;
+    n["topic_name"] = GetValue<std::string>(input_config, "servo_cp_topic");
+    n["type"] = "output";
+    n["name"] = cfcc.controller_name + "_servo_cp_stream";
+    n["data_type"] = "Transform";
+    cfcc.servo_cp_stream =
+        stream_factory.create<stream::PubStream<Transform>>(n);
+    n["topic_name"] = GetValue<std::string>(input_config, "servo_cf_topic");
+    n["type"] = "output";
+    n["name"] = cfcc.controller_name + "_servo_cf_stream";
+    n["data_type"] = "Wrench";
+    cfcc.servo_cf_stream = stream_factory.create<stream::PubStream<Wrench>>(n);
+  }
   return;
 }
 
@@ -76,6 +93,29 @@ void CartesianIncrementControllerConfig::FromYaml(
   cicc.input_callback_stream =
       stream_factory.create<stream::SubStream<Twist>>(n);
   return;
+}
+
+InputDeviceControl::InputDeviceControl(
+    std::shared_ptr<stream::PubStream<Transform>> servo_cp_stream,
+    std::shared_ptr<stream::PubStream<Wrench>> servo_cf_stream)
+    : servo_cp_stream(servo_cp_stream),
+      servo_cf_stream(servo_cf_stream),
+      empty_wrench(Wrench())
+{
+}
+void InputDeviceControl::enable()
+{
+  is_enabled.store(true);
+}
+void InputDeviceControl::disable(const Transform& current_tf)
+{
+  servo_cp_stream->publish(current_tf);
+  is_enabled.store(false);
+}
+void InputDeviceControl::update()
+{
+  if (is_enabled)
+    servo_cf_stream->publish(empty_wrench);
 }
 
 CartesianTeleopController::CartesianTeleopController()
@@ -180,6 +220,11 @@ bool CartesianFollowerController::init(
   input_stream_name = config.input_callback_stream->name;
   input_stream_map.addWithBuffer(config.input_callback_stream);
   position_scale = config.position_scale;
+
+  if (config.servo_cf_stream && config.servo_cp_stream)
+    input_device_control = std::make_unique<InputDeviceControl>(
+        config.servo_cp_stream, config.servo_cf_stream);
+
   if (!CartesianTeleopController::init(config))
     return false;
   return initAggragate<Transform>(
@@ -190,9 +235,7 @@ bool CartesianFollowerController::getInitialInputTf()
 {
   if (!input_stream_map.waitForOneBufferedDataInput(input_stream_name, true))
     return false;
-  auto input_stream_ptr =
-      input_stream_map.get<SubStream<Transform>>(input_stream_name);
-  initial_input_tf = input_stream_ptr->getBuffer().getLatest();
+
   return true;
 }
 
@@ -200,7 +243,21 @@ bool CartesianFollowerController::onEnable()
 {
   if (!CartesianTeleopController::onEnable())
     return false;
+  if (input_device_control)
+    input_device_control->enable();
   return getInitialInputTf();
+}
+
+bool CartesianFollowerController::onDisable()
+{
+  if (input_device_control)
+  {
+    auto input_stream_ptr =
+        input_stream_map.get<SubStream<Transform>>(input_stream_name);
+    auto current_tf = input_stream_ptr->getBuffer().getLatest();
+    input_device_control->disable(current_tf);
+  }
+  return true;
 }
 
 bool CartesianFollowerController::onUnclutch()
@@ -219,11 +276,11 @@ void CartesianFollowerController::update(const DataStore& input_data)
   absolute_input_diff.translation() =
       (absolute_input_tf.translation() - initial_input_tf.translation()) *
       position_scale;
-
   // TODO; why this doesn't work?
   // auto js = input_data.get<JointState>(measured_js_stream_name);
-
   this->calculateOutputTfAndPublishJs(absolute_input_diff, initial_output_tf);
+  if (input_device_control)
+    input_device_control->update();
   return;
 }
 
