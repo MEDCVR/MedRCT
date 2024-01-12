@@ -169,7 +169,7 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
     new_output_tf.linear() = input_diff_tf.linear() * output_tf.linear();
 
   std::vector<env::IKSolution> ik_solutions =
-      inverse_kinematics->computeIK(new_output_tf);
+      inverse_kinematics->computeIK(new_output_tf, current_output_js.positions);
 
   // TODO, put joint names here;
   command_output_js.positions = ik_solutions[0];

@@ -101,8 +101,7 @@ protected:
   }
 
   template <typename T>
-  const T&
-  getLatestFromBufferedInputStream(const std::string& stream_name) const
+  const T getLatestFromBufferedInputStream(const std::string& stream_name) const
   {
     auto stream_ptr = input_stream_map.get<stream::SubStream<T>>(stream_name);
     return stream_ptr->getBuffer().getLatest();

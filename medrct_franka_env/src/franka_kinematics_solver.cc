@@ -55,7 +55,7 @@ Chain CreateFrankaChain()
     Joint joint =
         Joint::FromModifiedDH(-PI_2, -0.0825, 0.384, 0, JointType::REVOLUTE);
     joint.setName("tool_pitch_joint");
-    joint.parent_link_name = "tool_roll_link";
+    joint.parent_link_name = "panda_link4";
     joint.child_link_name = "panda_link5";
     kin_tree.addJoint(joint);
   }
