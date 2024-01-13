@@ -137,6 +137,7 @@ protected:
   virtual bool onDisable() override;
   virtual bool onUnclutch() override;
   void update(const DataStore& input_data) override;
+  bool getInitialInputTf();
 };
 
 struct CartesianIncrementControllerConfig : CartesianTeleopControllerConfig

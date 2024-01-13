@@ -189,7 +189,7 @@ public:
   {
     std::lock_guard<std::mutex> lock(mtx);
     input_callback_stream->removeCallback("controller_aggragate");
-    input_stream_map.addWithBuffer(input_callback_stream);
+    // input_stream_map.addWithBuffer(input_callback_stream);
     data_store->resetAllWithDefaultValues();
   }
 

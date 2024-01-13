@@ -8,7 +8,6 @@ controllers:
       topic: "/MTMR/measured_cp"
       position_scale: 1.0
       hold_home_off:
-        enable: True
         servo_cp_topic: /MTMR/servo_cp
         servo_cf_topic: /MTMR/body/servo_cf
       to_reference_rotation:
@@ -28,10 +27,10 @@ controllers:
       feedback_topic: "/PSM2/measured_js"
       to_reference_rotation:
         quaternion:
-          x: 1
-          y: 0
-          z: 0
-          w: 0
+          x:  .7668914150011531
+          y:  -0.5299644702185793 # -0.6633578754614509
+          z: -0.1876093208104334 # -0.31181933480986546
+          w:  0.30954476356177874 # 0.36192662925732555
     kinematics:
       tree: ""
       forward:
@@ -39,13 +38,13 @@ controllers:
         class_name: "PsmForwardKinematicsFactory"
         config:
           tool_name: "LND400006"
-          set_yaw2ctrlpnt_zero: True
+          set_yaw2ctrlpnt_zero: False
       inverse:
         lib_name: "medrct_dvrk_env"
         class_name: "PsmInverseKinematicsFactory"
         config:
           tool_name: "LND400006"
-          set_yaw2ctrlpnt_zero: True
+          set_yaw2ctrlpnt_zero: False
   - name: "MTMR-PSM2-Jaw"
     loader:
       lib_name: medrct_default_controller

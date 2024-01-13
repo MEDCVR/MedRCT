@@ -59,16 +59,19 @@ void CartesianFollowerControllerConfig::FromYaml(
   cfcc.position_scale =
       GetValueDefault(input_config, "position_scale", cfcc.position_scale);
 
-  if (input_config["servo_cp_topic"] && input_config["servo_cf_topic"])
+  if (input_config["hold_home_off"])
   {
+    auto hold_home_off_config = GetYamlNode(input_config, "hold_home_off");
     YAML::Node n;
-    n["topic_name"] = GetValue<std::string>(input_config, "servo_cp_topic");
+    n["topic_name"] =
+        GetValue<std::string>(hold_home_off_config, "servo_cp_topic");
     n["type"] = "output";
     n["name"] = cfcc.controller_name + "_servo_cp_stream";
     n["data_type"] = "Transform";
     cfcc.servo_cp_stream =
         stream_factory.create<stream::PubStream<Transform>>(n);
-    n["topic_name"] = GetValue<std::string>(input_config, "servo_cf_topic");
+    n["topic_name"] =
+        GetValue<std::string>(hold_home_off_config, "servo_cf_topic");
     n["type"] = "output";
     n["name"] = cfcc.controller_name + "_servo_cf_stream";
     n["data_type"] = "Wrench";
@@ -161,6 +164,11 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
   Vector3 output_diff_p_wrt_s = s2e_rot * output_diff_p_wrt_e;
   Vector3 output_p_wrt_s = output_tf.translation() + output_diff_p_wrt_s;
 
+  // medrctlog::info("input_diff_tf:\n{}", input_diff_tf.translation());
+  // medrctlog::info("input_diff_tf:\n{}", input_diff_tf.linear());
+  // medrctlog::info("output_tf:\n{}", output_tf.translation());
+  // medrctlog::info("output_tf:\n{}", output_tf.linear());
+
   Transform new_output_tf;
   new_output_tf.translation() = output_p_wrt_s;
   if (rotate_about_tip_frame_vs_base_frame)
@@ -171,14 +179,28 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
   std::vector<env::IKSolution> ik_solutions =
       inverse_kinematics->computeIK(new_output_tf, current_output_js.positions);
 
+  if (ik_solutions.size() < 1)
+  {
+    medrctlog::error("Error! ik_solutions.size() < 1");
+    return new_output_tf;
+  }
   // TODO, put joint names here;
   command_output_js.positions = ik_solutions[0];
-  // medrctlog::info("command_output_js before: {}", command_output_js);
-  // GetHarmonizedJointPositions(command_output_js, current_output_js);
-  // medrctlog::info("command_output_js: {}", command_output_js);
-  // medrctlog::info("current_output_js: {}", current_output_js);
+  if (command_output_js.positions.size() != current_output_js.positions.size())
+  {
+    medrctlog::error("Error! command_output_js.positions.size() != "
+                     "current_output_js.positions.size(), could be something "
+                     "wrong with computeIK");
+    return new_output_tf;
+  }
+  medrctlog::info("-----------------------------------------------");
 
-  output_js_stream->publish(command_output_js);
+  medrctlog::info("command_output_js before:\n{}", command_output_js);
+  GetHarmonizedJointPositions(command_output_js, current_output_js);
+  medrctlog::info("command_output_js:\n{}", command_output_js);
+  medrctlog::info("current_output_js:\n{}", current_output_js);
+
+  // output_js_stream->publish(command_output_js);
   return new_output_tf;
 }
 
@@ -222,11 +244,25 @@ bool CartesianFollowerController::init(
     input_device_control = std::make_unique<InputDeviceControl>(
         config.servo_cp_stream, config.servo_cf_stream);
 
+  if (input_device_control)
+  {
+    medrctlog::info("Input device on");
+  }
+
   if (!CartesianTeleopController::init(config))
     return false;
   return initAggragate<Transform>(
       config.controller_name, config.input_callback_stream);
 }
+
+bool CartesianFollowerController::getInitialInputTf()
+{
+  if (!input_stream_map.waitForOneBufferedDataInput(input_stream_name, true))
+    return false;
+  initial_input_tf = getLatestFromBufferedInputStream<Transform>(input_stream_name);
+  return true;
+}
+
 
 bool CartesianFollowerController::onEnable()
 {
@@ -234,7 +270,7 @@ bool CartesianFollowerController::onEnable()
     return false;
   if (input_device_control)
     input_device_control->enable();
-  return input_stream_map.waitForOneBufferedDataInput(input_stream_name, true);
+  return getInitialInputTf();
 }
 
 bool CartesianFollowerController::onDisable()
@@ -252,7 +288,7 @@ bool CartesianFollowerController::onUnclutch()
 {
   if (!CartesianTeleopController::onUnclutch())
     return false;
-  return input_stream_map.waitForOneBufferedDataInput(input_stream_name, true);
+  return getInitialInputTf();
 }
 
 void CartesianFollowerController::update(const DataStore& input_data)

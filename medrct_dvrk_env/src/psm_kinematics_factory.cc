@@ -23,6 +23,7 @@ parsePsmKinematicsData(const YAML::Node& config)
   {
     bool set_yaw2ctrlpnt_zero =
         GetValueDefault<bool>(config, "set_yaw2ctrlpnt_zero", true);
+    medrctlog::info(set_yaw2ctrlpnt_zero);
     real_t scale = GetValueDefault<real_t>(config, "scale", 1.0);
     psm_kin_data->init(LND400006(set_yaw2ctrlpnt_zero, scale));
   }
