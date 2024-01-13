@@ -21,7 +21,7 @@ env::ForwardKinematics::Ptr create_fwd(const YAML::Node& config)
   // ASSERT_TRUE(forward_kinematics_factory != nullptr);
   KinematicsTree::Ptr kin_tree;
   auto forward_kin =
-      forward_kinematics_factory->create(kin_tree, config["test_load"]);
+      forward_kinematics_factory->create(kin_tree, config["test_load"]["config"]);
   return forward_kin;
 }
 
@@ -30,7 +30,6 @@ TEST(PsmFactoryTest, testFKIKOutput)
   std::string yaml_params_string =
       R"(test_load:
           lib_name: medrct_dvrk_env
-          package_name: medrct_dvrk_env
           class_name: PsmForwardKinematicsFactory
           config:
             tool_name: LND400006)";
