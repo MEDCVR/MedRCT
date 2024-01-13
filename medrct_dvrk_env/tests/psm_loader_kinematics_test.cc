@@ -20,8 +20,8 @@ env::ForwardKinematics::Ptr create_fwd(const YAML::Node& config)
           config["test_load"]);
   // ASSERT_TRUE(forward_kinematics_factory != nullptr);
   KinematicsTree::Ptr kin_tree;
-  auto forward_kin =
-      forward_kinematics_factory->create(kin_tree, config["test_load"]["config"]);
+  auto forward_kin = forward_kinematics_factory->create(
+      kin_tree, config["test_load"]["config"]);
   return forward_kin;
 }
 

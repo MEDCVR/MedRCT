@@ -44,12 +44,13 @@ TEST(ConversionsTest, testTransform)
   auto ros_tf_stamped2 = MedrctToRosTf(medrct_tf);
 
   // Debugging
-//   medrctlog::info("position: \n{}", medrct_tf.translation());
-//   medrctlog::info("rotation: \n{}", medrct_tf.linear());
-//   medrct::Quaternion q(medrct_tf.linear());
-//   medrctlog::info("quaternion: \nw:{} x:{} y:{} z:{}", q.w(), q.x(), q.y(), q.z());
-//   medrctlog::info("ros pos: \n{}", ros_tf_stamped2.transform.translation);
-//   medrctlog::info("ros quat: \n{}", ros_tf_stamped2.transform.rotation);
+  //   medrctlog::info("position: \n{}", medrct_tf.translation());
+  //   medrctlog::info("rotation: \n{}", medrct_tf.linear());
+  //   medrct::Quaternion q(medrct_tf.linear());
+  //   medrctlog::info("quaternion: \nw:{} x:{} y:{} z:{}", q.w(), q.x(), q.y(),
+  //   q.z()); medrctlog::info("ros pos: \n{}",
+  //   ros_tf_stamped2.transform.translation); medrctlog::info("ros quat: \n{}",
+  //   ros_tf_stamped2.transform.rotation);
 
   ASSERT_NEAR(
       ros_tf_stamped.transform.translation.x,

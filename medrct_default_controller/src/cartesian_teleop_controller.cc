@@ -12,6 +12,12 @@ namespace controller
 
 using namespace medrct::stream;
 
+void printQuaternion(Quaternion q)
+{
+  medrctlog::info(
+      "x: {}\n, y: {}\n, z: {}\n, w: {}", q.x(), q.y(), q.z(), q.w());
+}
+
 void CartesianTeleopControllerConfig::FromYaml(
     CartesianTeleopControllerConfig& ctcc,
     const YAML::Node controller_config,
@@ -164,11 +170,6 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
   Vector3 output_diff_p_wrt_s = s2e_rot * output_diff_p_wrt_e;
   Vector3 output_p_wrt_s = output_tf.translation() + output_diff_p_wrt_s;
 
-  // medrctlog::info("input_diff_tf:\n{}", input_diff_tf.translation());
-  // medrctlog::info("input_diff_tf:\n{}", input_diff_tf.linear());
-  // medrctlog::info("output_tf:\n{}", output_tf.translation());
-  // medrctlog::info("output_tf:\n{}", output_tf.linear());
-
   Transform new_output_tf;
   new_output_tf.translation() = output_p_wrt_s;
   if (rotate_about_tip_frame_vs_base_frame)
@@ -193,14 +194,12 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
                      "wrong with computeIK");
     return new_output_tf;
   }
-  medrctlog::info("-----------------------------------------------");
-
-  medrctlog::info("command_output_js before:\n{}", command_output_js);
+  // medrctlog::info("-----------------------------------------------");
+  // medrctlog::info("command_output_js before:\n{}", command_output_js);
   GetHarmonizedJointPositions(command_output_js, current_output_js);
-  medrctlog::info("command_output_js:\n{}", command_output_js);
-  medrctlog::info("current_output_js:\n{}", current_output_js);
-
-  // output_js_stream->publish(command_output_js);
+  // medrctlog::info("command_output_js:\n{}", command_output_js);
+  // medrctlog::info("current_output_js:\n{}", current_output_js);
+  output_js_stream->publish(command_output_js);
   return new_output_tf;
 }
 
@@ -239,7 +238,6 @@ bool CartesianFollowerController::init(
   input_stream_name = config.input_callback_stream->name;
   input_stream_map.addWithBuffer(config.input_callback_stream);
   position_scale = config.position_scale;
-
   if (config.servo_cf_stream && config.servo_cp_stream)
     input_device_control = std::make_unique<InputDeviceControl>(
         config.servo_cp_stream, config.servo_cf_stream);
@@ -259,10 +257,10 @@ bool CartesianFollowerController::getInitialInputTf()
 {
   if (!input_stream_map.waitForOneBufferedDataInput(input_stream_name, true))
     return false;
-  initial_input_tf = getLatestFromBufferedInputStream<Transform>(input_stream_name);
+  initial_input_tf =
+      getLatestFromBufferedInputStream<Transform>(input_stream_name);
   return true;
 }
-
 
 bool CartesianFollowerController::onEnable()
 {

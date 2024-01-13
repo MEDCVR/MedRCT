@@ -48,6 +48,16 @@ static inline Quaternion FromMatrix(
   return Quaternion(mat);
 }
 
+// static inline std::ostream&
+// operator<<(std::ostream& stream, const Quaternion& q)
+// {
+//   stream << "Quaternion: \n x: " << q.x() << std::endl <<
+//   "y: " << q.y() << std::endl <<
+//   "z: " << q.z() << std::endl <<
+//   "w: " << q.w();
+//   return stream;
+// }
+
 static inline std::ostream&
 operator<<(std::ostream& stream, const Transform& isometry)
 {
