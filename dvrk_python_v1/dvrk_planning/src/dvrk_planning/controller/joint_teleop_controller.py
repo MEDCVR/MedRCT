@@ -84,7 +84,8 @@ class JointIncrementTeleopController(JointTeleopController):
         self.current_output_jps = np.copy(current_output_jps)
         super()._enable()
 
-    def unclutch(self):
+    def unclutch(self, current_output_jps):
+        self.current_output_jps = np.copy(current_output_jps)
         return super()._unclutch()
 
     """

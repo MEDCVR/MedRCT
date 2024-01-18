@@ -48,7 +48,7 @@ class RosJointTeleopController(RosTeleopController):
         super().unclutch()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.unclutch()
+            self._teleop_controller.unclutch(self.get_current_output_jps())
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
