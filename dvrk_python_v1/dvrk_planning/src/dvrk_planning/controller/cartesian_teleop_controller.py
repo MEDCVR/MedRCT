@@ -75,10 +75,15 @@ class CartesianTeleopController(TeleopController):
             ee_metadata = args[-1]
         absolute_output_tf = self._update_impl(args)
         # print("self.input_current_output_js: ", np.around(self.current_output_js, 3))
-        #print("absolute_output_tf: ", np.around(absolute_output_tf, 3))
-        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js, ee_metadata)
+        # print("absolute_output_tf: ", np.around(absolute_output_tf, 3))
         # print("self.current_output_js: ", np.around(self.current_output_js, 3))
+        new_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js, ee_metadata)
         # print("===============================================================================================================================")
+        if np.isnan(new_output_js).any():
+            print("Controller: IK solution isnan returning false!! ")
+            print("Controller: ik_solution: ", new_output_js)
+            return False
+        self.current_output_js = new_output_js
         self.output_callback(self.current_output_js)
         return True
 
@@ -103,7 +108,7 @@ class CartesianFollowTeleopController(CartesianTeleopController):
     def enable(self, start_input_tf, start_output_js):
         self.start_input_tf = np.matmul(start_input_tf, self.input_tf_appended_rotation)
         self.current_output_js = np.copy(start_output_js)
-        self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
+        self.start_output_tf = np.copy(self.kinematics_solver.compute_fk(start_output_js))
         self.current_output_tf = np.copy(self.start_output_tf)
         super()._enable()
 
@@ -114,15 +119,15 @@ class CartesianFollowTeleopController(CartesianTeleopController):
     def unclutch(self, start_input_tf, start_output_js):
         self.start_input_tf = np.matmul(start_input_tf, self.input_tf_appended_rotation)
         self.current_output_js = np.copy(start_output_js)
-        self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
+        self.start_output_tf = np.copy(self.kinematics_solver.compute_fk(start_output_js))
         super()._unclutch()
 
     def __update_input_tf(self, absolute_input_tf):
         absolute_input_tf = np.matmul(absolute_input_tf, self.input_tf_appended_rotation)
-        input_tf_rot_diff = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
+        input_tf_rot_diff = np.matmul(np.transpose(self.start_input_tf[0:3, 0:3]), absolute_input_tf[0:3, 0:3])
 
         input_tf_difference = np.identity(4)
-        input_tf_difference[0:3,0:3] = input_tf_rot_diff[0:3, 0:3]
+        input_tf_difference[0:3,0:3] = input_tf_rot_diff
         input_tf_difference[0:3, 3] = (absolute_input_tf[0:3,3] - self.start_input_tf[0:3,3]) * self.position_scale
 
         absolute_output_tf = np.copy(self.start_output_tf)
