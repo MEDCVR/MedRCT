@@ -19,9 +19,9 @@ env::ForwardKinematics::Ptr create_fwd(const YAML::Node& config)
       medrct_loader::createSharedInstance<env::ForwardKinematicsFactory>(
           config["test_load"]);
   // ASSERT_TRUE(forward_kinematics_factory != nullptr);
-  KinematicsTree kin_tree;
-  auto forward_kin =
-      forward_kinematics_factory->create(kin_tree, config["test_load"]);
+  KinematicsTree::Ptr kin_tree;
+  auto forward_kin = forward_kinematics_factory->create(
+      kin_tree, config["test_load"]["config"]);
   return forward_kin;
 }
 
@@ -30,9 +30,9 @@ TEST(PsmFactoryTest, testFKIKOutput)
   std::string yaml_params_string =
       R"(test_load:
           lib_name: medrct_dvrk_env
-          package_name: medrct_dvrk_env
           class_name: PsmForwardKinematicsFactory
-          tool_name: LND400006)";
+          config:
+            tool_name: LND400006)";
   YAML::Node config = YAML::Load(yaml_params_string);
 
   auto forward_kin = create_fwd(config);

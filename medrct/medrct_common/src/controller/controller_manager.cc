@@ -127,7 +127,7 @@ bool ControllerManager::init(const ControllerManagerConfig& config)
 
   if (config.active_control_group_name != "")
   {
-    active_control_group_name = active_control_group_name;
+    active_control_group_name = config.active_control_group_name;
   }
   else
   {
@@ -364,31 +364,11 @@ bool BasicControllerManagerCommunicator::init(
     medrctlog::error("controller manager is not initialized");
     return false;
   }
-  if (!config.clutch_subscriber)
-  {
-    medrctlog::error("clutch_subscriber is a null ptr");
-    return false;
-  }
   clutch_subscriber = config.clutch_subscriber;
-  if (!config.switch_subscriber)
-  {
-    medrctlog::error("switch_subscriber is a null ptr");
-    return false;
-  }
   switch_subscriber = config.switch_subscriber;
+  enable_subscriber = config.enable_subscriber;
 
-  if (config.active_control_group_name != "")
-  {
-    if (!cm.setActiveControlGroup(active_control_group_name))
-    {
-      return false;
-    }
-    active_control_group_name = config.active_control_group_name;
-  }
-  else
-  {
-    active_control_group_name = cm.getActiveControlGroupName();
-  }
+  active_control_group_name = cm.getActiveControlGroupName();
 
   if (config.switched_control_group_name != "")
   {
@@ -419,72 +399,92 @@ bool BasicControllerManagerCommunicator::init(
     }
   }
   controller_manager = std::move(cm);
-  clutch_subscriber->addCallback(
-      "clutch_callback",
-      std::bind(
-          &BasicControllerManagerCommunicator::clutchCallback,
-          this,
-          std::placeholders::_1));
-  switch_subscriber->addCallback(
-      "switch_callback",
-      std::bind(
-          &BasicControllerManagerCommunicator::switchCallback,
-          this,
-          std::placeholders::_1));
+  if (enable_subscriber)
+    enable_subscriber->addCallback(
+        "enable_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::enableCallback,
+            this,
+            std::placeholders::_1));
+  if (clutch_subscriber)
+    clutch_subscriber->addCallback(
+        "clutch_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::clutchCallback,
+            this,
+            std::placeholders::_1));
+  if (switch_subscriber)
+    switch_subscriber->addCallback(
+        "switch_callback",
+        std::bind(
+            &BasicControllerManagerCommunicator::switchCallback,
+            this,
+            std::placeholders::_1));
   return true;
+}
+
+void BasicControllerManagerCommunicator::enableCallback(const medrct::Joy& joy)
+{
+  if (joy.buttons.size() == 0)
+  {
+    medrctlog::warn(
+        "enableCallback: button vector should be size of 1 or more. Not "
+        "doing anything");
+    return;
+  }
+
+  if (joy.buttons[0] == 1)
+  {
+    if (!controller_manager.enable())
+    {
+      medrctlog::error("controller manager failed to enable");
+    }
+  }
+  else if (joy.buttons[0] == 0)
+    controller_manager.disable();
+  else
+    medrctlog::warn("enableCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
+  return;
 }
 
 void BasicControllerManagerCommunicator::clutchCallback(const medrct::Joy& joy)
 {
-  if (joy.buttons.size() > 0)
-  {
-    if (joy.buttons[0] == 1)
-    {
-      controller_manager.clutch();
-    }
-    else if (joy.buttons[0] == 0)
-    {
-      controller_manager.unclutch();
-    }
-    else
-    {
-      medrctlog::warn("clutchCallback: button[0] value should be 1 or 0. Not "
-                      "doing anything");
-    }
-  }
-  else
+  if (joy.buttons.size() == 0)
   {
     medrctlog::warn(
         "clutchCallback: button vector should be size of 1 or more. Not "
         "doing anything");
+    return;
   }
+
+  if (joy.buttons[0] == 1)
+    controller_manager.clutch();
+  else if (joy.buttons[0] == 0)
+    controller_manager.unclutch();
+  else
+    medrctlog::warn("clutchCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
   return;
 }
 
 void BasicControllerManagerCommunicator::switchCallback(const medrct::Joy& joy)
 {
-  if (joy.buttons.size() > 0)
-  {
-    if (joy.buttons[0] == 1)
-    {
-      switch_function();
-    }
-    else if (joy.buttons[0] == 0)
-    {
-      unswitch_function();
-    }
-    else
-    {
-      medrctlog::warn("switchCallback: button[0] value should be 1 or 0. Not "
-                      "doing anything");
-    }
-  }
-  else
+  if (joy.buttons.size() == 0)
   {
     medrctlog::warn(
         "switchCallback: button vector should be size of 1 or more. Not "
         "doing anything");
+    return;
   }
+
+  if (joy.buttons[0] == 1)
+    switch_function();
+  else if (joy.buttons[0] == 0)
+    unswitch_function();
+  else
+    medrctlog::warn("switchCallback: button[0] value should be 1 or 0. Not "
+                    "doing anything");
   return;
 }
 } // namespace controller

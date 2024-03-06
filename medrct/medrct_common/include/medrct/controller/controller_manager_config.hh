@@ -31,11 +31,11 @@ struct ControllerManagerConfig
 
 struct BasicControllerManagerCommunicatorConfig
 {
-  std::shared_ptr<stream::SubStream<medrct::Joy>> clutch_subscriber;
-  std::shared_ptr<stream::SubStream<medrct::Joy>> switch_subscriber;
-  std::string active_control_group_name;
-  std::string switched_control_group_name = "";
   bool auto_enable = false;
+  std::shared_ptr<stream::SubStream<medrct::Joy>> enable_subscriber = nullptr;
+  std::shared_ptr<stream::SubStream<medrct::Joy>> clutch_subscriber = nullptr;
+  std::shared_ptr<stream::SubStream<medrct::Joy>> switch_subscriber = nullptr;
+  std::string switched_control_group_name = "";
 };
 
 ControlGroup FromYAMLControlGroup(const YAML::Node& control_group_cfg);

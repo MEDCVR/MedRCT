@@ -1,0 +1,32 @@
+controllers:
+  - name: "MTMR-franka"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "CartesianFollowerController"
+    input:
+      topic: "/MTMR/measured_cp"
+      position_scale: 0.5
+      # hold_home_off:
+      #   servo_cp_topic: /MTMR/servo_cp
+      #   servo_cf_topic: /MTMR/body/servo_cf
+    output:
+      control_topic: "/franka/servo_jp"
+      feedback_topic: "/franka/measured_js"
+    kinematics:
+      forward:
+        lib_name: "medrct_franka_env"
+        class_name: "FrankaForwardKinematicsFactory"
+        config:
+      inverse:
+        lib_name: "medrct_franka_env"
+        class_name: "FrankaInverseKinematicsFactory"
+        config:
+control_groups:
+  - name: default
+    controller_names: ["MTMR-franka"]
+active_control_group: "default"
+basic_communicator:
+  auto_enable: False
+  enable_topic: "/console/operator_present"
+  clutch_topic: "/console/clutch"

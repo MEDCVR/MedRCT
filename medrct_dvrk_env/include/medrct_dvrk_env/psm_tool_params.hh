@@ -30,9 +30,11 @@ struct SphericalWristToolParams
 
 struct LND400006 : SphericalWristToolParams
 {
-  LND400006(real_t scale = 1.0)
+  LND400006(bool set_yaw2ctrlpnt_zero = true, real_t scale = 1.0)
       : SphericalWristToolParams(0.4318, 0.4162, 0.0091, 0.0102, scale)
   {
+    if (set_yaw2ctrlpnt_zero)
+      l_yaw2ctrlpnt = 0;
   }
 };
 } // namespace env

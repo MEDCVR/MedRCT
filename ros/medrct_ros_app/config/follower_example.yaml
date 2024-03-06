@@ -1,34 +1,49 @@
 controllers:
-  - name: "Keyboard-PSM2"
+  - name: "MTMR-PSM2"
     loader:
       lib_name: medrct_default_controller
       class_name: DefaultControllerFactory
-      create_class_name: "CartesianIncrementController"
+      create_class_name: "CartesianFollowerController"
     input:
-      topic: "/keyboard/twist"
+      topic: "/MTMR/measured_cp"
+      position_scale: 1.0
+      hold_home_off:
+        enable: True
+        servo_cp_topic: /MTMR/servo_cp
+        servo_cf_topic: /MTMR/body/servo_cf
     output:
       control_topic: "/PSM2/servo_jp"
       feedback_topic: "/PSM2/measured_js"
     kinematics:
+      tree: ""
       forward:
         lib_name: "medrct_dvrk_env"
         class_name: "PsmForwardKinematicsFactory"
         config:
           tool_name: "LND400006"
+          set_yaw2ctrlpnt_zero: True
       inverse:
         lib_name: "medrct_dvrk_env"
         class_name: "PsmInverseKinematicsFactory"
         config:
           tool_name: "LND400006"
-  - name: "Keyboard-PSM2-Jaw"
+          set_yaw2ctrlpnt_zero: True
+  - name: "MTMR-PSM2-Jaw"
     loader:
       lib_name: medrct_default_controller
       class_name: DefaultControllerFactory
-      create_class_name: "JointIncrementController"
+      create_class_name: "JointMimicController"
     input:
-      topic: "/keyboard/joint_state"
+      topic: "/MTMR/gripper/measured_js"
+      scale: 1
     output:
       control_topic: "/PSM2/jaw/servo_jp"
       feedback_topic: "/PSM2/jaw/measured_js"
+control_groups:
+  - name: default
+    controller_names: ["MTMR-PSM2", "MTMR-PSM2-Jaw"]
+active_control_group: "default"
 basic_communicator:
-  auto_enable: True
+  auto_enable: False
+  enable_topic: "/console/operator_present"
+  clutch_topic: "/console/clutch"

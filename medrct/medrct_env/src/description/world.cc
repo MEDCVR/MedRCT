@@ -78,7 +78,7 @@ void World::parseURDFFile(const std::string& urdf_file_path)
   name_to_kinematic_trees[model_name] = kin_tree;
 }
 
-KinematicsTree::ConstPtr World::getKinematicsTree(const std::string& name)
+KinematicsTree::Ptr World::getKinematicsTree(const std::string& name)
 {
   auto it = name_to_kinematic_trees.find(name);
   if (it == name_to_kinematic_trees.end())

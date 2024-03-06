@@ -68,7 +68,7 @@ protected:
   virtual bool onDisable();
   virtual bool onClutch();
   virtual bool onUnclutch();
-  virtual void update(const DataStore&) = 0;
+  virtual void update(const DataStore& input_data) = 0;
 
   bool initPeriodic(double rate_hz)
   {
@@ -98,6 +98,13 @@ protected:
         std::bind(&Controller::updateProcess, this, std::placeholders::_1));
     current_state = controller_state_t::DISABLED;
     return true;
+  }
+
+  template <typename T>
+  const T getLatestFromBufferedInputStream(const std::string& stream_name) const
+  {
+    auto stream_ptr = input_stream_map.get<stream::SubStream<T>>(stream_name);
+    return stream_ptr->getBuffer().getLatest();
   }
   StreamMap input_stream_map;
 

@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <medrct/log.hh>
+#include <medrct_default_controller/config.hh>
 #include <medrct_default_controller/joint_teleop_controller.hh>
 
 namespace medrct
@@ -13,6 +14,26 @@ namespace controller
 {
 
 using namespace medrct::stream;
+
+void JointTeleopControllerConfig::FromYaml(
+    JointTeleopControllerConfig& jcc,
+    const YAML::Node controller_config,
+    const stream::StreamFactory& stream_factory)
+{
+  jcc.controller_name = GetValue<std::string>(controller_config, "name");
+  YAML::Node n;
+  n["topic_name"] =
+      GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
+  n["type"] = "input";
+  n["name"] = jcc.controller_name + "_input_stream";
+  n["data_type"] = "JointState";
+  jcc.input_js_stream = stream_factory.create<stream::SubStream<JointState>>(n);
+  CreateOutputAndMeasuredStreams(
+      jcc.output_js_stream,
+      jcc.measured_js_stream,
+      controller_config,
+      stream_factory);
+}
 
 JointTeleopController::JointTeleopController()
 {
@@ -55,21 +76,25 @@ bool JointMimicController::onEnable()
   if (!input_stream_map.waitForOneBufferedDataInput(input_js_stream_name, true))
     return false;
 
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  JointState current_output_js = measured_stream_ptr->getBuffer().getLatest();
-
-  auto input_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(input_js_stream_name);
-  JointState current_input_js = input_stream_ptr->getBuffer().getLatest();
+  JointState current_output_js =
+      getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
+  JointState current_input_js =
+      getLatestFromBufferedInputStream<JointState>(input_js_stream_name);
 
   // TODO maybe have a joint verify
-  if (current_output_js.names.size() != current_input_js.names.size() ||
-      current_output_js.positions.size() != current_input_js.positions.size())
+  // if (current_output_js.names.size() != current_input_js.names.size())
+  // {
+  //   // Maybe need a false transition error here.
+  //   medrctlog::error("names size not same");
+  //   return false;
+  // }
+  if (current_output_js.positions.size() != current_input_js.positions.size())
   {
     // Maybe need a false transition error here.
+    medrctlog::error("positions size not same");
     return false;
   }
+
   matchJoints(current_output_js, current_input_js);
   // Check if far from current mimiced position
   return true;
@@ -173,9 +198,8 @@ bool JointIncrementController::onEnable()
   if (!input_stream_map.waitForOneBufferedDataInput(
           measured_js_stream_name, true))
     return false;
-  auto measured_stream_ptr =
-      input_stream_map.get<SubStream<JointState>>(measured_js_stream_name);
-  current_command_output_js = measured_stream_ptr->getBuffer().getLatest();
+  current_command_output_js =
+      getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
   return true;
 }
 } // namespace controller

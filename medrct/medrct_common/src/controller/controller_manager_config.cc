@@ -49,7 +49,8 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
   const YAML::Node controllers_config = config["controllers"];
   if (!controllers_config)
   {
-    throw std::runtime_error("No [controllers] key in config");
+    throw std::invalid_argument(
+        "ControllerManagerConfig: No [controllers] key in config");
   }
   ControllerManagerConfig cmc;
   for (YAML::const_iterator it = controllers_config.begin();
@@ -63,13 +64,15 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
       controller_factory =
           medrct_loader::createSharedInstance<controller::ControllerFactory>(
               controller_cfg["loader"]);
+      cmc.controllers.emplace_back(
+          controller_factory->create(sf, controller_cfg));
     }
     catch (const std::exception& e)
     {
-      throw std::runtime_error("controller factory failed to load");
+      throw std::invalid_argument(
+          "ControllerManagerConfig: Controller factory failed to load: " +
+          std::string(e.what()));
     }
-    cmc.controllers.emplace_back(
-        controller_factory->create(sf, controller_cfg));
   }
 
   if (const YAML::Node control_groups_cfg = config["control_groups"])
@@ -82,7 +85,7 @@ ControllerManagerConfig FromYAMLControllerManagerConfig(
     }
   }
 
-  if (const YAML::Node n = config["active_control_group_name"])
+  if (const YAML::Node n = config["active_control_group"])
   {
     cmc.active_control_group_name = n.as<std::string>();
   }
@@ -94,35 +97,41 @@ FromYAMLBasicControllerCommunicatorConfig(
     const YAML::Node& config, const medrct::stream::StreamFactory& sf)
 {
   BasicControllerManagerCommunicatorConfig bcmcc;
-  if (const YAML::Node n = config["active_control_group_name"])
+  if (config["clutch_topic"])
   {
-    bcmcc.active_control_group_name = n.as<std::string>();
-  }
-  if (YAML::Node n = config["clutch_input_stream"])
-  {
-    n["name"] = "clutch_input_stream";
+    YAML::Node n;
+    n["name"] = "clutch_topic_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
+    n["topic_name"] = config["clutch_topic"];
     bcmcc.clutch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
-  else
-    throw std::runtime_error("No [clutch_input_stream] in controller config");
-  if (YAML::Node n = config["switch_input_stream"])
+
+  if (YAML::Node n = config["auto_enable"])
+    bcmcc.auto_enable = n.as<bool>();
+
+  if (config["enable_topic"])
   {
-    n["name"] = "switch_input_stream";
+    YAML::Node n;
+    n["name"] = "enable_topic_input_stream";
     n["type"] = "input";
     n["data_type"] = "Joy";
+    n["topic_name"] = config["enable_topic"];
+    bcmcc.enable_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
+  }
+
+  if (config["switch_topic"])
+  {
+    YAML::Node n;
+    n["name"] = "switch_topic_input_stream";
+    n["type"] = "input";
+    n["data_type"] = "Joy";
+    n["topic_name"] = config["switch_topic"];
     bcmcc.switch_subscriber = sf.create<stream::SubStream<medrct::Joy>>(n);
   }
-  else
-    throw std::runtime_error("No [switch_input_stream] in controller config");
   if (YAML::Node n = config["switched_control_group_name"])
   {
     bcmcc.switched_control_group_name = n.as<std::string>();
-  }
-  if (YAML::Node n = config["auto_enable"])
-  {
-    bcmcc.auto_enable = n.as<bool>();
   }
   return bcmcc;
 }

@@ -1,4 +1,5 @@
 #include <medrct/log.hh>
+#include <medrct/config.hh>
 #include <medrct/loader/class_loader.hh>
 #include <medrct_dvrk_env/psm_kinematics_solver.hh>
 #include <medrct_dvrk_env/psm_tool_params.hh>
@@ -19,14 +20,19 @@ parsePsmKinematicsData(const YAML::Node& config)
 
   auto psm_kin_data = std::make_shared<PsmKinematicsData>();
   if (tool_name == "LND400006")
-    psm_kin_data->init(LND400006());
+  {
+    bool set_yaw2ctrlpnt_zero =
+        GetValueDefault<bool>(config, "set_yaw2ctrlpnt_zero", true);
+    real_t scale = GetValueDefault<real_t>(config, "scale", 1.0);
+    psm_kin_data->init(LND400006(set_yaw2ctrlpnt_zero, scale));
+  }
   else
     throw std::runtime_error("No valid tool_name: " + tool_name + ".");
   return psm_kin_data;
 }
 
 std::shared_ptr<ForwardKinematics> PsmForwardKinematicsFactory::create(
-    const KinematicsTree&, const YAML::Node& config)
+    const KinematicsTree::Ptr, const YAML::Node& config)
 {
   std::shared_ptr<PsmKinematicsData> psm_kin_data;
   try
@@ -43,7 +49,7 @@ std::shared_ptr<ForwardKinematics> PsmForwardKinematicsFactory::create(
   return std::make_shared<PsmForwardKinematics>(*psm_kin_data);
 }
 std::shared_ptr<InverseKinematics> PsmInverseKinematicsFactory::create(
-    const KinematicsTree&, const YAML::Node& config)
+    const KinematicsTree::Ptr, const YAML::Node& config)
 {
   std::shared_ptr<PsmKinematicsData> psm_kin_data;
   try

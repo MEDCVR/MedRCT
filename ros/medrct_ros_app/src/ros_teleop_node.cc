@@ -68,6 +68,8 @@ int main(int argc, char** argv)
   {
     return -1;
   }
+  medrctlog::info("Controller is running");
   thd.join();
+  medrctlog::info("Controller stopped");
   return 0;
 }

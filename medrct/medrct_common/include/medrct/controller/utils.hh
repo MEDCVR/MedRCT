@@ -38,17 +38,26 @@ public:
   template <typename T>
   void set(const std::string& name, const T& data)
   {
-    reset_default_functions.emplace_back([this, name]() { update(name, T()); });
+    {
+      std::lock_guard<std::mutex> lock(reset_lock);
+      reset_default_functions.emplace_back(
+          [this, name]() { update(name, T()); });
+    }
+    std::lock_guard<std::mutex> lock(data_lock);
     data_map[name] = std::make_unique<TData<T>>(data);
+    return;
   }
   template <typename T>
   void update(const std::string& name, const T& data)
   {
+    std::lock_guard<std::mutex> lock(data_lock);
     static_cast<TData<T>*>(data_map.at(name).get())->set(data);
+    return;
   }
   template <typename T>
   T get(const std::string& name) const
   {
+    std::lock_guard<std::mutex> lock(data_lock);
     return static_cast<TData<T>*>(data_map.at(name).get())->get();
   }
   bool contains(const std::string& name) const;
@@ -58,6 +67,8 @@ private:
   std::unordered_map<std::string, std::unique_ptr<Data>> data_map;
   // Note: Needs to be unordered_map if data_store has a remove method
   std::vector<std::function<void()>> reset_default_functions;
+  mutable std::mutex data_lock;
+  mutable std::mutex reset_lock;
 };
 
 class StreamMap
@@ -99,8 +110,9 @@ public:
       stream::SubStream<dataT>* stream_ptr =
           static_cast<stream::SubStream<dataT>*>(
               name_to_streams.at(name).get());
-      if (!data_store.contains(name))
-        data_store.update<dataT>(name, stream_ptr->getBuffer().getLatest());
+      // if (!data_store.contains(name))
+      //   return; // TODO: should throw here
+      data_store.update<dataT>(name, stream_ptr->getBuffer().getLatest());
     };
     bfs.wait_data_once_func = [this, name]() {
       stream::SubStream<dataT>* stream_ptr =
@@ -159,15 +171,15 @@ public:
         input_callback_stream(input_callback_stream),
         process(process)
   {
+    // input_stream_map.removeBuffer(input_callback_stream->name);
+    data_store = std::make_unique<DataStore>();
+    input_stream_map.setDefaultDataFromAllBufferedStreams(*data_store);
+    data_store->set<dataT>(input_callback_stream->name, dataT());
   }
   virtual ~AggragateTask() {}
   void enable() override
   {
     std::lock_guard<std::mutex> lock(mtx);
-    input_stream_map.removeBuffer(input_callback_stream->name);
-    data_store = std::make_unique<DataStore>();
-    data_store->set<dataT>(input_callback_stream->name, dataT());
-    input_stream_map.setDefaultDataFromAllBufferedStreams(*data_store);
     input_callback_stream->addCallback(
         "controller_aggragate",
         std::bind(
@@ -177,16 +189,16 @@ public:
   {
     std::lock_guard<std::mutex> lock(mtx);
     input_callback_stream->removeCallback("controller_aggragate");
-    data_store = nullptr;
-    input_stream_map.addWithBuffer(input_callback_stream);
+    // input_stream_map.addWithBuffer(input_callback_stream);
+    data_store->resetAllWithDefaultValues();
   }
 
 private:
   void runFunction(const dataT& input_data)
   {
+    input_stream_map.getDataFromAllBufferedStreams(*data_store);
     data_store->update<dataT>(input_callback_stream->name, input_data);
     process(*data_store);
-    data_store->resetAllWithDefaultValues();
   }
   std::mutex mtx;
   std::unique_ptr<DataStore> data_store;

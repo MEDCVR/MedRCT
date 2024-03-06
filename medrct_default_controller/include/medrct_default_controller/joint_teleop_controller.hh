@@ -3,7 +3,10 @@
 #include <memory>
 #include <string>
 
+#include <yaml-cpp/yaml.h>
 #include <medrct/stream/stream.hh>
+#include <medrct/stream/stream_factory.hh>
+
 #include <medrct/types/joint_state.hh>
 #include <medrct/controller/controller.hh>
 
@@ -19,6 +22,10 @@ struct JointTeleopControllerConfig
   std::shared_ptr<stream::PubStream<JointState>> output_js_stream;
   // TODO All types is aggragate for now
   // task_type_t task_type = task_type_t::AGGRAGATE;
+  static void FromYaml(
+      JointTeleopControllerConfig& jcc,
+      const YAML::Node controller_config,
+      const stream::StreamFactory& stream_factory);
 };
 
 class JointTeleopController : public Controller
