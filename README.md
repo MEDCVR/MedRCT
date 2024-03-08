@@ -19,7 +19,7 @@ sudo apt install python3-colcon-common-extensions
 Install ROS: http://wiki.ros.org/noetic/Installation/Ubuntu
 
 ```bash
-mkdir ~/medrct_ws
+mkdir ~/medrct_ws && cd medrct_ws
 git clone https://mcsgitlab.utm.utoronto.ca/medcvr/dvrk_planning
 ```
 
