@@ -99,7 +99,7 @@ if __name__=="__main__":
     pygame.display.set_caption('Click Here and Press Keys to Teleop')
     pygame.mouse.set_visible(1)
 
-    angle_speed = 0.01      # rad/s
+    angle_speed = 0.005      # rad/s
     prismatic_speed = 0.001 # mm/s
     theta_speeds = np.array([angle_speed, angle_speed, prismatic_speed, angle_speed])
     clock = pygame.time.Clock()
