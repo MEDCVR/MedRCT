@@ -1,0 +1,7 @@
+<launch>
+  <arg name= "package" default="$(find medrct_ros_app)"/>
+  <arg name= "config"/>
+  <node pkg="medrct_ros_app" type="ros_teleop_node" name="medrct_ros_teleop_node" output="screen">
+    <param name="config" value="medrct_ros_app/config/$(arg config)"/>
+  </node>
+</launch>
