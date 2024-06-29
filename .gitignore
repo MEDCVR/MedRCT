@@ -3,3 +3,9 @@
 **__pycache__
 **.egg-info
 out/
+
+# Ignore recursively any build or deps folders from colcon
+**build/
+**install/
+**log/
+**_deps/

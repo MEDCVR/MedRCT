@@ -49,5 +49,6 @@ TEST(TestTransform, logger)
   q.z() = 0;
   t.linear() = q.toRotationMatrix();
 
-  medrctlog::info("Transform: \n{}", t);
+  medrctlog::info("Transform Translation: \n{}", t.translation());
+  medrctlog::info("Transform Rotation: \n{}", t.rotation());
 }
