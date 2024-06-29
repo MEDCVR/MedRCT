@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.14)
 project(medrct_common VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
@@ -73,31 +73,40 @@ target_link_libraries(test_yaml ${PROJECT_NAME} yaml-cpp)
 
 option(BUILD_TESTING "Build testing" ON)
 if(BUILD_TESTING)
+
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/34ad51b3dc4f922d8ab622491dd44fc2c39afee9.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+  
   enable_testing()
   include(GoogleTest)
-  include(Dart)
 
   add_executable(tests
-  tests/test_main.cc
-  tests/intra_stream_test.cc
-  tests/joint_state_test.cc
-  tests/logger_test.cc
-  tests/quaternion_test.cc
-  tests/transform_test.cc
-  tests/twist_test.cc
-  tests/vector3_test.cc
+    tests/test_main.cc
+    tests/intra_stream_test.cc
+    tests/joint_state_test.cc
+    tests/logger_test.cc
+    tests/quaternion_test.cc
+    tests/transform_test.cc
+    tests/twist_test.cc
+    tests/vector3_test.cc
   )
 
   target_compile_options(tests
   PRIVATE
-  -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
-  -Wno-unused-but-set-variable
+    -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
+    -Wno-unused-but-set-variable
   )
   target_link_libraries(tests PRIVATE
-  gtest ${PROJECT_NAME}
-  Eigen3::Eigen
-  Threads::Threads
-  spdlog
+    gtest ${PROJECT_NAME}
+    Eigen3::Eigen
+    Threads::Threads
+    spdlog
   )
   target_include_directories(tests PRIVATE include)
   gtest_discover_tests(tests DISCOVERY_TIMEOUT 60)
@@ -107,25 +116,25 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_plugin_multiply PUBLIC ${PROJECT_NAME} ${Boost_LIBRARIES})
   target_compile_options(${PROJECT_NAME}_test_plugin_multiply
   PRIVATE
-  -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
-  -Wno-unused-but-set-variable
+    -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
+    -Wno-unused-but-set-variable
   )
 
   ## Plugin loader unit test
   add_executable(plugin_loader_unit_test
-  tests/plugin_loader_unit.cc
+    tests/plugin_loader_unit.cc
   )
   target_link_libraries(plugin_loader_unit_test PRIVATE
-  gtest ${PROJECT_NAME}
-  Threads::Threads
-  spdlog
-  yaml-cpp
+    gtest ${PROJECT_NAME}
+    Threads::Threads
+    spdlog
+    yaml-cpp
   )
   target_compile_definitions(plugin_loader_unit_test PRIVATE TEST_PLUGIN_DIR="${CMAKE_CURRENT_BINARY_DIR}")
   target_compile_options(plugin_loader_unit_test
-  PRIVATE
-  -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
-  -Wno-unused-but-set-variable
+    PRIVATE
+    -Wno-ignored-qualifiers -Wno-unused-variable -Wno-pointer-arith
+    -Wno-unused-but-set-variable
   )
   gtest_discover_tests(plugin_loader_unit_test DISCOVERY_TIMEOUT 60)
 
