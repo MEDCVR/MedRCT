@@ -14,15 +14,20 @@ using namespace medrct::controller;
 
 int main(int argc, char** argv)
 {
-  if (argc != 2)
+  if (!RosSingleton::getInstance().init(argc, argv, "medrct_ros_teleop_node"))
   {
-    medrctlog::error("Argument must be exactly one: Relative path to config "
-                     "yaml from the <your_ws>/install directory");
     return -1;
   }
-  std::string relative_path_to_yaml = argv[1];
+
+  std::string relative_path_to_yaml;
+  RosSingleton::getInstance().getNodeHandle()->getParam(
+    "/medrct_ros_teleop_node/config", relative_path_to_yaml);
+
   std::string full_path_to_yaml =
-      medrct::GetInstallDirectoryPath() + "/" + relative_path_to_yaml;
+  medrct::GetInstallDirectoryPath() + "/" + relative_path_to_yaml;
+
+  medrctlog::info("Config Path: {}", full_path_to_yaml);
+
   YAML::Node config;
   try
   {
@@ -30,14 +35,10 @@ int main(int argc, char** argv)
   }
   catch (const std::exception& e)
   {
-    medrctlog::error("full_path_to_yaml {}", full_path_to_yaml);
+    medrctlog::error("Bad Yaml Path: {}", full_path_to_yaml);
     throw;
   }
 
-  if (!RosSingleton::getInstance().init(argc, argv, "medrct_ros_teleop_node"))
-  {
-    return -1;
-  }
   RosStreamFactory::Ptr ros_stream_factory =
       std::make_shared<RosStreamFactory>();
 

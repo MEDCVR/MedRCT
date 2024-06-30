@@ -77,8 +77,7 @@ rosrun dvrk_robot dvrk_console_json -j <specific_group>/console-MTMR-PSM2.json
 4. Start the teleoperation node:
 ```bash
 source ~/medrct_ws/install/setup.bash
-cd ~/medrct_ws/build/medrct_ros_app
-./ros_teleop_node medrct_ros_app/config/increment_example.yaml
+roslaunch medrct_ros_app ros_teleop.launch config:=increment_example.yaml
 ```
 
 5. Start the keyboard input device ros publisher:
