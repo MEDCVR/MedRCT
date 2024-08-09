@@ -49,7 +49,6 @@ option(BUILD_TESTING "Build testing" ON)
 if(BUILD_TESTING)
   enable_testing()
   include(GoogleTest)
-  include(Dart)
 
   add_executable(franka_tests # name tests cannot be used with catkin dependency
     tests/main.cc
