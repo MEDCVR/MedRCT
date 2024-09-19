@@ -21,10 +21,11 @@ int main(int argc, char** argv)
 
   std::string relative_path_to_yaml;
   RosSingleton::getInstance().getNodeHandle()->getParam(
-    "/medrct_ros_teleop_node/config", relative_path_to_yaml);
+      "/medrct_ros_teleop_node/config", relative_path_to_yaml);
 
-  std::string full_path_to_yaml =
-  medrct::GetInstallDirectoryPath() + "/medrct_ros_app/share/medrct_ros_app/" + relative_path_to_yaml;
+  std::string full_path_to_yaml = medrct::GetInstallDirectoryPath() +
+                                  "/medrct_ros_app/share/medrct_ros_app/" +
+                                  relative_path_to_yaml;
 
   medrctlog::info("Config Path: {}", full_path_to_yaml);
 

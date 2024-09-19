@@ -7,8 +7,8 @@ controllers:
     input:
       topic: "/keyboard/twist"
     output:
-      control_topic: "/franka/servo_jp"
-      feedback_topic: "/franka/measured_js"
+      control_topic: "/medrct_franka/servo_jp"
+      feedback_topic: "/medrct_franka/measured_js"
     kinematics:
       forward:
         lib_name: "medrct_franka_env"

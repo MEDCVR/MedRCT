@@ -5,14 +5,15 @@ controllers:
       class_name: DefaultControllerFactory
       create_class_name: "CartesianFollowerController"
     input:
-      topic: "/MTMR/measured_cp"
-      position_scale: 0.5
+      topic: "/quest_controller_pose/right/pose"
+      position_scale: 0.3
       # hold_home_off:
       #   servo_cp_topic: /MTMR/servo_cp
       #   servo_cf_topic: /MTMR/body/servo_cf
+    harmonize_joint_position_outputs: True
     output:
-      control_topic: "/franka/servo_jp"
-      feedback_topic: "/franka/measured_js"
+      control_topic: "/medrct_franka/servo_jp"
+      feedback_topic: "/medrct_franka/measured_js"
     kinematics:
       forward:
         lib_name: "medrct_franka_env"
@@ -28,5 +29,5 @@ control_groups:
 active_control_group: "default"
 basic_communicator:
   auto_enable: False
-  enable_topic: "/console/operator_present"
-  clutch_topic: "/console/clutch"
+  enable_topic: "/quest_controller_pose/enabled"
+  clutch_topic: "/quest_controller_pose/clutch"

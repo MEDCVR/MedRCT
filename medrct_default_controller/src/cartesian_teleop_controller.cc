@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <medrct/log.hh>
 
+#include <medrct/types/types.hh>
 #include <medrct_default_controller/cartesian_teleop_controller.hh>
 #include <medrct_default_controller/config.hh>
 
@@ -42,6 +43,10 @@ void CartesianTeleopControllerConfig::FromYaml(
       output_config, "to_reference_rotation", ctcc.output_2_output_ref_quat);
   ctcc.input_2_input_ref_quat = GetYamlQuaternionDefault(
       input_config, "to_reference_rotation", ctcc.input_2_input_ref_quat);
+  ctcc.harmonize_joint_position_outputs = GetValueDefault<bool>(
+      controller_config,
+      "harmonize_joint_position_outputs",
+      ctcc.harmonize_joint_position_outputs);
 }
 
 void CartesianFollowerControllerConfig::FromYaml(
@@ -196,7 +201,8 @@ Transform CartesianTeleopController::calculateOutputTfAndPublishJs(
   }
   // medrctlog::info("-----------------------------------------------");
   // medrctlog::info("command_output_js before:\n{}", command_output_js);
-  GetHarmonizedJointPositions(command_output_js, current_output_js);
+  if (harmonize_joint_position_outputs)
+    GetHarmonizedJointPositions(command_output_js, current_output_js);
   // medrctlog::info("command_output_js:\n{}", command_output_js);
   // medrctlog::info("current_output_js:\n{}", current_output_js);
   output_js_stream->publish(command_output_js);
@@ -292,6 +298,15 @@ bool CartesianFollowerController::onUnclutch()
 void CartesianFollowerController::update(const DataStore& input_data)
 {
   Transform absolute_input_tf = input_data.get<Transform>(input_stream_name);
+
+  // medrctlog::info("absolute_input_tf");
+  // medrctlog::info(absolute_input_tf.translation());
+  // medrctlog::info(absolute_input_tf.linear());
+
+  // medrctlog::info("initial_input_tf");
+  // medrctlog::info(initial_input_tf.translation());
+  // medrctlog::info(initial_input_tf.linear());
+
   Transform absolute_input_diff;
   absolute_input_diff.linear() =
       initial_input_tf.linear().inverse() * absolute_input_tf.linear();

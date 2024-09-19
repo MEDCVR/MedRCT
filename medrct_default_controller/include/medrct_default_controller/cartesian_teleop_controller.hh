@@ -44,6 +44,7 @@ struct CartesianTeleopControllerConfig
   std::shared_ptr<env::ForwardKinematics> forward_kinematics;
   std::shared_ptr<env::InverseKinematics> inverse_kinematics;
   bool rotate_about_base_frame_vs_tip_frame = false;
+  bool harmonize_joint_position_outputs = false;
   Quaternion output_2_output_ref_quat = Quaternion(1, 0, 0, 0);
   Quaternion input_2_input_ref_quat = Quaternion(1, 0, 0, 0);
   // TODO All types is aggragate for now
@@ -106,6 +107,7 @@ private:
   bool rotate_about_tip_frame_vs_base_frame;
   Rotation h2m_rot;
   Rotation s2e_rot;
+  bool harmonize_joint_position_outputs;
 };
 
 struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
