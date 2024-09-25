@@ -18,7 +18,7 @@ public:
   virtual int computeFK(
       Transform& transform_out,
       const std::vector<real_t>& active_joint_positions,
-      const unsigned int) const final
+      const unsigned int) final
   {
     assert((active_joint_positions.size() == 1));
     transform_out.translation().x() = active_joint_positions[0];
@@ -44,8 +44,8 @@ public:
   XPrismaticInverseKinematics() {}
   virtual ~XPrismaticInverseKinematics() {}
 
-  std::vector<env::IKSolution> computeIK(
-      const Transform& tip_transform, const std::vector<real_t>&) const final
+  std::vector<env::IKSolution>
+  computeIK(const Transform& tip_transform, const std::vector<real_t>&) final
   {
     std::vector<real_t> positions = {tip_transform.translation().x()};
     return {positions};
