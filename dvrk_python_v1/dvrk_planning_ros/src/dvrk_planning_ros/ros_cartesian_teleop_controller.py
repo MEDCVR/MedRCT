@@ -10,7 +10,7 @@ from PyKDL import Rotation, Vector
 
 from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController, JointIncrementTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
-from dvrk_planning_ros.utils import gm_tf_to_numpy_mat, numpy_mat_to_gm_tf
+from dvrk_planning_ros.utils import gm_tf_to_numpy_mat, gm_pose_to_numpy_mat, numpy_mat_to_gm_tf
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
 
 import tf
@@ -103,8 +103,15 @@ class RosCartesiansTeleopController(RosTeleopController):
             position_scale = 1.0
             if("position_scale" in input_yaml):
                 position_scale = input_yaml["position_scale"]
-            input_topic_type = TransformStamped
-            self._input_callback_impl = self._input_callback_tf
+            if "topic_type" in input_yaml:
+                if input_yaml["topic_type"] == "PoseStamped":
+                    input_topic_type = PoseStamped
+                    self._input_callback_impl = self._input_callback_pose_follow
+                elif input_yaml["topic_type"] == "TransformStamped":
+                    input_topic_type = TransformStamped
+                    self._input_callback_impl = self._input_callback_tf
+                else:
+                    raise KeyError ("controller: topic_type: must be PoseStamped or TransformStamped")
             self._jaw_mimic_controller = None
             if("jaw" in input_yaml):
                 self.desired_output_jaw_angle = 0.5
@@ -223,8 +230,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                                 "ee",
                                 "world")
 
-    def _input_callback_tf(self, data):
-        self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
+    def __follow_callback(self):
         if self.hz_divisor:
             self._hz_index_follow = (self._hz_index_follow + 1) % self.hz_divisor
             if self._hz_index_follow != 0:
@@ -234,6 +240,14 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self.input_device: # How to take away notion of MTM in this case
             self.input_device.update()
         self._debug_output_tf()
+
+    def _input_callback_pose_follow(self, data):
+        self.current_input_tf = gm_pose_to_numpy_mat(data.pose)
+        self.__follow_callback()
+
+    def _input_callback_tf(self, data):
+        self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
+        self.__follow_callback()
 
     def _input_jaw_mimic(self, data):
         self.input_jaw_js = data.position

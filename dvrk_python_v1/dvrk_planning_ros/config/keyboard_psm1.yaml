@@ -1,0 +1,27 @@
+cartesian_controllers:
+  - name: "Keyboard-PSM1"
+    input:
+      type: "increment"
+      topic: "/keyboard/twist"
+      topic_type: "TwistStamped"
+    output:
+      control_interfaces:
+        - control_topic: "/PSM1/servo_jp"
+          feedback_topic: "/PSM1/measured_js"
+      joint_limits:
+        lower: [-1.54, -0.90, 0.00, -3.04, -3.04, -3.04]
+        upper: [ 1.54,  0.94, 0.24,  3.04,  3.04,  3.04]
+    kinematics:
+      robot: "psm"
+      tool:
+        type: "LND400006"
+joint_controllers:
+  - name: "Keyboard-PSM1Jaw"
+    input:
+      type: "increment"
+      topic: "/keyboard/joint_state"
+    output:
+      control_interfaces:
+        - control_topic: "/PSM1/jaw/servo_jp"
+          feedback_topic: "/PSM1/jaw/measured_js"
+clutch_topic: "/console/clutch"

@@ -38,6 +38,13 @@ def quaternion_rotation_matrix(q0, q1, q2, q3):
 
     return rot_matrix
 
+def gm_pose_to_numpy_mat(gm_pose):
+    np_transform = np.identity(4)
+    np_transform[0:3, 0:3] = quaternion_rotation_matrix(gm_pose.orientation.w, \
+        gm_pose.orientation.x, gm_pose.orientation.y, gm_pose.orientation.z)
+    np_transform[0:3, 3] = [gm_pose.position.x, gm_pose.position.y, gm_pose.position.z]
+    return np_transform
+
 def gm_tf_to_numpy_mat(gm_transform):
     np_transform = np.identity(4)
     np_transform[0:3, 0:3] = quaternion_rotation_matrix(gm_transform.rotation.w, \
