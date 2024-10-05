@@ -5,7 +5,7 @@ cartesian_controllers:
       type: "follow"
       topic: "/MTML/measured_cp"
       topic_type: "PoseStamped"
-      hz_divisor: 4
+      hz_divisor: 2
       is_input_device_hold_home_off: False
       servo_cp_topic: "/MTML/servo_cp"
       servo_cf_topic: "/MTML/body/servo_cf"
