@@ -4,6 +4,7 @@ cartesian_controllers:
       position_scale: 0.5
       type: "follow"
       topic: "/MTMR/measured_cp"
+      topic_type: "PoseStamped"
       hz_divisor: 4
       is_input_device_hold_home_off: True
       servo_cp_topic: "/MTMR/servo_cp"
