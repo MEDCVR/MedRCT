@@ -53,22 +53,6 @@ private:
   virtual void publishImpl(const T& data) const = 0;
 };
 
-class A
-{
-  A(){}
-};
-
-// BBase class example for config overloading?
-class BBase : public A
-{
-};
-
-template <class T>
-class B : public BBase
-{
-  B(){}
-};
-
 template <class T>
 class SubStream : public Stream
 {

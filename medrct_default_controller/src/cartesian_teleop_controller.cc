@@ -63,7 +63,7 @@ void CartesianFollowerControllerConfig::FromYaml(
     n["topic_name"] = GetValue<std::string>(input_config, "topic");
     n["type"] = "input";
     n["name"] = cfcc.controller_name + "_input_stream";
-    n["data_type"] = 
+    n["data_type"] =
         GetValueDefault<std::string>(input_config, "data_type", "Transform");
     cfcc.input_callback_stream =
         stream_factory.create<stream::SubStream<Transform>>(n);
@@ -79,7 +79,7 @@ void CartesianFollowerControllerConfig::FromYaml(
         GetValue<std::string>(hold_home_off_config, "servo_cp_topic");
     n["type"] = "output";
     n["name"] = cfcc.controller_name + "_servo_cp_stream";
-    n["data_type"] = 
+    n["data_type"] =
         GetValueDefault<std::string>(input_config, "data_type", "Transform");
     cfcc.servo_cp_stream =
         stream_factory.create<stream::PubStream<Transform>>(n);
@@ -351,14 +351,26 @@ bool CartesianIncrementController::onEnable()
   return true;
 }
 
-void CartesianIncrementController::update(const DataStore& input_data)
+Transform
+CartesianIncrementController::processTwist(const DataStore& input_data)
 {
   Twist input_twist = input_data.get<Twist>(input_stream_name);
 
   Transform input_diff_tf;
   input_diff_tf.translation() = input_twist.linear;
   input_diff_tf.linear() = FromRPY(input_twist.angular).toRotationMatrix();
+  return input_diff_tf;
+}
 
+Transform
+CartesianIncrementController::processTransform(const DataStore& input_data)
+{
+  return input_data.get<Transform>(input_stream_name);
+}
+
+void CartesianIncrementController::update(const DataStore& input_data)
+{
+  Transform input_diff_tf = input_diff_tf_process_func_(input_data);
   // calculate input diff tf;
   JointState current_output_js =
       input_data.get<JointState>(measured_js_stream_name);

@@ -102,8 +102,8 @@ TEST(ConversionsTest, testPose)
   //   medrct::Quaternion q(medrct_tf.linear());
   //   medrctlog::info("quaternion: \nw:{} x:{} y:{} z:{}", q.w(), q.x(), q.y(),
   //   q.z()); medrctlog::info("ros pos: \n{}",
-  //   ros_pose_stamped2.transform.translation); medrctlog::info("ros quat: \n{}",
-  //   ros_pose_stamped2.transform.rotation);
+  //   ros_pose_stamped2.transform.translation); medrctlog::info("ros quat:
+  //   \n{}", ros_pose_stamped2.transform.rotation);
 
   ASSERT_NEAR(
       ros_pose_stamped.pose.position.x,

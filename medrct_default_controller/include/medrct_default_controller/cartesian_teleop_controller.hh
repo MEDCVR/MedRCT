@@ -163,6 +163,11 @@ protected:
   Transform current_command_output_tf;
   virtual bool onEnable() override;
   void update(const DataStore& input_data) override;
+
+private:
+  Transform processTwist(const DataStore& input_data);
+  Transform processTransform(const DataStore& input_data);
+  std::function<Transform(const DataStore&)> input_diff_tf_process_func_;
 };
 } // namespace controller
 } // namespace medrct

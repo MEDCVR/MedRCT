@@ -72,9 +72,13 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
     }
     else if (data_type == "Pose")
     {
-      stream = std::make_shared<
-          RosSubStream<Transform, geometry_msgs::PoseStamped>>(
-          name, &medrct_ros::RosPoseToMedrctTf, *nh, topic_name, queue_size);
+      stream =
+          std::make_shared<RosSubStream<Transform, geometry_msgs::PoseStamped>>(
+              name,
+              &medrct_ros::RosPoseToMedrctTf,
+              *nh,
+              topic_name,
+              queue_size);
     }
     else if (data_type == "Twist")
     {
