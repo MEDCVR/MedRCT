@@ -1,6 +1,7 @@
 #include <climits>
 #include <cstdlib>
 #include <medrct/log.hh>
+#include <variant>
 
 #include <medrct/types/types.hh>
 #include <medrct_default_controller/cartesian_teleop_controller.hh>
@@ -101,13 +102,29 @@ void CartesianIncrementControllerConfig::FromYaml(
   CartesianTeleopControllerConfig::FromYaml(
       cicc, controller_config, stream_factory);
   YAML::Node n;
-  n["topic_name"] =
-      GetValue<std::string>(GetYamlNode(controller_config, "input"), "topic");
+  YAML::Node input_config = GetYamlNode(controller_config, "input");
+  n["topic_name"] = GetValue<std::string>(input_config, "topic");
   n["type"] = "input";
   n["name"] = cicc.controller_name + "_input_stream";
-  n["data_type"] = "Twist";
-  cicc.input_callback_stream =
-      stream_factory.create<stream::SubStream<Twist>>(n);
+  std::string data_type =
+      GetValueDefault<std::string>(input_config, "data_type", "Twist");
+  n["data_type"] = data_type;
+
+  if (data_type == "Twist")
+  {
+    cicc.input_callback_stream_variant =
+        stream_factory.create<stream::SubStream<Twist>>(n);
+  }
+  else if (data_type == "Transform" || data_type == "Pose")
+  {
+    cicc.input_callback_stream_variant =
+        stream_factory.create<stream::SubStream<Transform>>(n);
+  }
+  else
+  {
+    // TODO throw error
+    return;
+  }
   return;
 }
 
@@ -335,12 +352,43 @@ CartesianIncrementController::~CartesianIncrementController()
 bool CartesianIncrementController::init(
     const CartesianIncrementControllerConfig& config)
 {
-  input_stream_name = config.input_callback_stream->name;
-  input_stream_map.addWithBuffer(config.input_callback_stream);
-  if (!CartesianTeleopController::init(config))
-    return false;
-  return initAggragate<Twist>(
-      config.controller_name, config.input_callback_stream);
+  if (std::holds_alternative<std::shared_ptr<stream::SubStream<Twist>>>(
+          config.input_callback_stream_variant))
+  {
+    auto input_callback_stream =
+        std::get<std::shared_ptr<stream::SubStream<Twist>>>(
+            config.input_callback_stream_variant);
+    input_stream_name = input_callback_stream->name;
+    input_stream_map.addWithBuffer(input_callback_stream);
+    if (!CartesianTeleopController::init(config))
+      return false;
+    input_diff_tf_process_func_ = std::bind(
+        &CartesianIncrementController::processTwist,
+        this,
+        std::placeholders::_1);
+    return initAggragate<Twist>(config.controller_name, input_callback_stream);
+  }
+  else if (std::holds_alternative<
+               std::shared_ptr<stream::SubStream<Transform>>>(
+               config.input_callback_stream_variant))
+  {
+    auto input_callback_stream =
+        std::get<std::shared_ptr<stream::SubStream<Transform>>>(
+            config.input_callback_stream_variant);
+    input_stream_name = input_callback_stream->name;
+    input_stream_map.addWithBuffer(input_callback_stream);
+    if (!CartesianTeleopController::init(config))
+      return false;
+    input_diff_tf_process_func_ = std::bind(
+        &CartesianIncrementController::processTransform,
+        this,
+        std::placeholders::_1);
+    return initAggragate<Transform>(
+        config.controller_name, input_callback_stream);
+  }
+  //
+  // variant input not allowed
+  return false;
 }
 
 bool CartesianIncrementController::onEnable()
