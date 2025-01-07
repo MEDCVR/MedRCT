@@ -11,6 +11,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -69,6 +70,12 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
           RosSubStream<Transform, geometry_msgs::TransformStamped>>(
           name, &medrct_ros::RosToMedrctTf, *nh, topic_name, queue_size);
     }
+    else if (data_type == "Pose")
+    {
+      stream = std::make_shared<
+          RosSubStream<Transform, geometry_msgs::PoseStamped>>(
+          name, &medrct_ros::RosPoseToMedrctTf, *nh, topic_name, queue_size);
+    }
     else if (data_type == "Twist")
     {
       stream =
@@ -105,6 +112,12 @@ Stream::Ptr RosStreamFactory::create(const YAML::Node& config) const
       stream = std::make_shared<
           RosPubStream<medrct::Transform, geometry_msgs::TransformStamped>>(
           name, &medrct_ros::MedrctToRosTf, *nh, topic_name, queue_size);
+    }
+    else if (data_type == "Pose")
+    {
+      stream = std::make_shared<
+          RosPubStream<medrct::Transform, geometry_msgs::PoseStamped>>(
+          name, &medrct_ros::MedrctTfToRosPose, *nh, topic_name, queue_size);
     }
     else if (data_type == "Twist")
     {

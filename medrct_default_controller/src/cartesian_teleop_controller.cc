@@ -63,7 +63,8 @@ void CartesianFollowerControllerConfig::FromYaml(
     n["topic_name"] = GetValue<std::string>(input_config, "topic");
     n["type"] = "input";
     n["name"] = cfcc.controller_name + "_input_stream";
-    n["data_type"] = "Transform";
+    n["data_type"] = 
+        GetValueDefault<std::string>(input_config, "data_type", "Transform");
     cfcc.input_callback_stream =
         stream_factory.create<stream::SubStream<Transform>>(n);
   }
@@ -78,7 +79,8 @@ void CartesianFollowerControllerConfig::FromYaml(
         GetValue<std::string>(hold_home_off_config, "servo_cp_topic");
     n["type"] = "output";
     n["name"] = cfcc.controller_name + "_servo_cp_stream";
-    n["data_type"] = "Transform";
+    n["data_type"] = 
+        GetValueDefault<std::string>(input_config, "data_type", "Transform");
     cfcc.servo_cp_stream =
         stream_factory.create<stream::PubStream<Transform>>(n);
     n["topic_name"] =
