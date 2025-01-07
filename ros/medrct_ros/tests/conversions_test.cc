@@ -82,6 +82,59 @@ TEST(ConversionsTest, testTransform)
       10e-6);
 }
 
+TEST(ConversionsTest, testPose)
+{
+  geometry_msgs::PoseStamped ros_pose_stamped;
+  ros_pose_stamped.pose.position.x = 0.1;
+  ros_pose_stamped.pose.position.y = 0.2;
+  ros_pose_stamped.pose.position.z = 0.3;
+  ros_pose_stamped.pose.orientation.x = 0.7071068;
+  ros_pose_stamped.pose.orientation.y = 0.0;
+  ros_pose_stamped.pose.orientation.z = 0.0;
+  ros_pose_stamped.pose.orientation.w = 0.7071068;
+
+  medrct::Transform medrct_tf = RosPoseToMedrctTf(ros_pose_stamped);
+  auto ros_pose_stamped2 = MedrctTfToRosPose(medrct_tf);
+
+  // Debugging
+  //   medrctlog::info("position: \n{}", medrct_tf.translation());
+  //   medrctlog::info("rotation: \n{}", medrct_tf.linear());
+  //   medrct::Quaternion q(medrct_tf.linear());
+  //   medrctlog::info("quaternion: \nw:{} x:{} y:{} z:{}", q.w(), q.x(), q.y(),
+  //   q.z()); medrctlog::info("ros pos: \n{}",
+  //   ros_pose_stamped2.transform.translation); medrctlog::info("ros quat: \n{}",
+  //   ros_pose_stamped2.transform.rotation);
+
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.position.x,
+      ros_pose_stamped2.pose.position.x,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.position.y,
+      ros_pose_stamped2.pose.position.y,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.position.z,
+      ros_pose_stamped2.pose.position.z,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.orientation.x,
+      ros_pose_stamped2.pose.orientation.x,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.orientation.y,
+      ros_pose_stamped2.pose.orientation.y,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.orientation.z,
+      ros_pose_stamped2.pose.orientation.z,
+      10e-6);
+  ASSERT_NEAR(
+      ros_pose_stamped.pose.orientation.w,
+      ros_pose_stamped2.pose.orientation.w,
+      10e-6);
+}
+
 TEST(ConversionsTest, testTwist)
 {
   geometry_msgs::TwistStamped ros_twist_stamped;

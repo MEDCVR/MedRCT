@@ -5,6 +5,7 @@
 #include <medrct/types/twist.hh>
 
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -82,6 +83,38 @@ MedrctToRosTf(const medrct::Transform& medrct_tf)
   ros_tf_stamped.transform.rotation.y = q.y();
   ros_tf_stamped.transform.rotation.z = q.z();
   return ros_tf_stamped;
+}
+
+inline medrct::Transform
+RosPoseToMedrctTf(const geometry_msgs::PoseStamped& ros_pose_stamped)
+{
+  const auto& ros_pose = ros_pose_stamped.pose;
+  medrct::Transform medrct_tf;
+  medrct_tf.translation().x() = ros_pose.position.x;
+  medrct_tf.translation().y() = ros_pose.position.y;
+  medrct_tf.translation().z() = ros_pose.position.z;
+  medrct_tf.linear() = medrct::Quaternion(
+                           ros_pose.orientation.w,
+                           ros_pose.orientation.x,
+                           ros_pose.orientation.y,
+                           ros_pose.orientation.z)
+                           .toRotationMatrix();
+  return medrct_tf;
+}
+
+inline geometry_msgs::PoseStamped
+MedrctTfToRosPose(const medrct::Transform& medrct_tf)
+{
+  geometry_msgs::PoseStamped ros_pose_stamped;
+  ros_pose_stamped.pose.position.x = medrct_tf.translation().x();
+  ros_pose_stamped.pose.position.y = medrct_tf.translation().y();
+  ros_pose_stamped.pose.position.z = medrct_tf.translation().z();
+  medrct::Quaternion q(medrct_tf.linear());
+  ros_pose_stamped.pose.orientation.w = q.w();
+  ros_pose_stamped.pose.orientation.x = q.x();
+  ros_pose_stamped.pose.orientation.y = q.y();
+  ros_pose_stamped.pose.orientation.z = q.z();
+  return ros_pose_stamped;
 }
 
 inline medrct::Twist
