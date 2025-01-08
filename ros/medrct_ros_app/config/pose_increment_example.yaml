@@ -1,5 +1,5 @@
 controllers:
-  - name: "Keyboard-PSM2"
+  - name: "Keyboard-PSM1"
     loader:
       lib_name: medrct_default_controller
       class_name: DefaultControllerFactory
@@ -8,8 +8,8 @@ controllers:
       topic: "/keyboard/increment"
       data_type: "Pose"
     output:
-      control_topic: "/PSM2/servo_jp"
-      feedback_topic: "/PSM2/measured_js"
+      control_topic: "/PSM1/servo_jp"
+      feedback_topic: "/PSM1/measured_js"
     kinematics:
       forward:
         lib_name: "medrct_dvrk_env"
@@ -21,7 +21,7 @@ controllers:
         class_name: "PsmInverseKinematicsFactory"
         config:
           tool_name: "LND400006"
-  - name: "Keyboard-PSM2-Jaw"
+  - name: "Keyboard-PSM1-Jaw"
     loader:
       lib_name: medrct_default_controller
       class_name: DefaultControllerFactory
@@ -29,7 +29,7 @@ controllers:
     input:
       topic: "/keyboard/joint_state"
     output:
-      control_topic: "/PSM2/jaw/servo_jp"
-      feedback_topic: "/PSM2/jaw/measured_js"
+      control_topic: "/PSM1/jaw/servo_jp"
+      feedback_topic: "/PSM1/jaw/measured_js"
 basic_communicator:
   auto_enable: True
