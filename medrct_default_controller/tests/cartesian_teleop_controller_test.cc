@@ -158,7 +158,7 @@ TEST(TestCartesianFollowerController, testOutput)
   pe.registerProcess(shared_measured_js_stream);
 
   CartesianFollowerControllerConfig cc_cfg;
-  cc_cfg.controller_name = "input-output_controller";
+  cc_cfg.controller_name = "follower_controller";
   cc_cfg.input_callback_stream = shared_input_stream;
   cc_cfg.measured_js_stream = shared_measured_js_stream;
   cc_cfg.output_js_stream = std::make_shared<IntraPubStream<JointState>>(
@@ -210,66 +210,172 @@ TEST(TestCartesianFollowerController, testOutput)
   return;
 }
 
-// TEST(TestCartesianIncrementController, testOutput)
-// {
-//   medrctlog::set_level(medrctlog::level::info); // Set global log level to
-//   StreamMaster::init();
-//   PipelineExecutor pe;
+TEST(TestCartesianIncrementController, testOutputFromTwists)
+{
+  medrctlog::set_level(medrctlog::level::info); // Set global log level to
+  StreamMaster::init();
+  PipelineExecutor pe;
 
-//   // Initialize tester and controller
-//   real_t initial_input_x = 1;
-//   real_t initial_output_x =
-//       2; // for Xprismatic robot, output_x is same as output_joint
-//   std::vector<real_t> input_x_positions = {1, 2, -2, -1, 1, 3, 3, -3};
-//   std::vector<Twist> input_twists;
-//   for (unsigned int i = 0; i < input_x_positions.size(); ++i)
-//   {
-//     Twist twist;
-//     twist.linear.x() = input_x_positions[i];
-//     input_twists.push_back(twist);
-//   }
+  // Initialize tester and controller
+  real_t initial_input_x = 1;
+  real_t initial_output_x =
+      2; // for Xprismatic robot, output_x is same as output_joint
+  std::vector<real_t> input_x_positions = {1, 2, -2, -1, 1, 3, 3, -3};
+  std::vector<Twist> input_twists;
+  for (unsigned int i = 0; i < input_x_positions.size(); ++i)
+  {
+    Twist twist;
+    twist.linear.x() = input_x_positions[i];
+    input_twists.push_back(twist);
+  }
 
-//   CartesianTeleopControllerTester<Twist> ccontrol_tester(
-//       pe, input_x_positions.size(), initial_output_x);
-//   auto cc_cfg = ccontrol_tester.init(pe);
+  CartesianTeleopControllerTester<Twist> ccontrol_tester(
+      pe, input_x_positions.size(), initial_output_x);
+  // auto cc_cfg = ccontrol_tester.init(pe);
 
-//   auto cfc = std::make_shared<CartesianIncrementController>();
-//   ASSERT_TRUE(cfc->init(cc_cfg));
+  auto shared_input_stream = std::make_shared<IntraSubStream<Twist>>(
+      ccontrol_tester.input_modality->command_topic,
+      ccontrol_tester.input_modality->command_topic + "_input_stream");
+  auto shared_measured_js_stream = std::make_shared<IntraSubStream<JointState>>(
+      ccontrol_tester.dummy_output->measured_js_topic,
+      ccontrol_tester.dummy_output->measured_js_topic + "_input_stream");
+  pe.registerProcess(shared_input_stream);
+  pe.registerProcess(shared_measured_js_stream);
 
-//   // Enable the controller
-//   Twist initial_twist;
-//   initial_twist.linear.x() = 0; // this has to be zero, or else internal
-//   // command tf in controller will get incrmented
-//   ccontrol_tester.enableController(cfc, initial_twist);
+  CartesianIncrementControllerConfig cc_cfg;
+  cc_cfg.controller_name = "increment_controller";
+  cc_cfg.input_callback_stream_variant = shared_input_stream;
+  cc_cfg.measured_js_stream = shared_measured_js_stream;
+  cc_cfg.output_js_stream = std::make_shared<IntraPubStream<JointState>>(
+      ccontrol_tester.dummy_output->command_js_topic,
+      ccontrol_tester.dummy_output->command_js_topic + "_output_stream");
+  cc_cfg.harmonize_joint_position_outputs = false;
+  cc_cfg.forward_kinematics = std::make_shared<XPrismaticForwardKinematics>();
+  cc_cfg.inverse_kinematics = std::make_shared<XPrismaticInverseKinematics>();
 
-//   // Run the controller
-//   std::thread thd([&ccontrol_tester]() {
-//     std::unique_lock<std::mutex> lk(ccontrol_tester.mtx);
-//     ccontrol_tester.cv.wait_until(
-//         lk,
-//         std::chrono::system_clock::now() +
-//             std::chrono::seconds(10)); // 10s timeouts
-//   });
-//   ccontrol_tester.publishCommands(input_twists);
-//   thd.join();
+  auto cfc = std::make_shared<CartesianIncrementController>();
+  ASSERT_TRUE(cfc->init(cc_cfg));
 
-//   // Check results
-//   ASSERT_EQ(
-//       ccontrol_tester.return_js_positions.size(), input_x_positions.size());
-//   real_t accumulated_x = initial_output_x;
-//   for (unsigned int i = 0; i < input_x_positions.size(); ++i)
-//   {
-//     JointState js;
-//     js.push_back("", ccontrol_tester.return_js_positions[i]);
-//     Transform output_tf_result;
-//     cc_cfg.forward_kinematics->computeFK(output_tf_result, js.positions);
-//     accumulated_x += input_x_positions[i];
-//     medrctlog::debug("---index---: {}", i);
-//     medrctlog::debug("js: {}", js.positions[i]);
-//     medrctlog::debug("input_x_positions: {}", input_x_positions[i]);
-//     medrctlog::debug("accumulated_x: {}", accumulated_x);
-//     medrctlog::debug("output_tf_x: {}", output_tf_result.translation().x());
-//     ASSERT_EQ(output_tf_result.translation().x(), accumulated_x);
-//   }
-//   return;
-// }
+  // Enable the controller
+  Twist initial_twist;
+  initial_twist.linear.x() = 0; // this has to be zero, or else internal
+  // command tf in controller will get incrmented
+  ccontrol_tester.enableController(cfc, initial_twist);
+
+  // Run the controller
+  std::thread thd([&ccontrol_tester]() {
+    std::unique_lock<std::mutex> lk(ccontrol_tester.mtx);
+    ccontrol_tester.cv.wait_until(
+        lk,
+        std::chrono::system_clock::now() +
+            std::chrono::seconds(10)); // 10s timeouts
+  });
+  ccontrol_tester.publishCommands(input_twists);
+  thd.join();
+
+  // Check results
+  ASSERT_EQ(
+      ccontrol_tester.return_js_positions.size(), input_x_positions.size());
+  real_t accumulated_x = initial_output_x;
+  for (unsigned int i = 0; i < input_x_positions.size(); ++i)
+  {
+    JointState js;
+    js.push_back("", ccontrol_tester.return_js_positions[i]);
+    Transform output_tf_result;
+    cc_cfg.forward_kinematics->computeFK(output_tf_result, js.positions);
+    accumulated_x += input_x_positions[i];
+    medrctlog::debug("---index---: {}", i);
+    medrctlog::debug("js: {}", js.positions[i]);
+    medrctlog::debug("input_x_positions: {}", input_x_positions[i]);
+    medrctlog::debug("accumulated_x: {}", accumulated_x);
+    medrctlog::debug("output_tf_x: {}", output_tf_result.translation().x());
+    ASSERT_EQ(output_tf_result.translation().x(), accumulated_x);
+  }
+  return;
+}
+
+// Need to reduce copy paste here
+TEST(TestCartesianIncrementController, testOutputFromTransform)
+{
+  medrctlog::set_level(medrctlog::level::info); // Set global log level to
+  StreamMaster::init();
+  PipelineExecutor pe;
+
+  // Initialize tester and controller
+  real_t initial_input_x = 1;
+  real_t initial_output_x =
+      2; // for Xprismatic robot, output_x is same as output_joint
+  std::vector<real_t> input_x_positions = {1, 2, -2, -1, 1, 3, 3, -3};
+  std::vector<Transform> input_transforms;
+  for (unsigned int i = 0; i < input_x_positions.size(); ++i)
+  {
+    Transform transform;
+    transform.translation().x() = input_x_positions[i];
+    input_transforms.push_back(transform);
+  }
+
+  CartesianTeleopControllerTester<Transform> ccontrol_tester(
+      pe, input_x_positions.size(), initial_output_x);
+  // auto cc_cfg = ccontrol_tester.init(pe);
+
+  auto shared_input_stream = std::make_shared<IntraSubStream<Transform>>(
+      ccontrol_tester.input_modality->command_topic,
+      ccontrol_tester.input_modality->command_topic + "_input_stream");
+  auto shared_measured_js_stream = std::make_shared<IntraSubStream<JointState>>(
+      ccontrol_tester.dummy_output->measured_js_topic,
+      ccontrol_tester.dummy_output->measured_js_topic + "_input_stream");
+  pe.registerProcess(shared_input_stream);
+  pe.registerProcess(shared_measured_js_stream);
+
+  CartesianIncrementControllerConfig cc_cfg;
+  cc_cfg.controller_name = "increment_controller";
+  cc_cfg.input_callback_stream_variant = shared_input_stream;
+  cc_cfg.measured_js_stream = shared_measured_js_stream;
+  cc_cfg.output_js_stream = std::make_shared<IntraPubStream<JointState>>(
+      ccontrol_tester.dummy_output->command_js_topic,
+      ccontrol_tester.dummy_output->command_js_topic + "_output_stream");
+  cc_cfg.harmonize_joint_position_outputs = false;
+  cc_cfg.forward_kinematics = std::make_shared<XPrismaticForwardKinematics>();
+  cc_cfg.inverse_kinematics = std::make_shared<XPrismaticInverseKinematics>();
+
+  auto cfc = std::make_shared<CartesianIncrementController>();
+  ASSERT_TRUE(cfc->init(cc_cfg));
+
+  // Enable the controller
+  Transform initial_transform;
+  initial_transform.translation().x() =
+      0; // this has to be zero, or else internal
+  // command tf in controller will get incrmented
+  ccontrol_tester.enableController(cfc, initial_transform);
+
+  // Run the controller
+  std::thread thd([&ccontrol_tester]() {
+    std::unique_lock<std::mutex> lk(ccontrol_tester.mtx);
+    ccontrol_tester.cv.wait_until(
+        lk,
+        std::chrono::system_clock::now() +
+            std::chrono::seconds(10)); // 10s timeouts
+  });
+  ccontrol_tester.publishCommands(input_transforms);
+  thd.join();
+
+  // Check results
+  ASSERT_EQ(
+      ccontrol_tester.return_js_positions.size(), input_x_positions.size());
+  real_t accumulated_x = initial_output_x;
+  for (unsigned int i = 0; i < input_x_positions.size(); ++i)
+  {
+    JointState js;
+    js.push_back("", ccontrol_tester.return_js_positions[i]);
+    Transform output_tf_result;
+    cc_cfg.forward_kinematics->computeFK(output_tf_result, js.positions);
+    accumulated_x += input_x_positions[i];
+    medrctlog::debug("---index---: {}", i);
+    medrctlog::debug("js: {}", js.positions[i]);
+    medrctlog::debug("input_x_positions: {}", input_x_positions[i]);
+    medrctlog::debug("accumulated_x: {}", accumulated_x);
+    medrctlog::debug("output_tf_x: {}", output_tf_result.translation().x());
+    ASSERT_EQ(output_tf_result.translation().x(), accumulated_x);
+  }
+  return;
+}

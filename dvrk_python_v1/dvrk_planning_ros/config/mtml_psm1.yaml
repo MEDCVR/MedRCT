@@ -1,0 +1,34 @@
+cartesian_controllers:
+  - name: "MTML-PSM1"
+    input:
+      position_scale: 0.5
+      type: "follow"
+      topic: "/MTML/measured_cp"
+      topic_type: "PoseStamped"
+      hz_divisor: 2
+      is_input_device_hold_home_off: False
+      servo_cp_topic: "/MTML/servo_cp"
+      servo_cf_topic: "/MTML/body/servo_cf"
+    output:
+      control_interfaces:
+        - control_topic: "/PSM1/servo_jp"
+          feedback_topic: "/PSM1/measured_js"
+    kinematics:
+      robot: "psm"
+      tool:
+        type: "LND400006"
+joint_controllers:
+  - name: "MTML-PSM1Jaw"
+    input:
+      type: "follow"
+      topic: "/MTML/gripper/measured_js"
+    output:
+      control_interfaces:
+        - control_topic: "/PSM1/jaw/servo_jp"
+          feedback_topic: "/PSM1/jaw/measured_js"
+clutch_topic: "/console/clutch"
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTML-PSM1", "MTML-PSM1Jaw"]
+enable_at_start: ["MTML-PSM1", "MTML-PSM1Jaw"]

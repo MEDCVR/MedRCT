@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(medrct_default_controller VERSION 0.0.1)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+# if(NOT CMAKE_CXX_STANDARD)
+# endif()
 
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

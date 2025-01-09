@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <memory>
 #include <string>
+#include <variant>
 
 #include <medrct/stream/stream.hh>
 #include <medrct/stream/stream_factory.hh>
@@ -144,7 +145,11 @@ protected:
 
 struct CartesianIncrementControllerConfig : CartesianTeleopControllerConfig
 {
-  std::shared_ptr<stream::SubStream<Twist>> input_callback_stream;
+  std::variant<
+      std::shared_ptr<stream::SubStream<Twist>>,
+      std::shared_ptr<stream::SubStream<Transform>>>
+      input_callback_stream_variant;
+  // std::shared_ptr<stream::SubStream<Twist>> input_callback_stream;
   static void FromYaml(
       CartesianIncrementControllerConfig& cicc,
       const YAML::Node controller_config,
@@ -163,6 +168,11 @@ protected:
   Transform current_command_output_tf;
   virtual bool onEnable() override;
   void update(const DataStore& input_data) override;
+
+private:
+  Transform processTwist(const DataStore& input_data);
+  Transform processTransform(const DataStore& input_data);
+  std::function<Transform(const DataStore&)> input_diff_tf_process_func_;
 };
 } // namespace controller
 } // namespace medrct

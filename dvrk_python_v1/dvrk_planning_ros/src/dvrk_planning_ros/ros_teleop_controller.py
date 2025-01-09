@@ -54,7 +54,7 @@ class JointStateControlInterface:
                 rospy.wait_for_message(self.feedback_topic_name, JointState, timeout=0.1)
                 raise
         except:
-            print(prepend_str, ": waiting for message from topic [" + self.control_topic_name +"]")
+            print(prepend_str, ": waiting for message from topic [" + self.feedback_topic_name +"]")
             rospy.wait_for_message(self.feedback_topic_name, JointState)
             print(prepend_str, ": finished for message from topic [" + self.feedback_topic_name +"]")
 
