@@ -2,12 +2,18 @@
 <package format="2">
   <name>medrct_ros2_app</name>
   <version>0.0.0</version>
-  <description>ros2 app implementation of teleop controllers</description>
+  <description>ros app implementation of teleop controllers</description>
   <maintainer email="radian.gondokaryono@mail.utorontol.ca">radian</maintainer>
   <license>TODO</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <!-- <depend>roscpp</depend> -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>medrct_ros2</depend>
   <depend>medrct_common</depend>
   <depend>medrct_env</depend>
+  <export>  
+    <build_type>ament_cmake</build_type>
+  </export>
+  
 </package>
+
