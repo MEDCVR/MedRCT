@@ -112,7 +112,15 @@ build:
 colcon build --packages-up-to medrct_ros2_app medrct_default_controller medrct_dvrk_env                             
 ```
 
+Start dvrk console: refer to medcvr dvrk wiki
+
 run:
 ```bash
+ros2 run medrct_ros2_app ros2_teleop_node --ros-args -p config:=config/increment_example.yaml
+```
 
+Start keyboard:
+```
+    cd <dvrk_planning_folder>/ros2/medrct_ros2_app/scripts 
+    python3 ros2_psm_buffered_teleop_keyboard.py 
 ```
