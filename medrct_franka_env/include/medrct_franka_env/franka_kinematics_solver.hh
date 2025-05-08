@@ -8,7 +8,7 @@
 #include <medrct_env/kinematics/inverse_kinematics.hh>
 #include <medrct_env/kinematics/simple_forward_kinematics.hh>
 
-#include <medrct_franka_control/franka_kinematics.hpp>
+#include <medrct_franka_env/franka_kinematics.hpp>
 
 namespace medrct
 {

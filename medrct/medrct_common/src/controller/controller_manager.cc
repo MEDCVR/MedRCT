@@ -141,6 +141,7 @@ bool ControllerManager::init(const ControllerManagerConfig& config)
 
 bool ControllerManager::enable()
 {
+  if (current_state == controller_state_t::ENABLED) return true;
   if (!CMIsValidPreviousState(controller_state_t::ENABLED, current_state))
   {
     return false;
@@ -165,6 +166,7 @@ bool ControllerManager::enable()
 }
 bool ControllerManager::disable()
 {
+  if (current_state == controller_state_t::DISABLED) return true;
   if (!CMIsValidPreviousState(controller_state_t::DISABLED, current_state))
   {
     return false;
@@ -189,6 +191,7 @@ bool ControllerManager::disable()
 }
 bool ControllerManager::clutch()
 {
+  if (current_state == controller_state_t::CLUTCHED) return true;
   if (!CMIsValidPreviousState(controller_state_t::CLUTCHED, current_state))
   {
     return false;
@@ -213,6 +216,7 @@ bool ControllerManager::clutch()
 }
 bool ControllerManager::unclutch()
 {
+  if (current_state == controller_state_t::ENABLED) return true;
   if (!CMIsValidPreviousState(controller_state_t::ENABLED, current_state))
   {
     return false;

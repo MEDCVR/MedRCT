@@ -18,13 +18,11 @@ add_library(${PROJECT_NAME} SHARED
 find_package(yaml-cpp REQUIRED)
 find_package(medrct_common REQUIRED)
 find_package(medrct_env REQUIRED)
-find_package(catkin REQUIRED COMPONENTS medrct_franka_control)
 
 target_include_directories(${PROJECT_NAME}
 PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-${catkin_INCLUDE_DIRS}
 PRIVATE
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 )
@@ -38,7 +36,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC
   medrct_common::medrct_common
   medrct_env::medrct_env
-  ${catkin_LIBRARIES}
 )
 
 #############

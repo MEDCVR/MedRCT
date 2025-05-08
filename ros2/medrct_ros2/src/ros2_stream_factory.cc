@@ -72,6 +72,7 @@ Stream::Ptr Ros2StreamFactory::create(const YAML::Node& config) const
     }
     else if (data_type == "Pose")
     {
+      std::cout <<  name << "MAKING THIS!\n";
       stream =
           std::make_shared<Ros2SubStream<Transform, geometry_msgs::msg::PoseStamped>>(
               name,
