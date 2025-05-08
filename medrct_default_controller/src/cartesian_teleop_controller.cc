@@ -65,7 +65,7 @@ void CartesianFollowerControllerConfig::FromYaml(
     n["type"] = "input";
     n["name"] = cfcc.controller_name + "_input_stream";
     n["data_type"] =
-        GetValueDefault<std::string>(input_config, "data_type", "Transform");
+        GetValueDefault<std::string>(input_config, "data_type", "Pose");
     cfcc.input_callback_stream =
         stream_factory.create<stream::SubStream<Transform>>(n);
   }

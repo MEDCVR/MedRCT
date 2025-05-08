@@ -2,7 +2,7 @@
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 
-#include "medrct_franka_control/franka_kinematics.hpp"
+#include "medrct_franka_env/franka_kinematics.hpp"
 
 Eigen::Matrix4d FrankaKinematicsSolver::computeFk(
     std::array<double, 7> activeJointPos, int linkNumOutput)

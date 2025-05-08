@@ -13,6 +13,7 @@ endif()
 add_library(${PROJECT_NAME} SHARED
   src/franka_kinematics_factory.cc
   src/franka_kinematics_solver.cc
+  src/franka_kinematics.cpp
 )
 
 find_package(yaml-cpp REQUIRED)

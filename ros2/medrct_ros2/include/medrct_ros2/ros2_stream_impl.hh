@@ -39,7 +39,8 @@ Ros2SubStream<medrctT, ros2T>::Ros2SubStream(
     : SubStream<medrctT>(name), ros2_to_medrct(ros2_to_medrct)
 {
   subscriber = n.create_subscription<ros2T>(
-      topic_name, queue_size, std::bind(&Ros2SubStream<medrctT, ros2T>::runCallback, this, std::placeholders::_1));
+      topic_name, rclcpp::SensorDataQoS(),
+      std::bind(&Ros2SubStream<medrctT, ros2T>::runCallback, this, std::placeholders::_1));
 }
 template <typename medrctT, typename ros2T>
 Ros2SubStream<medrctT, ros2T>::~Ros2SubStream()
