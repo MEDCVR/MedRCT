@@ -37,9 +37,14 @@ Ros2SubStream<medrctT, ros2T>::Ros2SubStream(
     const std::string& topic_name)
     : SubStream<medrctT>(name), ros2_to_medrct(ros2_to_medrct)
 {
+
+  auto my_callback_group = n.create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  rclcpp::SubscriptionOptions options;
+  options.callback_group = my_callback_group;
   subscriber = n.create_subscription<ros2T>(
       topic_name, rclcpp::SensorDataQoS(),
-      std::bind(&Ros2SubStream<medrctT, ros2T>::runCallback, this, std::placeholders::_1));
+      std::bind(&Ros2SubStream<medrctT, ros2T>::runCallback, this, std::placeholders::_1),
+      options);
 }
 template <typename medrctT, typename ros2T>
 Ros2SubStream<medrctT, ros2T>::~Ros2SubStream()

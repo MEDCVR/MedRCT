@@ -1,5 +1,5 @@
 controllers:
-  - name: "Lambda-frankaff"
+  - name: "Lambda-franka"
     loader:
       lib_name: medrct_default_controller
       class_name: DefaultControllerFactory
@@ -7,7 +7,8 @@ controllers:
     input:
       topic: "/lambda/right/pose"
       data_type: "Pose"
-      position_scale: 0.3
+      position_scale: 0.6
+      rotation_scale: 0.5
     harmonize_joint_position_outputs: False
     output:
       control_topic: "/medrct_franka/servo_jp"
@@ -23,9 +24,9 @@ controllers:
         config:
 control_groups:
   - name: default
-    controller_names: ["Lambda-frankaff"]
+    controller_names: ["Lambda-franka"]
 active_control_group: "default"
 basic_communicator:
-  auto_enable: True
-  # enable_topic: "/lambda/right/clutch"
+  auto_enable: False
+  enable_topic: "/lambda/right/clutch"
   # clutch_topic: "/quest_controller_pose/clutch"

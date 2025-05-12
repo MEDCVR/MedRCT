@@ -329,7 +329,7 @@ void CartesianFollowerController::update(const DataStore& input_data)
   // medrctlog::info(initial_input_tf.translation());
   // medrctlog::info(initial_input_tf.linear());
 
-  Transform absolute_input_diff;
+  Transform absolute_input_diff = Transform::Identity();
   absolute_input_diff.linear() =
       initial_input_tf.linear().inverse() * absolute_input_tf.linear();
 
@@ -344,7 +344,7 @@ void CartesianFollowerController::update(const DataStore& input_data)
   Eigen::Vector3d axis = aa.axis();
   float angle = aa.angle();
   float scaled_angle = rotation_scale * angle;
-  absolute_input_diff.rotate(Eigen::AngleAxisd(scaled_angle, axis));
+  absolute_input_diff.linear() = Eigen::AngleAxisd(scaled_angle, axis).toRotationMatrix();
 
   // Position scaling
   absolute_input_diff.translation() =
