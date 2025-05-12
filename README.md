@@ -129,5 +129,5 @@ Start keyboard:
 
 build:
 ```bash
-colcon build --packages-up-to medrct_franka_control medrct_franka_env medrct_default_controller medrct_ros2_app
+colcon build --packages-up-to medrct_franka_env medrct_default_controller medrct_ros2_app
 ```

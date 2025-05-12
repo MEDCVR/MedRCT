@@ -115,6 +115,7 @@ struct CartesianFollowerControllerConfig : CartesianTeleopControllerConfig
 {
   std::shared_ptr<stream::SubStream<Transform>> input_callback_stream;
   real_t position_scale = 1.0;
+  real_t rotation_scale = 1.0;
   // Need both below for input device control
   std::shared_ptr<stream::PubStream<Transform>> servo_cp_stream;
   std::shared_ptr<stream::PubStream<Wrench>> servo_cf_stream;
@@ -133,6 +134,7 @@ public:
 
 protected:
   real_t position_scale;
+  real_t rotation_scale;
   std::string input_stream_name;
   Transform initial_input_tf;
   std::unique_ptr<InputDeviceControl> input_device_control;

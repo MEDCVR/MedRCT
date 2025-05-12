@@ -68,7 +68,7 @@ Stream::Ptr Ros2StreamFactory::create(const YAML::Node& config) const
     {
       stream = std::make_shared<
           Ros2SubStream<Transform, geometry_msgs::msg::TransformStamped>>(
-          name, &medrct_ros2::RosToMedrctTf, *nh, topic_name, queue_size);
+          name, &medrct_ros2::RosToMedrctTf, *nh, topic_name);
     }
     else if (data_type == "Pose")
     {
@@ -77,25 +77,24 @@ Stream::Ptr Ros2StreamFactory::create(const YAML::Node& config) const
               name,
               &medrct_ros2::RosPoseToMedrctTf,
               *nh,
-              topic_name,
-              queue_size);
+              topic_name);
     }
     else if (data_type == "Twist")
     {
       stream =
           std::make_shared<Ros2SubStream<Twist, geometry_msgs::msg::TwistStamped>>(
-              name, &medrct_ros2::RosToMedrctTwist, *nh, topic_name, queue_size);
+              name, &medrct_ros2::RosToMedrctTwist, *nh, topic_name);
     }
     else if (data_type == "Joy")
     {
       stream = std::make_shared<Ros2SubStream<medrct::Joy, sensor_msgs::msg::Joy>>(
-          name, &medrct_ros2::RosToMedrctJoy, *nh, topic_name, queue_size);
+          name, &medrct_ros2::RosToMedrctJoy, *nh, topic_name);
     }
     else if (data_type == "Wrench")
     {
       stream = std::make_shared<
           Ros2SubStream<medrct::Wrench, geometry_msgs::msg::WrenchStamped>>(
-          name, &medrct_ros2::RosToMedrctWrench, *nh, topic_name, queue_size);
+          name, &medrct_ros2::RosToMedrctWrench, *nh, topic_name);
     }
     else
     {

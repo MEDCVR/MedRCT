@@ -34,8 +34,7 @@ Ros2SubStream<medrctT, ros2T>::Ros2SubStream(
     const std::string& name,
     const std::function<medrctT(const ros2T&)>& ros2_to_medrct,
     rclcpp::Node& n,
-    const std::string& topic_name,
-    int queue_size)
+    const std::string& topic_name)
     : SubStream<medrctT>(name), ros2_to_medrct(ros2_to_medrct)
 {
   subscriber = n.create_subscription<ros2T>(

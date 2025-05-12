@@ -71,6 +71,8 @@ void CartesianFollowerControllerConfig::FromYaml(
   }
   cfcc.position_scale =
       GetValueDefault(input_config, "position_scale", cfcc.position_scale);
+  cfcc.rotation_scale =
+      GetValueDefault(input_config, "rotation_scale", cfcc.rotation_scale);
 
   if (input_config["hold_home_off"])
   {
@@ -263,6 +265,7 @@ bool CartesianFollowerController::init(
   input_stream_name = config.input_callback_stream->name;
   input_stream_map.addWithBuffer(config.input_callback_stream);
   position_scale = config.position_scale;
+  rotation_scale = config.rotation_scale;
   if (config.servo_cf_stream && config.servo_cp_stream)
     input_device_control = std::make_unique<InputDeviceControl>(
         config.servo_cp_stream, config.servo_cf_stream);
@@ -329,9 +332,25 @@ void CartesianFollowerController::update(const DataStore& input_data)
   Transform absolute_input_diff;
   absolute_input_diff.linear() =
       initial_input_tf.linear().inverse() * absolute_input_tf.linear();
+
+  // Rotation scaling
+  Eigen::Matrix3d linear = absolute_input_diff.linear();
+  
+  // If scaling + shear is possible, orthonormalize first
+  Eigen::JacobiSVD<Eigen::Matrix3d> svd(linear, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  Eigen::Matrix3d pure_rotation = svd.matrixU() * svd.matrixV().transpose();
+
+  Eigen::AngleAxisd aa(pure_rotation);
+  Eigen::Vector3d axis = aa.axis();
+  float angle = aa.angle();
+  float scaled_angle = rotation_scale * angle;
+  absolute_input_diff.rotate(Eigen::AngleAxisd(scaled_angle, axis));
+
+  // Position scaling
   absolute_input_diff.translation() =
       (absolute_input_tf.translation() - initial_input_tf.translation()) *
       position_scale;
+
   // TODO; why this doesn't work?
   // auto js = input_data.get<JointState>(measured_js_stream_name);
   JointState current_output_js =

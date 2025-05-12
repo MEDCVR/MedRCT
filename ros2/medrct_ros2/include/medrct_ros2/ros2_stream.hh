@@ -35,8 +35,7 @@ public:
       const std::string& name,
       const std::function<medrctT(const ros2T&)>& ros2_to_medrct,
       rclcpp::Node& n,
-      const std::string& topic_name,
-      int queue_size = 1000);
+      const std::string& topic_name);
   virtual ~Ros2SubStream();
 
 private:

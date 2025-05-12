@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.5)
 project(medrct_common VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
