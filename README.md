@@ -4,7 +4,7 @@
 
 Install dependencies:
 ```bash
-sudo apt install libspdlog-dev libeigen3-dev
+sudo apt install libspdlog-dev libeigen3-dev liburdfdom-dev
 ```
 
 Install colcon:

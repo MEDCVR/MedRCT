@@ -6,7 +6,7 @@
   <maintainer email="radian.gondokaryono@mail.utoronto.ca">radian</maintainer>
   <license>TODO</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <!-- <buildtool_depend>catkin</buildtool_depend> -->
   <depend>medrct_common</depend>
   <depend>medrct_env</depend>
 </package>

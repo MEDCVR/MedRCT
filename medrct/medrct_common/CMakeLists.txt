@@ -35,12 +35,14 @@ target_include_directories(${PROJECT_NAME}
 # target_link_libraries(${PROJECT_NAME} INTERFACE ${PROJECT_NAME})
 find_package(yaml-cpp REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
+find_package(fmt REQUIRED) #On Ubuntu 22.04, needs to link this for some reason
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost
     ${CMAKE_DL_LIBS}
     Boost::system
     Boost::filesystem
     Boost::serialization
-    yaml-cpp)
+    yaml-cpp
+    fmt::fmt)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

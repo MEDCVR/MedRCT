@@ -33,8 +33,8 @@ find_package(yaml-cpp REQUIRED)
 find_package(medrct_common REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 
-find_package(urdfdom REQUIRED COMPONENTS urdfdom_model)
-target_link_libraries(${PROJECT_NAME} PUBLIC urdfdom_model)
+find_package(urdfdom REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${urdfdom_LIBRARIES})
 
 # Scripts
 # add_executable(kdl_psm_test benchmark/kdl_psm_test.cc)
