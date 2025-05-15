@@ -19,10 +19,13 @@ add_library(${PROJECT_NAME} SHARED
   src/kinematics/simple_forward_kinematics.cc
 )
 
+find_package(urdfdom REQUIRED) 
+
 target_include_directories(${PROJECT_NAME}
 PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+${urdfdom_INCLUDE_DIRS}
 PRIVATE
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 )
@@ -33,7 +36,6 @@ find_package(yaml-cpp REQUIRED)
 find_package(medrct_common REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 
-find_package(urdfdom REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${urdfdom_LIBRARIES})
 
 # Scripts

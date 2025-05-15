@@ -64,7 +64,12 @@ add_executable(run_intra_stream scripts/run_intra_stream.cc)
 target_link_libraries(run_intra_stream ${PROJECT_NAME})
 
 add_executable(test_eigen scripts/test_eigen.cc)
-target_link_libraries(test_eigen ${PROJECT_NAME})
+target_link_libraries(test_eigen 
+  ${PROJECT_NAME}
+  Eigen3::Eigen
+  spdlog
+  fmt::fmt
+)
 
 add_executable(test_yaml scripts/test_yaml.cc)
 target_link_libraries(test_yaml ${PROJECT_NAME} yaml-cpp)
