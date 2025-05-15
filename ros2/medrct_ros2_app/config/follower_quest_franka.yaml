@@ -1,0 +1,32 @@
+controllers:
+  - name: "Quest-franka"
+    loader:
+      lib_name: medrct_default_controller
+      class_name: DefaultControllerFactory
+      create_class_name: "CartesianFollowerController"
+    input:
+      topic: "/quest/right/pose"
+      data_type: "Pose"
+      position_scale: 0.3
+      rotation_scale: 0.3
+    harmonize_joint_position_outputs: False
+    output:
+      control_topic: "/medrct_franka/servo_jp"
+      feedback_topic: "/medrct_franka/measured_js"
+    kinematics:
+      forward:
+        lib_name: "medrct_franka_env"
+        class_name: "FrankaForwardKinematicsFactory"
+        config:
+      inverse:
+        lib_name: "medrct_franka_env"
+        class_name: "FrankaInverseKinematicsFactory"
+        config:
+control_groups:
+  - name: default
+    controller_names: ["Quest-franka"]
+active_control_group: "default"
+basic_communicator:
+  auto_enable: True
+  # enable_topic: "/lambda/right/clutch"
+  # clutch_topic: "/quest_controller_pose/clutch"
