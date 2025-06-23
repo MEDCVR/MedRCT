@@ -3,9 +3,6 @@ if(NOT @PROJECT_NAME@_FIND_QUIETLY)
   message(STATUS "Found @PROJECT_NAME@: @PROJECT_VERSION@ (${@PROJECT_NAME@_DIR})")
 endif()
 
-include(CMakeFindDependencyMacro)
-find_dependency(urdfdom)
-
 if(NOT TARGET @PROJECT_NAME@::@PROJECT_NAME@)
 
   include(CMakeFindDependencyMacro)

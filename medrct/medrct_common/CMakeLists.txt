@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.5)
 project(medrct_common VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -35,12 +35,14 @@ target_include_directories(${PROJECT_NAME}
 # target_link_libraries(${PROJECT_NAME} INTERFACE ${PROJECT_NAME})
 find_package(yaml-cpp REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
+find_package(fmt REQUIRED) #On Ubuntu 22.04, needs to link this for some reason
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost
     ${CMAKE_DL_LIBS}
     Boost::system
     Boost::filesystem
     Boost::serialization
-    yaml-cpp)
+    yaml-cpp
+    fmt::fmt)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -62,7 +64,12 @@ add_executable(run_intra_stream scripts/run_intra_stream.cc)
 target_link_libraries(run_intra_stream ${PROJECT_NAME})
 
 add_executable(test_eigen scripts/test_eigen.cc)
-target_link_libraries(test_eigen ${PROJECT_NAME})
+target_link_libraries(test_eigen 
+  ${PROJECT_NAME}
+  Eigen3::Eigen
+  spdlog
+  fmt::fmt
+)
 
 add_executable(test_yaml scripts/test_yaml.cc)
 target_link_libraries(test_yaml ${PROJECT_NAME} yaml-cpp)

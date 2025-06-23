@@ -8,5 +8,4 @@
 
   <depend>medrct_common</depend>
   <depend>medrct_env</depend>
-  <depend>medrct_franka_control</depend>
 </package>

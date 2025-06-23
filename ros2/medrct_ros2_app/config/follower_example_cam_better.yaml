@@ -1,0 +1,24 @@
+parent: ".follower_example.yaml"
+controllers:
+  - input:
+      to_reference_rotation:
+        quaternion:
+          x: 0.9659258
+          y: 0
+          z: 0
+          w: -0.258819
+      kinematics_tip_append_rotation:
+        quaternion:
+          x: 0
+          y: 0
+          z: 0.7071068
+          w: 0.7071068
+    output:
+      to_reference_rotation:
+        quaternion:
+          x: 1
+          y: 0
+          z: 0
+          w: 0
+      rotate_about_base_frame_vs_tip_frame: True
+  -

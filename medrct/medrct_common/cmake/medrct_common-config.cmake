@@ -5,6 +5,7 @@ endif()
 
 include(CMakeFindDependencyMacro)
 find_dependency(Eigen3 REQUIRED)
+find_dependency(fmt REQUIRED)
 
 if(NOT TARGET @PROJECT_NAME@::@PROJECT_NAME@)
 

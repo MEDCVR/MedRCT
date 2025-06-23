@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(medrct_env VERSION 0.0.1)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -19,10 +19,13 @@ add_library(${PROJECT_NAME} SHARED
   src/kinematics/simple_forward_kinematics.cc
 )
 
+find_package(urdfdom REQUIRED) 
+
 target_include_directories(${PROJECT_NAME}
 PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+${urdfdom_INCLUDE_DIRS}
 PRIVATE
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 )
@@ -33,8 +36,7 @@ find_package(yaml-cpp REQUIRED)
 find_package(medrct_common REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC medrct_common::medrct_common)
 
-find_package(urdfdom REQUIRED COMPONENTS urdfdom_model)
-target_link_libraries(${PROJECT_NAME} PUBLIC urdfdom_model)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${urdfdom_LIBRARIES})
 
 # Scripts
 # add_executable(kdl_psm_test benchmark/kdl_psm_test.cc)

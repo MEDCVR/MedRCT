@@ -6,5 +6,14 @@
   <maintainer email="radian.gondokaryono@mail.utorontol.ca">radian</maintainer>
   <license>TODO</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>medrct_common</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  
+  <export>  
+    <build_type>ament_cmake</build_type>
+  </export>
+
 </package>
