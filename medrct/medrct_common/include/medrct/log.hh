@@ -7,7 +7,7 @@
 namespace medrctlog = spdlog;
 
 template <typename T>
-std::string TypeToString(T value)
+inline std::string TypeToString(T value)
 {
   std::stringstream ss;
   ss << value;
