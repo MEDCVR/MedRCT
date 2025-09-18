@@ -60,5 +60,5 @@ TEST(TestQuaternion, logger)
   quat.y() = 0;
   quat.z() = 0;
 
-  medrctlog::info("Quaternion: \n{}", quat.toRotationMatrix());
+  medrctlog::info("Quaternion: \n{}", TypeToString(quat.toRotationMatrix()));
 }

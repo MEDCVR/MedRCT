@@ -31,5 +31,5 @@ TEST(TestVector3D, logger)
 {
   Vector3 a(1, 2, 3);
 
-  medrctlog::info("Vector: \n{}", a);
+  medrctlog::info("Vector: \n{}", TypeToString(a));
 }

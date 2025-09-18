@@ -13,8 +13,8 @@ using Ref = Eigen::Ref<T>;
 
 void Print(const TransformIsometry3& mat)
 {
-  medrctlog::info("position: \n{}", mat.translation());
-  medrctlog::info("rotation: \n{}", mat.linear());
+  medrctlog::info("position: \n{}", TypeToString(mat.translation()));
+  medrctlog::info("rotation: \n{}", TypeToString(mat.linear()));
 }
 
 void SetPosition(TransformIsometry3& mat, const Vector3& pos)
@@ -51,14 +51,14 @@ int main(int, char**)
   Print(TransformIsometry3::Identity());
 
   Vector3 pos3 = aff * pos2;
-  medrctlog::info("{}", pos3);
+  medrctlog::info("{}", TypeToString(pos3));
 
   Rotation r = quat.toRotationMatrix();
   (void)r;
 
-  medrctlog::info("original rotation: \n{}", r);
+  medrctlog::info("original rotation: \n{}", TypeToString(r));
   MalModifyRotation(r);
-  medrctlog::info("modified rotation: \n{}", r);
+  medrctlog::info("modified rotation: \n{}", TypeToString(r));
 
   TransformIsometry3 t = TransformIsometry3::Identity();
   t.fromPositionOrientationScale(pos, quat, Vector3(1, 1, 1));

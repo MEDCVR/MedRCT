@@ -23,8 +23,8 @@ int main(int, char**)
                        d5: 0.1157
                        d6: 0.0922)";
   YAML::Node config = YAML::Load(yaml_params_string);
-  medrctlog::info(config["kinematic_plugins"]);
+  medrctlog::info(TypeToString(config["kinematic_plugins"]));
   int a_number = config["kinematic_plugins"]["a_number"].as<int>();
   int b_number = a_number + 2;
-  medrctlog::info("{}", b_number);
+  medrctlog::info("{}", TypeToString(b_number));
 }
