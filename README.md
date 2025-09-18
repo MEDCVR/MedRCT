@@ -109,7 +109,7 @@ Old and depcrecated dvrk_planning [instructions.](dvrk_python_v1/README.md)
 
 build:
 ```bash
-colcon build --packages-up-to medrct_ros2_app medrct_default_controller medrct_dvrk_env                             
+colcon build --packages-up-to medrct_ros2_app medrct_default_controller medrct_dvrk_env
 ```
 
 Start dvrk console: refer to medcvr dvrk wiki
@@ -121,8 +121,8 @@ ros2 run medrct_ros2_app ros2_teleop_node --ros-args -p config:=config/increment
 
 Start keyboard:
 ```
-    cd <dvrk_planning_folder>/ros2/medrct_ros2_app/scripts 
-    python3 ros2_psm_buffered_teleop_keyboard.py 
+    cd <dvrk_planning_folder>/ros2/medrct_ros2_app/scripts
+    python3 ros2_psm_buffered_teleop_keyboard.py
 ```
 
 ## ROS2 Franka
