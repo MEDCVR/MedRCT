@@ -75,6 +75,7 @@ int main(int argc, char** argv)
   }
   medrctlog::info("Controller is running");
   thd.join();
+  rclcpp::shutdown();
   medrctlog::info("Controller stopped");
   return 0;
 }

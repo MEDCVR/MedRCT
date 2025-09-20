@@ -40,6 +40,6 @@ TEST(PsmFactoryTest, testFKIKOutput)
 
   Transform tf;
   forward_kin->computeFK(tf, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
-  medrctlog::info("Transform {} translation", tf.translation());
-  medrctlog::info("Transform {} rotation", tf.rotation());
+  medrctlog::info("Transform {} translation", TypeToString(tf.translation()));
+  medrctlog::info("Transform {} rotation", TypeToString(tf.rotation()));
 }

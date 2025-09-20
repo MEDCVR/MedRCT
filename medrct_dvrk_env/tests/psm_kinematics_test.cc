@@ -37,8 +37,8 @@ TEST_F(PsmKinematicsTest, testFKIKOutput)
     auto ik_solutions = psm_inverse_kin->computeIK(output_fk);
     ASSERT_EQ(ik_solutions.size(), 1);
     std::vector<real_t> out_jps = ik_solutions[0];
-    medrctlog::info("output_fk translation: \n{}", output_fk.translation());
-    medrctlog::info("output_fk rotation: \n{}", output_fk.rotation());
+    medrctlog::info("output_fk translation: \n{}", TypeToString(output_fk.translation()));
+    medrctlog::info("output_fk rotation: \n{}", TypeToString(output_fk.rotation()));
     medrctlog::info(
         "joint_positions: \n{} {} {} {} {} {}",
         joint_positions[0],
