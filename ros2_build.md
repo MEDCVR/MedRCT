@@ -4,13 +4,12 @@ Install ROS2 for your specific ubuntu version.
 
 ```bash
 mkdir ~/medrct_ws && cd medrct_ws
-git clone https://mcsgitlab.utm.utoronto.ca/medcvr/dvrk_planning
-want a dvrk simulator
+git clone https://github.com/MEDCVR/MedRCT
 ```
 
 Dependencies
 ```bash
-sh ~/medrct_ws/dvrk_planning/install_deps.sh
+sh ~/medrct_ws/MedRCT/install_deps.sh
 ```
 
 ## DVRK Build 
@@ -44,7 +43,7 @@ ambf_simulator -l 5 # PSM
 2. Ambf crtk translator
 ```bash
 source ~/medrct_ws/install/setup.bash
- cd ~/medrct_ws/dvrk_planning/ros2/medrct_ros2_app/scripts/
+ cd ~/medrct_ws/MedRCT/ros2/medrct_ros2_app/scripts/
  python3 ambf_crtk_translator.py
 ```
 
@@ -60,7 +59,7 @@ ros2 run medrct_ros2_app ros2_teleop_node --ros-args -p config:=config/increment
 
 Start keyboard:
 ```bash
-cd <dvrk_planning_folder>/ros2/medrct_ros2_app/scripts
+cd ~/medrct_ws/MedRCT/ros2/medrct_ros2_app/scripts
 python3 ros2_psm_buffered_teleop_keyboard.py
 ```
 
