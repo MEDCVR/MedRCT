@@ -239,6 +239,7 @@ bool CartesianTeleopController::getInitialOutputTf()
   }
   JointState current_output_js =
       getLatestFromBufferedInputStream<JointState>(measured_js_stream_name);
+  command_output_js.names = current_output_js.names;
   forward_kinematics->computeFK(initial_output_tf, current_output_js.positions);
   return true;
 }

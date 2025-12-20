@@ -7,25 +7,26 @@ from rclpy.node import Node
 from geometry_msgs.msg import TwistStamped
 from sensor_msgs.msg import JointState
 import pygame
+import argparse
 
 msg = """
 Reading from the keyboard  and Publishing to Twist!
 ---------------------------
-d : +x
-a : -x
-w : +y
-s : -y
-e : up (+z)
-q : down (-z)
-D : +rot_x
-A : -rot_x
-W : +rot_y
-S : -rot_y
-E : +rot_z
-Q : -rot_z
+i : +x
+, : -x
+j : +y
+l : -y
+t : up (+z)
+b : down (-z)
+I : +rot_x
+< : -rot_x
+J : +rot_y
+L : -rot_y
+T : +rot_z
+B : -rot_z
 ------
-o : jaw close
-p : jaw open
+[ : jaw close
+] : jaw open
 
 CTRL-C to quit
 """
@@ -113,8 +114,17 @@ class PublishJointStateThread(threading.Thread):
 
 def main(args=None):
     rclpy.init(args=args)
+    argv = sys.argv
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--scale', type=float, required=False,
+                        default = 1.0,
+                        help = 'the package where you store the config yaml, default is "dvrk_planning_ros"')
+    args = parser.parse_args(argv[1:]) # skip argv[0], script name
+
+
     node = Node('teleop_twist_keyboard_pygame')
-    node.declare_parameter('increment', 0.0005)
+    node.declare_parameter('increment', 0.001 * args.scale)
     node.declare_parameter('rot_increment', 0.05)
     node.declare_parameter('rate', 20)
     node.declare_parameter('repeat_rate', 0.0)
@@ -157,24 +167,24 @@ def main(args=None):
 
             # Translation when SHIFT not held
             if not (mods & pygame.KMOD_SHIFT):
-                if keys[pygame.K_d]: x, is_key_pressed = 1, True
-                if keys[pygame.K_a]: x, is_key_pressed = -1, True
-                if keys[pygame.K_w]: y, is_key_pressed = 1, True
-                if keys[pygame.K_s]: y, is_key_pressed = -1, True
-                if keys[pygame.K_e]: z, is_key_pressed = 1, True
-                if keys[pygame.K_q]: z, is_key_pressed = -1, True
+                if keys[pygame.K_i]: x, is_key_pressed = 1, True
+                if keys[pygame.K_COMMA]: x, is_key_pressed = -1, True
+                if keys[pygame.K_j]: y, is_key_pressed = 1, True
+                if keys[pygame.K_l]: y, is_key_pressed = -1, True
+                if keys[pygame.K_t]: z, is_key_pressed = 1, True
+                if keys[pygame.K_b]: z, is_key_pressed = -1, True
             # Rotation when SHIFT held
             else:
-                if keys[pygame.K_d]: rot_x, is_key_pressed = 1, True
-                if keys[pygame.K_a]: rot_x, is_key_pressed = -1, True
-                if keys[pygame.K_w]: rot_y, is_key_pressed = 1, True
-                if keys[pygame.K_s]: rot_y, is_key_pressed = -1, True
-                if keys[pygame.K_e]: rot_z, is_key_pressed = 1, True
-                if keys[pygame.K_q]: rot_z, is_key_pressed = -1, True
+                if keys[pygame.K_i]: rot_x, is_key_pressed = 1, True
+                if keys[pygame.K_COMMA]: rot_x, is_key_pressed = -1, True
+                if keys[pygame.K_j]: rot_y, is_key_pressed = 1, True
+                if keys[pygame.K_l]: rot_y, is_key_pressed = -1, True
+                if keys[pygame.K_t]: rot_z, is_key_pressed = 1, True
+                if keys[pygame.K_b]: rot_z, is_key_pressed = -1, True
 
             # Jaw control
-            if keys[pygame.K_p]: jaw_inc, is_key_pressed = 1, True
-            if keys[pygame.K_o]: jaw_inc, is_key_pressed = -1, True
+            if keys[pygame.K_RIGHTBRACKET]: jaw_inc, is_key_pressed = 1, True
+            if keys[pygame.K_LEFTBRACKET]: jaw_inc, is_key_pressed = -1, True
 
             if is_key_pressed:
                 pub_tf_thread.update(x, y, z, rot_x, rot_y, rot_z, increment, rot_increment)
